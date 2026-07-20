@@ -1,6 +1,11 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import {
+  Navigate,
+  Route,
+  Routes,
+} from 'react-router-dom';
 
 import { AppLayout } from './layouts/AppLayout';
+import { Clients } from './pages/Clients';
 import { Dashboard } from './pages/Dashboard';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 
@@ -15,9 +20,7 @@ function App() {
 
         <Route
           path="/clients"
-          element={
-            <PlaceholderPage title="Clients" />
-          }
+          element={<Clients />}
         />
 
         <Route
@@ -79,7 +82,9 @@ function App() {
 
       <Route
         path="*"
-        element={<Navigate to="/" replace />}
+        element={
+          <Navigate to="/" replace />
+        }
       />
     </Routes>
   );
