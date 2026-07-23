@@ -12,650 +12,390 @@ import {
 } from 'lucide-react';
 import {
   FormEvent,
+  useCallback,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
+import { Link } from 'react-router-dom';
 
-import { STORAGE_KEYS } from '../data/constants';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import {
+  createClient,
+  deleteClient,
+  getClients,
+  updateClient,
+} from '../services/clientService';
 import type { Client } from '../types/client';
-import { generateId } from '../utils/generateId';
+import { ClientFormModal } from '../components/clients/ClientFormModal';
+import { DeleteClientModal } from '../components/clients/DeleteClientModal';
 import './Clients.css';
 
-type ClientFormData = {
-  name: string;
-  company: string;
-  email: string;
-  phone: string;
-  nationality: string;
-  emiratesId: string;
-  passport: string;
-  address: string;
-  notes: string;
-};
+type StatusFilter = Client['status'] | 'all';
+type TypeFilter = Client['client_type'] | 'all';
 
-const emptyForm: ClientFormData = {
-  name: '',
-  company: '',
-  email: '',
-  phone: '',
-  nationality: '',
-  emiratesId: '',
-  passport: '',
-  address: '',
-  notes: '',
-};
+const PAGE_SIZE = 12;
 
 export function Clients() {
-  const [clients, setClients] =
-    useLocalStorage<Client>(
-      STORAGE_KEYS.clients,
-      [],
-    );
+  const [clients, setClients] = useState<Client[]>([]);
+  const [totalClients, setTotalClients] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [clientTypeFilter, setClientTypeFilter] = useState<TypeFilter>('all');
+  const [page, setPage] = useState(1);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [activeClient, setActiveClient] = useState<Client | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
+  const [formLoading, setFormLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const [searchTerm, setSearchTerm] =
-    useState('');
+  const fetchClients = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-  const [isFormOpen, setIsFormOpen] =
-    useState(false);
+    try {
+      const result = await getClients({
+        search: searchTerm,
+        status: statusFilter,
+        clientType: clientTypeFilter,
+        page,
+        pageSize: PAGE_SIZE,
+      });
 
-  const [editingClientId, setEditingClientId] =
-    useState<string | null>(null);
+      setClients(result.data);
+      setTotalClients(result.count);
+    } catch (fetchError) {
+      if (fetchError instanceof Error) {
+        setError(fetchError.message);
+      } else {
+        setError('Unable to load clients.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [searchTerm, statusFilter, clientTypeFilter, page]);
 
-  const [formData, setFormData] =
-    useState<ClientFormData>(emptyForm);
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
-  const [formError, setFormError] =
-    useState('');
-
-  const filteredClients = useMemo(() => {
-    const query = searchTerm
-      .trim()
-      .toLowerCase();
-
-    if (!query) {
-      return clients;
+  const filteredLabel = useMemo(() => {
+    if (searchTerm || statusFilter !== 'all' || clientTypeFilter !== 'all') {
+      return 'Filtered results';
     }
 
-    return clients.filter((client) => {
-      const searchableValues = [
-        client.name,
-        client.company,
-        client.email,
-        client.phone,
-        client.nationality,
-        client.emiratesId,
-        client.passport,
-      ];
+    return 'All clients';
+  }, [searchTerm, statusFilter, clientTypeFilter]);
 
-      return searchableValues.some((value) =>
-        value
-          ?.toLowerCase()
-          .includes(query),
-      );
-    });
-  }, [clients, searchTerm]);
+  const statusBadgeClass = (status: Client['status']) => {
+    return `status-badge ${status}`;
+  };
 
-  const openCreateForm = () => {
-    setEditingClientId(null);
-    setFormData(emptyForm);
-    setFormError('');
+  const typeBadgeClass = (type: Client['client_type']) => {
+    return `type-badge ${type}`;
+  };
+
+  const openNewClient = () => {
+    setActiveClient(null);
     setIsFormOpen(true);
   };
 
-  const openEditForm = (client: Client) => {
-    setEditingClientId(client.id);
-
-    setFormData({
-      name: client.name,
-      company: client.company ?? '',
-      email: client.email,
-      phone: client.phone,
-      nationality:
-        client.nationality ?? '',
-      emiratesId:
-        client.emiratesId ?? '',
-      passport: client.passport ?? '',
-      address: client.address ?? '',
-      notes: client.notes ?? '',
-    });
-
-    setFormError('');
+  const openEditClient = (client: Client) => {
+    setActiveClient(client);
     setIsFormOpen(true);
   };
 
   const closeForm = () => {
+    setActiveClient(null);
     setIsFormOpen(false);
-    setEditingClientId(null);
-    setFormData(emptyForm);
-    setFormError('');
   };
 
-  const updateFormField = (
-    field: keyof ClientFormData,
-    value: string,
+  const handleSave = async (
+    id: string | null,
+    data: Parameters<typeof createClient>[0] | Parameters<typeof updateClient>[1],
   ) => {
-    setFormData((current) => ({
-      ...current,
-      [field]: value,
-    }));
+    setFormLoading(true);
+    try {
+      if (id) {
+        const updated = await updateClient(id, data as Parameters<typeof updateClient>[1]);
+        setClients((current) =>
+          current.map((client) =>
+            client.id === id ? updated : client,
+          ),
+        );
+      } else {
+        const created = await createClient(data as Parameters<typeof createClient>[0]);
+        setClients((current) => [created, ...current]);
+        setTotalClients((current) => current + 1);
+      }
+    } finally {
+      setFormLoading(false);
+    }
   };
 
-  const handleSubmit = (
-    event: FormEvent<HTMLFormElement>,
-  ) => {
-    event.preventDefault();
-
-    const name = formData.name.trim();
-    const phone = formData.phone.trim();
-    const email = formData.email.trim();
-
-    if (!name) {
-      setFormError(
-        'Client name is required.',
-      );
+  const confirmDelete = async () => {
+    if (!deleteTarget) {
       return;
     }
 
-    if (!phone && !email) {
-      setFormError(
-        'Enter at least a phone number or email address.',
+    setDeleteLoading(true);
+    try {
+      await deleteClient(deleteTarget.id);
+      setClients((current) =>
+        current.filter((client) => client.id !== deleteTarget.id),
       );
-      return;
+      setTotalClients((current) => Math.max(0, current - 1));
+      setDeleteTarget(null);
+    } catch (deleteError) {
+      if (deleteError instanceof Error) {
+        setError(deleteError.message);
+      } else {
+        setError('Unable to delete client.');
+      }
+    } finally {
+      setDeleteLoading(false);
     }
-
-    const now = new Date().toISOString();
-
-    if (editingClientId) {
-      setClients((currentClients) =>
-        currentClients.map((client) =>
-          client.id === editingClientId
-            ? {
-                ...client,
-                name,
-                company:
-                  formData.company.trim(),
-                email,
-                phone,
-                nationality:
-                  formData.nationality.trim(),
-                emiratesId:
-                  formData.emiratesId.trim(),
-                passport:
-                  formData.passport.trim(),
-                address:
-                  formData.address.trim(),
-                notes:
-                  formData.notes.trim(),
-                updatedAt: now,
-              }
-            : client,
-        ),
-      );
-    } else {
-      const newClient: Client = {
-        id: generateId(),
-        name,
-        company:
-          formData.company.trim(),
-        email,
-        phone,
-        nationality:
-          formData.nationality.trim(),
-        emiratesId:
-          formData.emiratesId.trim(),
-        passport:
-          formData.passport.trim(),
-        address:
-          formData.address.trim(),
-        notes:
-          formData.notes.trim(),
-        createdAt: now,
-        updatedAt: now,
-      };
-
-      setClients((currentClients) => [
-        newClient,
-        ...currentClients,
-      ]);
-    }
-
-    closeForm();
   };
 
-  const handleDelete = (
-    client: Client,
-  ) => {
-    const confirmed = window.confirm(
-      `Delete the client record for ${client.name}?`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    setClients((currentClients) =>
-      currentClients.filter(
-        (item) => item.id !== client.id,
-      ),
-    );
+  const closeDelete = () => {
+    setDeleteTarget(null);
   };
+
+  const startDelete = (client: Client) => {
+    setDeleteTarget(client);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setPage(1);
+  };
+
+  const handleStatusChange = (value: StatusFilter) => {
+    setStatusFilter(value);
+    setPage(1);
+  };
+
+  const handleTypeChange = (value: TypeFilter) => {
+    setClientTypeFilter(value);
+    setPage(1);
+  };
+
+  const pageCount = Math.max(1, Math.ceil(totalClients / PAGE_SIZE));
 
   return (
-    <div className="page-container">
+    <div className="clients-page page-container">
       <section className="page-heading clients-heading">
         <div>
-          <p className="page-eyebrow">
-            Client management
-          </p>
-
+          <p className="page-eyebrow">Client management</p>
           <h2>Clients</h2>
-
-          <p>
-            Maintain complete client
-            records, contact details,
-            identification information,
-            and internal notes.
+          <p className="page-intro">
+            Manage client records, onboarding status, identification, and company details with direct access to every client profile.
           </p>
         </div>
 
         <button
           type="button"
           className="primary-action-button"
-          onClick={openCreateForm}
+          onClick={openNewClient}
         >
-          <Plus size={19} />
+          <Plus size={18} />
           Add Client
         </button>
       </section>
 
-      <section className="clients-toolbar panel">
+      <section className="clients-toolbar">
         <div className="clients-search">
-          <Search size={19} />
-
+          <Search size={18} />
           <input
-            type="search"
             value={searchTerm}
             onChange={(event) =>
-              setSearchTerm(
-                event.target.value,
-              )
+              handleSearchChange(event.target.value)
             }
-            placeholder="Search by name, company, phone, email, Emirates ID, or passport"
+            placeholder="Search clients, phone, email, company, Emirates ID, passport"
             aria-label="Search clients"
           />
         </div>
 
-        <div className="clients-count">
-          <strong>{filteredClients.length}</strong>
-          <span>
-            {filteredClients.length === 1
-              ? 'client'
-              : 'clients'}
-          </span>
+        <div className="clients-filters">
+          <div className="filter-field">
+            <label>Status</label>
+            <select
+              value={statusFilter}
+              onChange={(event) =>
+                handleStatusChange(
+                  event.target.value as StatusFilter,
+                )
+              }
+            >
+              <option value="all">All statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="prospect">Prospect</option>
+            </select>
+          </div>
+
+          <div className="filter-field">
+            <label>Client type</label>
+            <select
+              value={clientTypeFilter}
+              onChange={(event) =>
+                handleTypeChange(
+                  event.target.value as TypeFilter,
+                )
+              }
+            >
+              <option value="all">All types</option>
+              <option value="individual">Individual</option>
+              <option value="company">Company</option>
+            </select>
+          </div>
         </div>
       </section>
 
-      {filteredClients.length === 0 ? (
-        <section className="panel clients-empty-state">
-          <UserRound size={48} />
+      <section className="clients-status-row">
+        <div>
+          <strong>{filteredLabel}</strong>
+          <span>{totalClients} total clients</span>
+        </div>
 
-          <h3>
-            {clients.length === 0
-              ? 'No clients added yet'
-              : 'No matching clients'}
-          </h3>
-
-          <p>
-            {clients.length === 0
-              ? 'Create your first client record to begin managing legal matters.'
-              : 'Try changing your search terms.'}
-          </p>
-
-          {clients.length === 0 && (
-            <button
-              type="button"
-              className="primary-action-button"
-              onClick={openCreateForm}
-            >
-              <Plus size={18} />
-              Add First Client
-            </button>
+        <div>
+          {loading ? (
+            <span>Loading clients…</span>
+          ) : (
+            <span>
+              Showing {clients.length} of {totalClients}
+            </span>
           )}
-        </section>
-      ) : (
-        <section className="clients-grid">
-          {filteredClients.map(
-            (client) => (
-              <article
-                key={client.id}
-                className="client-card"
-              >
-                <div className="client-card-header">
-                  <div className="client-avatar">
-                    {getInitials(
-                      client.name,
-                    )}
-                  </div>
+        </div>
+      </section>
 
-                  <div className="client-card-title">
-                    <h3>{client.name}</h3>
-
-                    <span>
-                      {client.company ||
-                        'Individual Client'}
-                    </span>
-                  </div>
-
-                  <div className="client-card-actions">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        openEditForm(client)
-                      }
-                      aria-label={`Edit ${client.name}`}
-                    >
-                      <Edit3 size={17} />
-                    </button>
-
-                    <button
-                      type="button"
-                      className="danger-icon-button"
-                      onClick={() =>
-                        handleDelete(client)
-                      }
-                      aria-label={`Delete ${client.name}`}
-                    >
-                      <Trash2 size={17} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="client-details">
-                  {client.phone && (
-                    <ClientDetail
-                      icon={<Phone size={17} />}
-                      label="Phone"
-                      value={client.phone}
-                    />
-                  )}
-
-                  {client.email && (
-                    <ClientDetail
-                      icon={<Mail size={17} />}
-                      label="Email"
-                      value={client.email}
-                    />
-                  )}
-
-                  {client.company && (
-                    <ClientDetail
-                      icon={
-                        <Building2
-                          size={17}
-                        />
-                      }
-                      label="Company"
-                      value={client.company}
-                    />
-                  )}
-
-                  {client.address && (
-                    <ClientDetail
-                      icon={
-                        <MapPin size={17} />
-                      }
-                      label="Address"
-                      value={client.address}
-                    />
-                  )}
-                </div>
-
-                <div className="client-card-meta">
-                  <span>
-                    Nationality:{' '}
-                    <strong>
-                      {client.nationality ||
-                        'Not provided'}
-                    </strong>
-                  </span>
-
-                  <span>
-                    Added:{' '}
-                    <strong>
-                      {formatDate(
-                        client.createdAt,
-                      )}
-                    </strong>
-                  </span>
-                </div>
-              </article>
-            ),
-          )}
-        </section>
-      )}
-
-      {isFormOpen && (
-        <div
-          className="client-modal-layer"
-          role="presentation"
-        >
-          <button
-            type="button"
-            className="client-modal-backdrop"
-            onClick={closeForm}
-            aria-label="Close client form"
-          />
-
-          <section
-            className="client-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="client-form-title"
-          >
-            <header className="client-modal-header">
-              <div>
-                <p className="page-eyebrow">
-                  Client record
-                </p>
-
-                <h3 id="client-form-title">
-                  {editingClientId
-                    ? 'Edit Client'
-                    : 'Add New Client'}
-                </h3>
-              </div>
-
-              <button
-                type="button"
-                className="client-modal-close"
-                onClick={closeForm}
-                aria-label="Close"
-              >
-                <X size={21} />
-              </button>
-            </header>
-
-            <form
-              className="client-form"
-              onSubmit={handleSubmit}
-            >
-              <div className="client-form-grid">
-                <FormField
-                  label="Client Name"
-                  required
-                >
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(event) =>
-                      updateFormField(
-                        'name',
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Full legal name"
-                    autoFocus
-                  />
-                </FormField>
-
-                <FormField label="Company">
-                  <input
-                    type="text"
-                    value={
-                      formData.company
-                    }
-                    onChange={(event) =>
-                      updateFormField(
-                        'company',
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Company or organisation"
-                  />
-                </FormField>
-
-                <FormField label="Phone">
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(event) =>
-                      updateFormField(
-                        'phone',
-                        event.target.value,
-                      )
-                    }
-                    placeholder="+971"
-                  />
-                </FormField>
-
-                <FormField label="Email">
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(event) =>
-                      updateFormField(
-                        'email',
-                        event.target.value,
-                      )
-                    }
-                    placeholder="client@example.com"
-                  />
-                </FormField>
-
-                <FormField label="Nationality">
-                  <input
-                    type="text"
-                    value={
-                      formData.nationality
-                    }
-                    onChange={(event) =>
-                      updateFormField(
-                        'nationality',
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Nationality"
-                  />
-                </FormField>
-
-                <FormField label="Emirates ID">
-                  <input
-                    type="text"
-                    value={
-                      formData.emiratesId
-                    }
-                    onChange={(event) =>
-                      updateFormField(
-                        'emiratesId',
-                        event.target.value,
-                      )
-                    }
-                    placeholder="784-XXXX-XXXXXXX-X"
-                  />
-                </FormField>
-
-                <FormField label="Passport Number">
-                  <input
-                    type="text"
-                    value={
-                      formData.passport
-                    }
-                    onChange={(event) =>
-                      updateFormField(
-                        'passport',
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Passport number"
-                  />
-                </FormField>
-
-                <FormField label="Address">
-                  <input
-                    type="text"
-                    value={
-                      formData.address
-                    }
-                    onChange={(event) =>
-                      updateFormField(
-                        'address',
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Residential or business address"
-                  />
-                </FormField>
-
-                <FormField
-                  label="Internal Notes"
-                  wide
-                >
-                  <textarea
-                    value={formData.notes}
-                    onChange={(event) =>
-                      updateFormField(
-                        'notes',
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Relevant background, instructions, or internal remarks"
-                    rows={4}
-                  />
-                </FormField>
-              </div>
-
-              {formError && (
-                <div
-                  className="client-form-error"
-                  role="alert"
-                >
-                  {formError}
-                </div>
-              )}
-
-              <footer className="client-form-actions">
-                <button
-                  type="button"
-                  className="secondary-action-button"
-                  onClick={closeForm}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  className="primary-action-button"
-                >
-                  {editingClientId
-                    ? 'Save Changes'
-                    : 'Create Client'}
-                </button>
-              </footer>
-            </form>
-          </section>
+      {error && (
+        <div className="clients-error" role="alert">
+          {error}
         </div>
       )}
+
+      <section className="clients-table-wrap">
+        <table className="clients-table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Type</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Identification</th>
+              <th>Status</th>
+              <th>Created Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={8} className="clients-loading-cell">
+                  Loading clients…
+                </td>
+              </tr>
+            ) : clients.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="clients-empty-cell">
+                  No clients match the current filters.
+                </td>
+              </tr>
+            ) : (
+              clients.map((client) => (
+                <tr key={client.id}>
+                  <td className="client-name-cell">
+                    <div className="client-name-stack">
+                      <strong>{client.full_name}</strong>
+                      {client.company_name && (
+                        <span>{client.company_name}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <span className={typeBadgeClass(client.client_type)}>
+                      {client.client_type}
+                    </span>
+                  </td>
+                  <td>{client.phone ?? '-'}</td>
+                  <td>{client.email ?? '-'}</td>
+                  <td>
+                    {client.emirates_id || client.passport_number || '-'}
+                  </td>
+                  <td>
+                    <span className={statusBadgeClass(client.status)}>
+                      {client.status}
+                    </span>
+                  </td>
+                  <td>{formatDate(client.created_at)}</td>
+                  <td className="table-actions">
+                    <Link
+                      className="action-link"
+                      to={`/clients/${client.id}`}
+                    >
+                      View
+                    </Link>
+                    <button
+                      type="button"
+                      className="action-button"
+                      onClick={() => openEditClient(client)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="action-button danger"
+                      onClick={() => startDelete(client)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="pagination-controls">
+        <button
+          type="button"
+          onClick={() => setPage((current) => Math.max(1, current - 1))}
+          disabled={page === 1 || loading}
+        >
+          Previous
+        </button>
+        <span>
+          Page {page} of {pageCount}
+        </span>
+        <button
+          type="button"
+          onClick={() =>
+            setPage((current) => Math.min(pageCount, current + 1))
+          }
+          disabled={page >= pageCount || loading}
+        >
+          Next
+        </button>
+      </section>
+
+      <ClientFormModal
+        open={isFormOpen}
+        client={activeClient}
+        onClose={closeForm}
+        onSave={handleSave}
+        loading={formLoading}
+      />
+
+      <DeleteClientModal
+        open={Boolean(deleteTarget)}
+        clientName={deleteTarget?.full_name ?? ''}
+        loading={deleteLoading}
+        onCancel={closeDelete}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
@@ -737,12 +477,9 @@ function formatDate(value: string): string {
     return 'Unknown';
   }
 
-  return new Intl.DateTimeFormat(
-    'en-AE',
-    {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    },
-  ).format(date);
+  return new Intl.DateTimeFormat('en-AE', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date);
 }

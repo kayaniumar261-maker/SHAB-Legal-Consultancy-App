@@ -1,0 +1,72 @@
+.case-details-header {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+}
+
+.case-details-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.case-details-summary {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  border-radius: 24px;
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+
+.case-details-summary-row {
+  display: grid;
+  gap: 6px;
+}
+
+.case-details-summary-row span {
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.case-details-summary-row strong {
+  color: #111827;
+  font-size: 0.95rem;
+}
+
+.case-details-loading,
+.case-details-error {
+  padding: 24px;
+  border-radius: 24px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  color: #475569;
+}
+
+.case-details-error {
+  color: #991b1b;
+  background: rgba(254, 226, 226, 0.9);
+}
+
+.back-button {
+  align-self: start;
+}
+
+.delete-case-button {
+  border-color: #f87171;
+  color: #b91c1c;
+}
+
+.delete-case-button:hover {
+  background: #fef2f2;
+}
+
+@media (max-width: 960px) {
+  .case-details-header {
+    grid-template-columns: 1fr;
+  }
+}

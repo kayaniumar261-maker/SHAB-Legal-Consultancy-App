@@ -5,18 +5,28 @@ import {
 } from 'react-router-dom';
 
 import { AppLayout } from './layouts/AppLayout';
+import { CaseDetails } from './pages/CaseDetails';
+import { CaseFormPage } from './pages/CaseFormPage';
+import { Cases } from './pages/Cases';
 import { Clients } from './pages/Clients';
+import { ClientDetails } from './pages/ClientDetails';
 import { Dashboard } from './pages/Dashboard';
+import { Login } from './pages/Login';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+import { Tasks } from './pages/Tasks';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
   return (
     <Routes>
-      <Route element={<AppLayout />}>
-        <Route
-          path="/"
-          element={<Dashboard />}
-        />
+      <Route path="/login" element={<Login />} />
+
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          <Route
+            path="/"
+            element={<Dashboard />}
+          />
 
         <Route
           path="/clients"
@@ -24,17 +34,33 @@ function App() {
         />
 
         <Route
+          path="/clients/:id"
+          element={<ClientDetails />}
+        />
+
+        <Route
           path="/cases"
-          element={
-            <PlaceholderPage title="Cases" />
-          }
+          element={<Cases />}
+        />
+
+        <Route
+          path="/cases/new"
+          element={<CaseFormPage />}
+        />
+
+        <Route
+          path="/cases/:id/edit"
+          element={<CaseFormPage />}
+        />
+
+        <Route
+          path="/cases/:id"
+          element={<CaseDetails />}
         />
 
         <Route
           path="/tasks"
-          element={
-            <PlaceholderPage title="Tasks" />
-          }
+          element={<Tasks />}
         />
 
         <Route
@@ -78,6 +104,7 @@ function App() {
             <PlaceholderPage title="Settings" />
           }
         />
+      </Route>
       </Route>
 
       <Route

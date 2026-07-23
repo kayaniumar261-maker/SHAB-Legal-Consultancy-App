@@ -1,0 +1,125 @@
+.case-tabs {
+  display: grid;
+  gap: 20px;
+}
+
+.case-tabs-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.case-tab-button {
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #334155;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.case-tab-button-active {
+  border-color: #c9a84c;
+  background: #f9f5e9;
+  color: #111827;
+}
+
+.case-tabs-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.case-tabs-content-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.case-summary-card {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border-radius: 24px;
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+
+.case-summary-card-wide {
+  grid-column: 1 / -1;
+}
+
+.case-summary-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.case-summary-row {
+  display: grid;
+  gap: 4px;
+}
+
+.case-summary-row span {
+  color: #6b7280;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.case-summary-row strong {
+  color: #111827;
+  font-size: 0.95rem;
+}
+
+.case-empty-state {
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #475569;
+}
+
+@media (max-width: 960px) {
+  .case-tabs-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Hearing Status Badges */
+.hearing-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.hearing-status-scheduled {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.hearing-status-pending {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.hearing-status-completed {
+  background-color: #e8f5e9;
+  color: #388e3c;
+}
+
+.hearing-status-adjourned {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.hearing-status-cancelled {
+  background-color: #ffebee;
+  color: #c62828;
+}
+

@@ -1,0 +1,18 @@
+.case-form-page {
+  display: grid;
+  gap: 18px;
+}
+
+.case-form-loading,
+.case-form-error {
+  padding: 24px;
+  border-radius: 24px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  color: #475569;
+}
+
+.case-form-error {
+  color: #991b1b;
+  background: rgba(254, 226, 226, 0.9);
+}

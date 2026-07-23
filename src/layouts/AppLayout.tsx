@@ -16,7 +16,10 @@ import { useState } from 'react';
 import {
   NavLink,
   Outlet,
+  useNavigate,
 } from 'react-router-dom';
+
+import { useAuth } from '../hooks/useAuth';
 
 const navigationItems = [
   {
@@ -76,6 +79,8 @@ export function AppLayout() {
     isMobileMenuOpen,
     setIsMobileMenuOpen,
   ] = useState(false);
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
@@ -145,6 +150,17 @@ export function AppLayout() {
               <strong>Umar Kayani</strong>
               <span>Administrator</span>
             </div>
+
+            <button
+              type="button"
+              className="signout-button"
+              onClick={async () => {
+                await signOut();
+                navigate('/login', { replace: true });
+              }}
+            >
+              Sign Out
+            </button>
           </div>
         </header>
 

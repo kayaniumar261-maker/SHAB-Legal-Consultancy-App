@@ -1,0 +1,249 @@
+.hearing-details-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.hearing-details-modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.hearing-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.hearing-details-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111111;
+}
+
+.hearing-details-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.hearing-details-close:hover {
+  color: #111111;
+}
+
+.hearing-details-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.hearing-details-section {
+  margin-bottom: 24px;
+}
+
+.hearing-details-section h3 {
+  margin: 0 0 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #c9a84c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hearing-details-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.hearing-details-row:last-child {
+  border-bottom: none;
+}
+
+.hearing-details-row-full {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.hearing-details-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  min-width: 120px;
+}
+
+.hearing-details-value {
+  font-size: 14px;
+  color: #111111;
+  text-align: right;
+  flex: 1;
+}
+
+.hearing-details-row-full .hearing-details-label {
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.hearing-details-notes {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+  padding: 12px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+/* Status Badges */
+.hearing-status-badge,
+.hearing-type-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hearing-status-scheduled {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.hearing-status-pending {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.hearing-status-completed {
+  background-color: #e8f5e9;
+  color: #388e3c;
+}
+
+.hearing-status-adjourned {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.hearing-status-cancelled {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+/* Hearing Type Badges */
+.hearing-type-preliminary {
+  background-color: #e1f5fe;
+  color: #01579b;
+}
+
+.hearing-type-case-management {
+  background-color: #f1f8e9;
+  color: #558b2f;
+}
+
+.hearing-type-final-hearing {
+  background-color: #ede7f6;
+  color: #512da8;
+}
+
+.hearing-type-appeal {
+  background-color: #fce4ec;
+  color: #c2185b;
+}
+
+.hearing-type-other {
+  background-color: #f5f5f5;
+  color: #616161;
+}
+
+.hearing-details-meta {
+  background-color: #f9f9f9;
+  padding: 16px;
+  border-radius: 6px;
+  margin-top: 16px;
+}
+
+.hearing-details-meta .hearing-details-row {
+  padding: 8px 0;
+}
+
+.hearing-details-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f9f9f9;
+  text-align: right;
+}
+
+.hearing-details-close-button {
+  padding: 10px 20px;
+  background-color: #c9a84c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.hearing-details-close-button:hover {
+  background-color: #b8941e;
+}
+
+@media (max-width: 640px) {
+  .hearing-details-modal {
+    max-width: 100%;
+  }
+
+  .hearing-details-header {
+    padding: 16px;
+  }
+
+  .hearing-details-content {
+    padding: 16px;
+  }
+
+  .hearing-details-row {
+    flex-direction: column;
+  }
+
+  .hearing-details-value {
+    text-align: left;
+    margin-top: 4px;
+  }
+
+  .hearing-details-footer {
+    padding: 12px 16px;
+    text-align: center;
+  }
+
+  .hearing-details-close-button {
+    width: 100%;
+  }
+}

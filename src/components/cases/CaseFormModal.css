@@ -1,0 +1,39 @@
+/* Basic modal styles used by CaseFormModal and DeleteCaseModal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,6,23,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  width: 92%;
+  max-width: 900px;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.4);
+}
+
+.modal.large {
+  max-width: 1100px;
+}
+
+.modal h3 {
+  margin: 0 0 8px 0;
+}
+
+.modal-actions,
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+@media (min-width: 768px) {
+  .modal { width: 80%; }
+}
