@@ -1,24 +1,26 @@
 import { useEffect, useState } from 'react';
+import {
+  CalendarDays,
+  FolderOpen,
+  Scale,
+  UserRound,
+} from 'lucide-react';
 import { getCases } from '../../services/caseService';
-import type { CaseWithRelations as CaseType } from '../../types/case';
-
-type CaseRow = {
-  case_number: string;
-  client_name?: string;
-  case_type: string;
-  assigned_lawyer: string;
-  court: string;
-  status: string;
-  next_hearing: string | null;
-};
+import type { CaseWithRelations } from '../../types/case';
+import './RecentCases.css';
 
 export function RecentCases() {
-  const [cases, setCases] = useState<CaseType[]>([]);
+  const [cases, setCases] = useState<CaseWithRelations[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const res = await getCases({ pageSize: 4 });
-      setCases(res.data);
+      try {
+        const result = await getCases({ pageSize: 4 });
+        setCases(result.data ?? []);
+      } finally {
+        setLoading(false);
+      }
     }
 
     load();
@@ -27,58 +29,135 @@ export function RecentCases() {
   function statusClass(status: string) {
     switch (status) {
       case 'Open':
-        return 'status-pill open';
-      case 'In Progress':
-        return 'status-pill progress';
+        return 'case-status open';
+
       case 'Closed':
-        return 'status-pill closed';
+        return 'case-status closed';
+
+      case 'In Progress':
+        return 'case-status progress';
+
       case 'Appeal':
-        return 'status-pill appeal';
+        return 'case-status appeal';
+
       case 'Urgent':
-        return 'status-pill urgent';
+        return 'case-status urgent';
+
       default:
-        return 'status-pill open';
+        return 'case-status';
     }
+  }
+
+  function formatDate(date: string | null) {
+    if (!date) return 'No Hearing';
+
+    return new Date(date).toLocaleDateString();
+  }
+
+  if (loading) {
+    return (
+      <section className="dashboard-panel recent-cases-panel">
+        <div className="recent-cases-loading">
+          Loading recent cases...
+        </div>
+      </section>
+    );
   }
 
   return (
     <section className="dashboard-panel recent-cases-panel">
-      <div className="panel-heading-row">
+      <div className="recent-cases-header">
         <div>
+          <span className="recent-eyebrow">
+            CASE MANAGEMENT
+          </span>
+
           <h3>Recent Cases</h3>
-          <p>Current matters that need your attention.</p>
+
+          <p>
+            Current legal matters requiring attention.
+          </p>
+        </div>
+
+        <div className="recent-header-icon">
+          <Scale size={22} />
         </div>
       </div>
 
-      <div className="recent-cases-table-wrap">
-        <table className="recent-cases-table">
-          <thead>
-            <tr>
-              <th>Case Number</th>
-              <th>Client</th>
-              <th>Case Type</th>
-              <th>Lawyer</th>
-              <th>Court</th>
-              <th>Status</th>
-              <th>Next Hearing</th>
-            </tr>
-          </thead>
-          <tbody>
-            {cases.map((c) => (
-              <tr key={c.id}>
-                <td>{c.case_number}</td>
-                <td>{c.client_id}</td>
-                <td>{c.case_type}</td>
-                <td>{c.assigned_staff?.full_name ?? c.assigned_staff_id ?? '-'}</td>
-                <td>{c.court}</td>
-                <td>
-                  <span className={statusClass(String(c.status))}>{String(c.status)}</span>
-                </td>
-                <td>{c.next_hearing_at ?? '-'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="recent-case-list">
+        {cases.map((item) => (
+          <div
+            key={item.id}
+            className="recent-case-card"
+          >
+            <div className="recent-top">
+              <div className="case-icon">
+                <FolderOpen size={18} />
+              </div>
+
+              <div className="case-title">
+                <strong>{item.case_number}</strong>
+
+                <span>{item.case_type}</span>
+              </div>
+
+              <span
+                className={statusClass(
+                  String(item.status)
+                )}
+              >
+                {String(item.status)}
+              </span>
+            </div>
+
+            <div className="recent-info-grid">
+              <div>
+                <UserRound size={15} />
+
+                <div>
+                  <small>Client</small>
+
+                  <strong>
+                    {item.client_id || '-'}
+                  </strong>
+                </div>
+              </div>
+
+              <div>
+                <Scale size={15} />
+
+                <div>
+                  <small>Lawyer</small>
+
+                  <strong>
+                    {item.assigned_staff?.full_name ??
+                      '-'}
+                  </strong>
+                </div>
+              </div>
+
+              <div>
+                <CalendarDays size={15} />
+
+                <div>
+                  <small>Hearing</small>
+
+                  <strong>
+                    {formatDate(
+                      item.next_hearing_at
+                    )}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="recent-footer">
+              <span>Court</span>
+
+              <strong>{item.court}</strong>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );

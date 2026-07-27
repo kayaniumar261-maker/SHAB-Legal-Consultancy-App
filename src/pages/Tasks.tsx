@@ -1,11 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Edit3, Plus, Search, Trash2, Play } from 'lucide-react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ClipboardList,
+  Clock3,
+  Edit3,
+  Play,
+  Plus,
+  Search,
+  Trash2,
+} from 'lucide-react';
 
 import {
   getTasks,
+  getTaskDashboardStats,
   getClientOptions,
+  getCaseOptions,
   getStaffOptions,
-  getCasesByClient,
   createTask,
   updateTask,
   deleteTask,
@@ -14,6 +25,7 @@ import {
   type ClientOption,
   type CaseOption,
   type StaffOption,
+  type TaskDashboardStats,
 } from '../services/taskService';
 import type { Task, TaskPriority, TaskStatus } from '../types/task';
 import { TaskFormModal } from '../components/tasks/TaskFormModal';
@@ -21,6 +33,14 @@ import { DeleteTaskModal } from '../components/tasks/DeleteTaskModal';
 import './Tasks.css';
 
 const PAGE_SIZE = 12;
+
+const initialStats: TaskDashboardStats = {
+  total: 0,
+  dueToday: 0,
+  overdue: 0,
+  inProgress: 0,
+  completed: 0,
+};
 
 const statusOptions: Array<TaskStatus | 'all'> = [
   'all',
@@ -40,32 +60,50 @@ const priorityOptions: Array<TaskPriority | 'all'> = [
 
 export function Tasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [stats, setStats] = useState<TaskDashboardStats>(initialStats);
+
   const [clients, setClients] = useState<Record<string, string>>({});
   const [cases, setCases] = useState<Record<string, string>>({});
   const [staff, setStaff] = useState<Record<string, string>>({});
+
   const [clientOptions, setClientOptions] = useState<ClientOption[]>([]);
   const [caseOptions, setCaseOptions] = useState<CaseOption[]>([]);
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
-  const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
-  const [assignedStaffFilter, setAssignedStaffFilter] = useState<string | 'all'>('all');
+  const [statusFilter, setStatusFilter] =
+    useState<TaskStatus | 'all'>('all');
+  const [priorityFilter, setPriorityFilter] =
+    useState<TaskPriority | 'all'>('all');
+  const [assignedStaffFilter, setAssignedStaffFilter] =
+    useState<string | 'all'>('all');
+
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
+
   const [formLoading, setFormLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [actionTaskId, setActionTaskId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const [tasksResult, clientOpts, staffOpts] = await Promise.all([
+      const [
+        tasksResult,
+        statsResult,
+        clientOpts,
+        caseOpts,
+        staffOpts,
+      ] = await Promise.all([
         getTasks({
           search,
           status: statusFilter,
@@ -74,34 +112,52 @@ export function Tasks() {
           page,
           pageSize: PAGE_SIZE,
         }),
+        getTaskDashboardStats(),
         getClientOptions(),
+        getCaseOptions(),
         getStaffOptions(),
       ]);
 
       setTasks(tasksResult.data);
       setTotalCount(tasksResult.count);
+      setStats(statsResult);
+
       setClientOptions(clientOpts);
+      setCaseOptions(caseOpts);
       setStaffOptions(staffOpts);
 
-      const clientMap = clientOpts.reduce<Record<string, string>>((acc, c) => {
-        acc[c.id] = c.full_name;
-        return acc;
-      }, {});
+      const clientMap = clientOpts.reduce<Record<string, string>>(
+        (accumulator, client) => {
+          accumulator[client.id] = client.full_name;
+          return accumulator;
+        },
+        {},
+      );
+
+      const caseMap = caseOpts.reduce<Record<string, string>>(
+        (accumulator, caseItem) => {
+          const caseNumber = caseItem.case_number?.trim();
+
+          accumulator[caseItem.id] = caseNumber
+            ? caseNumber
+            : caseItem.case_type || `Case ${caseItem.id.slice(0, 8)}`;
+
+          return accumulator;
+        },
+        {},
+      );
+
+      const staffMap = staffOpts.reduce<Record<string, string>>(
+        (accumulator, staffMember) => {
+          accumulator[staffMember.id] = staffMember.name;
+          return accumulator;
+        },
+        {},
+      );
+
       setClients(clientMap);
-
-      const staffMap = staffOpts.reduce<Record<string, string>>((acc, s) => {
-        acc[s.id] = s.name;
-        return acc;
-      }, {});
-      setStaff(staffMap);
-
-      const caseMap = tasksResult.data.reduce<Record<string, string>>((acc, task) => {
-        if (task.case_id) {
-          acc[task.case_id] = `Case ${task.case_id.slice(0, 8)}`;
-        }
-        return acc;
-      }, {});
       setCases(caseMap);
+      setStaff(staffMap);
     } catch (fetchError) {
       if (fetchError instanceof Error) {
         setError(fetchError.message);
@@ -111,34 +167,59 @@ export function Tasks() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, priorityFilter, assignedStaffFilter, page]);
+  }, [
+    search,
+    statusFilter,
+    priorityFilter,
+    assignedStaffFilter,
+    page,
+  ]);
 
   useEffect(() => {
-    fetchData();
+    void fetchData();
   }, [fetchData]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
   const handleSave = async (
     id: string | null,
-    data: Parameters<typeof createTask>[0] | Parameters<typeof updateTask>[1],
+    data:
+      | Parameters<typeof createTask>[0]
+      | Parameters<typeof updateTask>[1],
   ) => {
     setFormLoading(true);
+    setError(null);
+
     try {
       if (id) {
-        const updated = await updateTask(id, data as Parameters<typeof updateTask>[1]);
-        setTasks((current) =>
-          current.map((task) =>
-            task.id === id ? updated : task,
-          ),
+        await updateTask(
+          id,
+          data as Parameters<typeof updateTask>[1],
         );
       } else {
-        const created = await createTask(data as Parameters<typeof createTask>[0]);
-        setTasks((current) => [created, ...current]);
-        setTotalCount((current) => current + 1);
+        await createTask(
+          data as Parameters<typeof createTask>[0],
+        );
       }
+
       setIsFormOpen(false);
       setActiveTask(null);
+
+      await fetchData();
+    } catch (saveError) {
+      if (saveError instanceof Error) {
+        setError(saveError.message);
+      } else {
+        setError('Unable to save task.');
+      }
+
+      throw saveError;
     } finally {
       setFormLoading(false);
     }
@@ -150,13 +231,13 @@ export function Tasks() {
     }
 
     setDeleteLoading(true);
+    setError(null);
+
     try {
       await deleteTask(deleteTarget.id);
-      setTasks((current) =>
-        current.filter((task) => task.id !== deleteTarget.id),
-      );
-      setTotalCount((current) => Math.max(0, current - 1));
       setDeleteTarget(null);
+
+      await fetchData();
     } catch (deleteError) {
       if (deleteError instanceof Error) {
         setError(deleteError.message);
@@ -169,36 +250,38 @@ export function Tasks() {
   };
 
   const handleComplete = async (task: Task) => {
+    setActionTaskId(task.id);
+    setError(null);
+
     try {
-      const updated = await completeTask(task.id);
-      setTasks((current) =>
-        current.map((t) =>
-          t.id === task.id ? updated : t,
-        ),
-      );
+      await completeTask(task.id);
+      await fetchData();
     } catch (completeError) {
       if (completeError instanceof Error) {
         setError(completeError.message);
       } else {
         setError('Unable to complete task.');
       }
+    } finally {
+      setActionTaskId(null);
     }
   };
 
   const handleMarkInProgress = async (task: Task) => {
+    setActionTaskId(task.id);
+    setError(null);
+
     try {
-      const updated = await markTaskInProgress(task.id);
-      setTasks((current) =>
-        current.map((t) =>
-          t.id === task.id ? updated : t,
-        ),
-      );
+      await markTaskInProgress(task.id);
+      await fetchData();
     } catch (progressError) {
       if (progressError instanceof Error) {
         setError(progressError.message);
       } else {
         setError('Unable to update task.');
       }
+    } finally {
+      setActionTaskId(null);
     }
   };
 
@@ -213,17 +296,31 @@ export function Tasks() {
   };
 
   const closeForm = () => {
+    if (formLoading) {
+      return;
+    }
+
     setActiveTask(null);
     setIsFormOpen(false);
   };
 
-  const filteredLabel = useMemo(() => {
-    if (search || statusFilter !== 'all' || priorityFilter !== 'all' || assignedStaffFilter !== 'all') {
-      return 'Filtered tasks';
-    }
+  const clearFilters = () => {
+    setSearch('');
+    setStatusFilter('all');
+    setPriorityFilter('all');
+    setAssignedStaffFilter('all');
+    setPage(1);
+  };
 
-    return 'All tasks';
-  }, [search, statusFilter, priorityFilter, assignedStaffFilter]);
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    statusFilter !== 'all' ||
+    priorityFilter !== 'all' ||
+    assignedStaffFilter !== 'all';
+
+  const filteredLabel = useMemo(() => {
+    return hasActiveFilters ? 'Filtered tasks' : 'All tasks';
+  }, [hasActiveFilters]);
 
   return (
     <div className="tasks-page page-container">
@@ -232,7 +329,8 @@ export function Tasks() {
           <p className="page-eyebrow">Task management</p>
           <h2>Tasks</h2>
           <p className="page-intro">
-            Manage tasks, track progress, and assign work to team members.
+            Manage assignments, monitor deadlines and track team
+            progress from one central workspace.
           </p>
         </div>
 
@@ -246,9 +344,65 @@ export function Tasks() {
         </button>
       </section>
 
+      <section
+        className="tasks-stats-grid"
+        aria-label="Task summary"
+      >
+        <article className="task-stat-card">
+          <div className="task-stat-icon">
+            <ClipboardList size={20} />
+          </div>
+          <div>
+            <span>Total Tasks</span>
+            <strong>{stats.total}</strong>
+          </div>
+        </article>
+
+        <article className="task-stat-card">
+          <div className="task-stat-icon">
+            <Clock3 size={20} />
+          </div>
+          <div>
+            <span>Due Today</span>
+            <strong>{stats.dueToday}</strong>
+          </div>
+        </article>
+
+        <article className="task-stat-card task-stat-card-warning">
+          <div className="task-stat-icon">
+            <AlertTriangle size={20} />
+          </div>
+          <div>
+            <span>Overdue</span>
+            <strong>{stats.overdue}</strong>
+          </div>
+        </article>
+
+        <article className="task-stat-card">
+          <div className="task-stat-icon">
+            <Play size={20} />
+          </div>
+          <div>
+            <span>In Progress</span>
+            <strong>{stats.inProgress}</strong>
+          </div>
+        </article>
+
+        <article className="task-stat-card task-stat-card-success">
+          <div className="task-stat-icon">
+            <CheckCircle2 size={20} />
+          </div>
+          <div>
+            <span>Completed</span>
+            <strong>{stats.completed}</strong>
+          </div>
+        </article>
+      </section>
+
       <section className="tasks-toolbar">
         <div className="tasks-search">
           <Search size={18} />
+
           <input
             value={search}
             onChange={(event) => {
@@ -262,42 +416,62 @@ export function Tasks() {
 
         <div className="tasks-filters">
           <div className="filter-field">
-            <label>Status</label>
+            <label htmlFor="task-status-filter">Status</label>
+
             <select
+              id="task-status-filter"
               value={statusFilter}
               onChange={(event) => {
-                setStatusFilter(event.target.value as TaskStatus | 'all');
+                setStatusFilter(
+                  event.target.value as TaskStatus | 'all',
+                );
                 setPage(1);
               }}
             >
               {statusOptions.map((status) => (
                 <option key={status} value={status}>
-                  {status === 'all' ? 'All statuses' : status}
+                  {status === 'all'
+                    ? 'All statuses'
+                    : status}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="filter-field">
-            <label>Priority</label>
+            <label htmlFor="task-priority-filter">
+              Priority
+            </label>
+
             <select
+              id="task-priority-filter"
               value={priorityFilter}
               onChange={(event) => {
-                setPriorityFilter(event.target.value as TaskPriority | 'all');
+                setPriorityFilter(
+                  event.target.value as
+                    | TaskPriority
+                    | 'all',
+                );
                 setPage(1);
               }}
             >
               {priorityOptions.map((priority) => (
                 <option key={priority} value={priority}>
-                  {priority === 'all' ? 'All priorities' : priority}
+                  {priority === 'all'
+                    ? 'All priorities'
+                    : priority}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="filter-field">
-            <label>Assigned To</label>
+            <label htmlFor="task-staff-filter">
+              Assigned To
+            </label>
+
             <select
+              id="task-staff-filter"
               value={assignedStaffFilter}
               onChange={(event) => {
                 setAssignedStaffFilter(event.target.value);
@@ -305,6 +479,7 @@ export function Tasks() {
               }}
             >
               <option value="all">All staff</option>
+
               {staffOptions.map((member) => (
                 <option key={member.id} value={member.id}>
                   {member.name}
@@ -318,12 +493,27 @@ export function Tasks() {
       <section className="tasks-status-row">
         <div>
           <strong>{filteredLabel}</strong>
-          <span>{totalCount} total tasks</span>
+          <span>
+            {totalCount}{' '}
+            {totalCount === 1 ? 'task' : 'tasks'}
+          </span>
         </div>
+
+        {hasActiveFilters ? (
+          <button
+            type="button"
+            className="tasks-clear-filters"
+            onClick={clearFilters}
+          >
+            Clear filters
+          </button>
+        ) : null}
       </section>
 
       {error ? (
-        <div className="tasks-error">{error}</div>
+        <div className="tasks-error" role="alert">
+          {error}
+        </div>
       ) : null}
 
       <section className="tasks-table-wrapper">
@@ -340,98 +530,181 @@ export function Tasks() {
               <th>Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} className="loading-cell">Loading tasks…</td>
+                <td colSpan={8} className="loading-cell">
+                  Loading tasks…
+                </td>
               </tr>
             ) : tasks.length === 0 ? (
               <tr>
-                <td colSpan={8} className="empty-cell">No tasks found.</td>
+                <td colSpan={8} className="empty-cell">
+                  <div className="tasks-empty-state">
+                    <ClipboardList size={28} />
+                    <strong>No tasks found</strong>
+                    <span>
+                      {hasActiveFilters
+                        ? 'Try changing or clearing the current filters.'
+                        : 'Create your first task to get started.'}
+                    </span>
+                  </div>
+                </td>
               </tr>
             ) : (
-              tasks.map((task) => (
-                <tr key={task.id}>
-                  <td className="task-title-cell">
-                    <strong>{task.title}</strong>
-                  </td>
-                  <td>{clients[task.client_id ?? ''] ?? '—'}</td>
-                  <td>{task.case_id ? task.case_id.slice(0, 8) : '—'}</td>
-                  <td>{staff[task.assigned_staff_id ?? ''] ?? '—'}</td>
-                  <td>
-                    <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
-                      {task.priority}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`status-badge status-${task.status.toLowerCase().replace(' ', '-')}`}>
-                      {task.status}
-                    </span>
-                  </td>
-                  <td>{task.due_at ? formatDate(task.due_at) : '—'}</td>
-                  <td className="task-actions">
-                    {task.status !== 'Completed' ? (
-                      <>
-                        <button
-                          type="button"
-                          className="action-button complete-button"
-                          onClick={() => handleComplete(task)}
-                          title="Mark complete"
-                        >
-                          <CheckCircle2 size={16} />
-                        </button>
-                        {task.status !== 'In Progress' ? (
+              tasks.map((task) => {
+                const actionLoading =
+                  actionTaskId === task.id;
+
+                return (
+                  <tr key={task.id}>
+                    <td className="task-title-cell">
+                      <strong>{task.title}</strong>
+
+                      {task.description ? (
+                        <span className="task-description">
+                          {task.description}
+                        </span>
+                      ) : null}
+                    </td>
+
+                    <td>
+                      {task.client_id
+                        ? clients[task.client_id] ?? 'Unknown client'
+                        : '—'}
+                    </td>
+
+                    <td>
+                      {task.case_id
+                        ? cases[task.case_id] ??
+                          `Case ${task.case_id.slice(0, 8)}`
+                        : '—'}
+                    </td>
+
+                    <td>
+                      {task.assigned_staff_id
+                        ? staff[task.assigned_staff_id] ??
+                          'Unknown staff'
+                        : '—'}
+                    </td>
+
+                    <td>
+                      <span
+                        className={`priority-badge priority-${task.priority.toLowerCase()}`}
+                      >
+                        {task.priority}
+                      </span>
+                    </td>
+
+                    <td>
+                      <span
+                        className={`status-badge status-${task.status
+                          .toLowerCase()
+                          .replace(/\s+/g, '-')}`}
+                      >
+                        {task.status}
+                      </span>
+                    </td>
+
+                    <td>
+                      {task.due_at
+                        ? formatDate(task.due_at)
+                        : '—'}
+                    </td>
+
+                    <td className="task-actions">
+                      {task.status !== 'Completed' ? (
+                        <>
                           <button
                             type="button"
-                            className="action-button progress-button"
-                            onClick={() => handleMarkInProgress(task)}
-                            title="Mark in progress"
+                            className="action-button complete-button"
+                            onClick={() =>
+                              void handleComplete(task)
+                            }
+                            title="Mark complete"
+                            aria-label={`Mark ${task.title} complete`}
+                            disabled={actionLoading}
                           >
-                            <Play size={16} />
+                            <CheckCircle2 size={16} />
                           </button>
-                        ) : null}
-                      </>
-                    ) : null}
-                    <button
-                      type="button"
-                      className="action-button edit-button"
-                      onClick={() => openEditTask(task)}
-                      title="Edit"
-                    >
-                      <Edit3 size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      className="action-button delete-button"
-                      onClick={() => setDeleteTarget(task)}
-                      title="Delete"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))
+
+                          {task.status !== 'In Progress' ? (
+                            <button
+                              type="button"
+                              className="action-button progress-button"
+                              onClick={() =>
+                                void handleMarkInProgress(task)
+                              }
+                              title="Mark in progress"
+                              aria-label={`Mark ${task.title} in progress`}
+                              disabled={actionLoading}
+                            >
+                              <Play size={16} />
+                            </button>
+                          ) : null}
+                        </>
+                      ) : null}
+
+                      <button
+                        type="button"
+                        className="action-button edit-button"
+                        onClick={() => openEditTask(task)}
+                        title="Edit task"
+                        aria-label={`Edit ${task.title}`}
+                        disabled={actionLoading}
+                      >
+                        <Edit3 size={16} />
+                      </button>
+
+                      <button
+                        type="button"
+                        className="action-button delete-button"
+                        onClick={() => setDeleteTarget(task)}
+                        title="Delete task"
+                        aria-label={`Delete ${task.title}`}
+                        disabled={actionLoading}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </section>
 
       {totalPages > 1 ? (
-        <section className="tasks-pagination">
+        <section
+          className="tasks-pagination"
+          aria-label="Task pagination"
+        >
           <button
             type="button"
-            onClick={() => setPage((current) => Math.max(1, current - 1))}
-            disabled={page <= 1}
+            onClick={() =>
+              setPage((current) =>
+                Math.max(1, current - 1),
+              )
+            }
+            disabled={page <= 1 || loading}
           >
             Previous
           </button>
+
           <span>
             Page {page} of {totalPages}
           </span>
+
           <button
             type="button"
-            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-            disabled={page >= totalPages}
+            onClick={() =>
+              setPage((current) =>
+                Math.min(totalPages, current + 1),
+              )
+            }
+            disabled={page >= totalPages || loading}
           >
             Next
           </button>
@@ -453,7 +726,11 @@ export function Tasks() {
         open={Boolean(deleteTarget)}
         taskTitle={deleteTarget?.title ?? ''}
         loading={deleteLoading}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => {
+          if (!deleteLoading) {
+            setDeleteTarget(null);
+          }
+        }}
         onConfirm={handleDelete}
       />
     </div>

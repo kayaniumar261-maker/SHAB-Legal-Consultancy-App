@@ -1,0 +1,607 @@
+.dashboard-page {
+  display: grid;
+  gap: 22px;
+  width: 100%;
+}
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.dashboard-header > div {
+  min-width: 0;
+}
+
+.dashboard-header h2 {
+  margin: 4px 0 8px;
+  color: #0f172a;
+  font-size: clamp(1.65rem, 2.5vw, 2.15rem);
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.dashboard-header .page-eyebrow {
+  margin: 0;
+  color: #9a7825;
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.dashboard-header .page-intro {
+  max-width: 760px;
+  margin: 0;
+  color: #64748b;
+  font-size: 0.94rem;
+  line-height: 1.65;
+}
+
+/* =========================================================
+   KPI GRID
+   ========================================================= */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.kpi-grid > * {
+  min-width: 0;
+}
+
+/*
+  These selectors support the most common KPI component
+  class names without affecting other application modules.
+*/
+
+.kpi-grid .kpi-card,
+.kpi-grid .dashboard-kpi-card,
+.kpi-grid article {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 132px;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.kpi-grid .kpi-card:hover,
+.kpi-grid .dashboard-kpi-card:hover,
+.kpi-grid article:hover {
+  transform: translateY(-2px);
+  border-color: #d5dbe5;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.07);
+}
+
+.kpi-grid .kpi-card::after,
+.kpi-grid .dashboard-kpi-card::after,
+.kpi-grid article::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 74px;
+  height: 74px;
+  border-radius: 0 0 0 74px;
+  background: linear-gradient(
+    135deg,
+    rgba(201, 168, 76, 0.11),
+    rgba(201, 168, 76, 0)
+  );
+  content: '';
+  pointer-events: none;
+}
+
+.kpi-grid svg {
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   QUICK ACTIONS
+   ========================================================= */
+
+.dashboard-page .quick-actions,
+.dashboard-page .dashboard-quick-actions {
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.035);
+}
+
+.dashboard-page .quick-actions-header,
+.dashboard-page .dashboard-quick-actions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.dashboard-page .quick-actions h3,
+.dashboard-page .dashboard-quick-actions h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.dashboard-page .quick-actions-grid,
+.dashboard-page .dashboard-quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dashboard-page .quick-actions a,
+.dashboard-page .quick-actions button,
+.dashboard-page .dashboard-quick-actions a,
+.dashboard-page .dashboard-quick-actions button {
+  min-width: 0;
+}
+
+/* =========================================================
+   MAIN DASHBOARD LAYOUT
+   ========================================================= */
+
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.85fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.dashboard-col-left,
+.dashboard-col-right {
+  display: grid;
+  min-width: 0;
+  gap: 20px;
+}
+
+.dashboard-col-left > *,
+.dashboard-col-right > * {
+  min-width: 0;
+}
+
+/* =========================================================
+   DASHBOARD WIDGET SHELLS
+   ========================================================= */
+
+.dashboard-col-left > section,
+.dashboard-col-left > article,
+.dashboard-col-right > section,
+.dashboard-col-right > article,
+.dashboard-page .dashboard-widget,
+.dashboard-page .widget-card {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+}
+
+/*
+  Common widget headers. These selectors only apply inside
+  the Dashboard page.
+*/
+
+.dashboard-page .widget-header,
+.dashboard-page .dashboard-widget-header,
+.dashboard-page .card-header,
+.dashboard-page .section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.dashboard-page .widget-header h3,
+.dashboard-page .dashboard-widget-header h3,
+.dashboard-page .card-header h3,
+.dashboard-page .section-header h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.dashboard-page .widget-header p,
+.dashboard-page .dashboard-widget-header p,
+.dashboard-page .card-header p,
+.dashboard-page .section-header p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 0.77rem;
+  line-height: 1.45;
+}
+
+/* =========================================================
+   GENERIC DASHBOARD BUTTONS AND LINKS
+   ========================================================= */
+
+.dashboard-page a {
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+.dashboard-page button {
+  font: inherit;
+}
+
+.dashboard-page .view-all,
+.dashboard-page .widget-link,
+.dashboard-page .section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #9a7825;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.dashboard-page .view-all:hover,
+.dashboard-page .widget-link:hover,
+.dashboard-page .section-link:hover {
+  color: #755a18;
+}
+
+/* =========================================================
+   LIST ITEMS INSIDE DASHBOARD WIDGETS
+   ========================================================= */
+
+.dashboard-page .widget-list,
+.dashboard-page .dashboard-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-page .widget-list > *,
+.dashboard-page .dashboard-list > * {
+  border-bottom: 1px solid #eef2f7;
+}
+
+.dashboard-page .widget-list > *:last-child,
+.dashboard-page .dashboard-list > *:last-child {
+  border-bottom: 0;
+}
+
+/* =========================================================
+   DASHBOARD BADGES
+   ========================================================= */
+
+.dashboard-page .status-badge,
+.dashboard-page .priority-badge,
+.dashboard-page .dashboard-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.dashboard-page .status-badge.open,
+.dashboard-page .dashboard-badge.success {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.dashboard-page .status-badge.pending,
+.dashboard-page .priority-badge.high,
+.dashboard-page .dashboard-badge.warning {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.dashboard-page .priority-badge.urgent,
+.dashboard-page .dashboard-badge.danger {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.dashboard-page .status-badge.in_court,
+.dashboard-page .dashboard-badge.info {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* =========================================================
+   CHART CONTAINERS
+   ========================================================= */
+
+.dashboard-page .chart-container,
+.dashboard-page .revenue-chart-container,
+.dashboard-page .case-distribution-container {
+  min-height: 260px;
+  padding: 18px 20px 20px;
+}
+
+.dashboard-page canvas,
+.dashboard-page svg {
+  max-width: 100%;
+}
+
+/* =========================================================
+   CALENDAR
+   ========================================================= */
+
+.dashboard-page .calendar-widget,
+.dashboard-page .dashboard-calendar {
+  min-width: 0;
+}
+
+.dashboard-page .calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  padding: 14px 18px 18px;
+}
+
+.dashboard-page .calendar-day {
+  display: grid;
+  min-width: 0;
+  min-height: 38px;
+  place-items: center;
+  border-radius: 10px;
+  color: #475569;
+  font-size: 0.76rem;
+}
+
+.dashboard-page .calendar-day.today {
+  background: #c9a84c;
+  color: #ffffff;
+  font-weight: 850;
+}
+
+.dashboard-page .calendar-day.has-event:not(.today) {
+  background: #fff8e6;
+  color: #8a6719;
+  font-weight: 800;
+}
+
+/* =========================================================
+   LOADING AND EMPTY STATES
+   ========================================================= */
+
+.dashboard-page .loading-state,
+.dashboard-page .empty-state,
+.dashboard-page .widget-empty {
+  display: flex;
+  min-height: 160px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  color: #64748b;
+  text-align: center;
+}
+
+.dashboard-page .empty-state strong,
+.dashboard-page .widget-empty strong {
+  margin-top: 10px;
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+.dashboard-page .empty-state p,
+.dashboard-page .widget-empty p {
+  max-width: 420px;
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+/* =========================================================
+   SCROLLBARS
+   ========================================================= */
+
+.dashboard-page * {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.dashboard-page *::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.dashboard-page *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-page *::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
+
+@media (max-width: 1260px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-page .quick-actions-grid,
+  .dashboard-page .dashboard-quick-actions-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboard-layout {
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.85fr);
+  }
+}
+
+@media (max-width: 980px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-col-right {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-col-right > *:first-child,
+  .dashboard-col-right > *:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-page {
+    gap: 18px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-page .quick-actions-grid,
+  .dashboard-page .dashboard-quick-actions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-col-right {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-col-right > *:first-child,
+  .dashboard-col-right > *:last-child {
+    grid-column: auto;
+  }
+
+  .dashboard-page .widget-header,
+  .dashboard-page .dashboard-widget-header,
+  .dashboard-page .card-header,
+  .dashboard-page .section-header {
+    padding: 16px;
+  }
+
+  .dashboard-page .chart-container,
+  .dashboard-page .revenue-chart-container,
+  .dashboard-page .case-distribution-container {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 460px) {
+  .dashboard-page .quick-actions-grid,
+  .dashboard-page .dashboard-quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-grid .kpi-card,
+  .kpi-grid .dashboard-kpi-card,
+  .kpi-grid article {
+    min-height: 118px;
+    padding: 16px;
+  }
+}
+/* ================================
+   REVENUE CHART
+================================ */
+
+.revenue-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  height: 240px;
+  padding: 28px 10px 0;
+}
+
+.revenue-bar-item {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.revenue-bar {
+  width: min(42px, 70%);
+  min-height: 3px;
+  border-radius: 10px 10px 3px 3px;
+  background: linear-gradient(
+    180deg,
+    #d4af37 0%,
+    #9b7620 100%
+  );
+  box-shadow: 0 8px 18px rgba(155, 118, 32, 0.16);
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.revenue-bar:hover {
+  transform: translateY(-3px);
+  opacity: 0.9;
+}
+
+.revenue-bar-item span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #777;
+}
+
+.revenue-bar-item strong {
+  font-size: 11px;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .revenue-bars {
+    gap: 6px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .revenue-bar {
+    width: min(30px, 75%);
+  }
+
+  .revenue-bar-item strong {
+    font-size: 9px;
+  }
+}

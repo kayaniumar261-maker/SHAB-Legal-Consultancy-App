@@ -1,56 +1,448 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import {
+  FormEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import {
+  AlertTriangle,
+  BriefcaseBusiness,
+  Building2,
+  CalendarDays,
+  CircleDollarSign,
+  FileText,
+  Gavel,
+  Save,
+  ShieldCheck,
+  Sparkles,
+  UsersRound,
+} from 'lucide-react';
 
-import type { Case, CaseInsert, CasePriority, CaseStatus, CaseUpdate } from '../../types/case';
+import type {
+  Case,
+  CaseInsert,
+  CaseUpdate,
+} from '../../types/case';
 import type { Client } from '../../types/client';
 import type { Staff } from '../../types/staff';
 import './CaseForm.css';
+
+type CaseStatus =
+  | 'open'
+  | 'pending'
+  | 'in_court'
+  | 'closed'
+  | 'appeal';
+
+type CasePriority =
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'urgent';
+
+type RiskLevel =
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'critical';
+
+type ConfidentialityLevel =
+  | 'internal'
+  | 'confidential'
+  | 'highly_confidential';
 
 export type CaseFormProps = {
   caseRecord?: Case | null;
   clients: Array<Pick<Client, 'id' | 'full_name'>>;
   staff: Array<Pick<Staff, 'id' | 'full_name'>>;
   loading: boolean;
-  onSubmit: (data: CaseInsert | CaseUpdate) => Promise<void>;
+  onSubmit: (
+    data: CaseInsert | CaseUpdate,
+  ) => Promise<void>;
   submitLabel: string;
 };
 
 type FormState = {
   client_id: string;
   case_number: string;
+  matter_number: string;
   case_type: string;
+  practice_area: string;
+  department: string;
+  case_category: string;
+  proceeding_type: string;
+  jurisdiction: string;
+  external_reference: string;
+  file_reference: string;
+
   court: string;
+  court_division: string;
+  court_level: string;
   court_case_number: string;
+  police_case_number: string;
+  prosecution_number: string;
+  execution_number: string;
+  judge_name: string;
+
   opponent_name: string;
+  opponent_type: string;
+  opponent_company: string;
   opponent_lawyer: string;
+  opponent_law_firm: string;
+  opponent_email: string;
+  opponent_phone: string;
+
   assigned_staff_id: string;
+  responsible_lawyer_id: string;
+  case_manager_id: string;
+  legal_assistant_id: string;
+  assigned_team: string;
+
   status: CaseStatus;
   priority: CasePriority;
+  case_stage: string;
+  risk_level: RiskLevel;
+  confidentiality_level: ConfidentialityLevel;
+  completion_percentage: string;
+  is_vip: boolean;
+  requires_urgent_action: boolean;
+  is_archived: boolean;
+
   filing_date: string;
+  opened_at: string;
+  first_hearing_at: string;
   next_hearing_at: string;
+  next_action_at: string;
+  limitation_date: string;
+  judgment_at: string;
+  closed_at: string;
+
   case_value: string;
+  claim_amount: string;
+  settlement_amount: string;
+  judgment_amount: string;
+  recovered_amount: string;
+  total_billed: string;
+  total_paid: string;
+  outstanding_balance: string;
   currency: string;
+  fee_arrangement: string;
+
   description: string;
+  facts_summary: string;
+  client_objective: string;
+  legal_strategy: string;
+  next_actions: string;
   internal_notes: string;
+
+  ai_summary: string;
+  ai_risk_assessment: string;
+  ai_recommended_actions: string;
 };
 
 const emptyFormState: FormState = {
   client_id: '',
   case_number: '',
+  matter_number: '',
   case_type: '',
+  practice_area: '',
+  department: '',
+  case_category: '',
+  proceeding_type: '',
+  jurisdiction: 'UAE',
+  external_reference: '',
+  file_reference: '',
+
   court: '',
+  court_division: '',
+  court_level: '',
   court_case_number: '',
+  police_case_number: '',
+  prosecution_number: '',
+  execution_number: '',
+  judge_name: '',
+
   opponent_name: '',
+  opponent_type: '',
+  opponent_company: '',
   opponent_lawyer: '',
+  opponent_law_firm: '',
+  opponent_email: '',
+  opponent_phone: '',
+
   assigned_staff_id: '',
-  status: 'Open',
-  priority: 'Medium',
+  responsible_lawyer_id: '',
+  case_manager_id: '',
+  legal_assistant_id: '',
+  assigned_team: '',
+
+  status: 'open',
+  priority: 'medium',
+  case_stage: 'intake',
+  risk_level: 'medium',
+  confidentiality_level: 'internal',
+  completion_percentage: '0',
+  is_vip: false,
+  requires_urgent_action: false,
+  is_archived: false,
+
   filing_date: '',
+  opened_at: '',
+  first_hearing_at: '',
   next_hearing_at: '',
+  next_action_at: '',
+  limitation_date: '',
+  judgment_at: '',
+  closed_at: '',
+
   case_value: '',
+  claim_amount: '',
+  settlement_amount: '',
+  judgment_amount: '',
+  recovered_amount: '',
+  total_billed: '',
+  total_paid: '',
+  outstanding_balance: '',
   currency: 'AED',
+  fee_arrangement: '',
+
   description: '',
+  facts_summary: '',
+  client_objective: '',
+  legal_strategy: '',
+  next_actions: '',
   internal_notes: '',
+
+  ai_summary: '',
+  ai_risk_assessment: '',
+  ai_recommended_actions: '',
 };
+
+function normalizeStatus(
+  status: string | null | undefined,
+): CaseStatus {
+  switch (status?.toLowerCase().replace(/ /g, '_')) {
+    case 'pending':
+      return 'pending';
+    case 'in_court':
+      return 'in_court';
+    case 'closed':
+      return 'closed';
+    case 'appeal':
+      return 'appeal';
+    default:
+      return 'open';
+  }
+}
+
+function normalizePriority(
+  priority: string | null | undefined,
+): CasePriority {
+  switch (priority?.toLowerCase()) {
+    case 'low':
+      return 'low';
+    case 'high':
+      return 'high';
+    case 'urgent':
+      return 'urgent';
+    default:
+      return 'medium';
+  }
+}
+
+function normalizeRisk(
+  risk: string | null | undefined,
+): RiskLevel {
+  switch (risk?.toLowerCase()) {
+    case 'low':
+      return 'low';
+    case 'high':
+      return 'high';
+    case 'critical':
+      return 'critical';
+    default:
+      return 'medium';
+  }
+}
+
+function normalizeConfidentiality(
+  value: string | null | undefined,
+): ConfidentialityLevel {
+  switch (value?.toLowerCase().replace(/ /g, '_')) {
+    case 'confidential':
+      return 'confidential';
+    case 'highly_confidential':
+      return 'highly_confidential';
+    default:
+      return 'internal';
+  }
+}
+
+function toInputDateTime(
+  value: string | null | undefined,
+): string {
+  if (!value) {
+    return '';
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value.slice(0, 16);
+  }
+
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60_000);
+
+  return local.toISOString().slice(0, 16);
+}
+
+function toInputDate(
+  value: string | null | undefined,
+): string {
+  return value ? value.slice(0, 10) : '';
+}
+
+function toNumberString(
+  value: number | null | undefined,
+): string {
+  return value === null || value === undefined
+    ? ''
+    : String(value);
+}
+
+function buildFormState(
+  caseRecord?: Case | null,
+): FormState {
+  if (!caseRecord) {
+    return { ...emptyFormState };
+  }
+
+  return {
+    client_id: caseRecord.client_id ?? '',
+    case_number: caseRecord.case_number ?? '',
+    matter_number: caseRecord.matter_number ?? '',
+    case_type: caseRecord.case_type ?? '',
+    practice_area: caseRecord.practice_area ?? '',
+    department: caseRecord.department ?? '',
+    case_category: caseRecord.case_category ?? '',
+    proceeding_type: caseRecord.proceeding_type ?? '',
+    jurisdiction: caseRecord.jurisdiction ?? 'UAE',
+    external_reference:
+      caseRecord.external_reference ?? '',
+    file_reference: caseRecord.file_reference ?? '',
+
+    court: caseRecord.court ?? '',
+    court_division: caseRecord.court_division ?? '',
+    court_level: caseRecord.court_level ?? '',
+    court_case_number:
+      caseRecord.court_case_number ?? '',
+    police_case_number:
+      caseRecord.police_case_number ?? '',
+    prosecution_number:
+      caseRecord.prosecution_number ?? '',
+    execution_number:
+      caseRecord.execution_number ?? '',
+    judge_name: caseRecord.judge_name ?? '',
+
+    opponent_name: caseRecord.opponent_name ?? '',
+    opponent_type: caseRecord.opponent_type ?? '',
+    opponent_company:
+      caseRecord.opponent_company ?? '',
+    opponent_lawyer:
+      caseRecord.opponent_lawyer ?? '',
+    opponent_law_firm:
+      caseRecord.opponent_law_firm ?? '',
+    opponent_email:
+      caseRecord.opponent_email ?? '',
+    opponent_phone:
+      caseRecord.opponent_phone ?? '',
+
+    assigned_staff_id:
+      caseRecord.assigned_staff_id ?? '',
+    responsible_lawyer_id:
+      caseRecord.responsible_lawyer_id ?? '',
+    case_manager_id:
+      caseRecord.case_manager_id ?? '',
+    legal_assistant_id:
+      caseRecord.legal_assistant_id ?? '',
+    assigned_team: caseRecord.assigned_team ?? '',
+
+    status: normalizeStatus(caseRecord.status),
+    priority: normalizePriority(caseRecord.priority),
+    case_stage: caseRecord.case_stage ?? 'intake',
+    risk_level: normalizeRisk(caseRecord.risk_level),
+    confidentiality_level: normalizeConfidentiality(
+      caseRecord.confidentiality_level,
+    ),
+    completion_percentage: toNumberString(
+      caseRecord.completion_percentage,
+    ),
+    is_vip: Boolean(caseRecord.is_vip),
+    requires_urgent_action: Boolean(
+      caseRecord.requires_urgent_action,
+    ),
+    is_archived: Boolean(caseRecord.is_archived),
+
+    filing_date: toInputDate(caseRecord.filing_date),
+    opened_at: toInputDateTime(caseRecord.opened_at),
+    first_hearing_at: toInputDateTime(
+      caseRecord.first_hearing_at,
+    ),
+    next_hearing_at: toInputDateTime(
+      caseRecord.next_hearing_at,
+    ),
+    next_action_at: toInputDateTime(
+      caseRecord.next_action_at,
+    ),
+    limitation_date: toInputDate(
+      caseRecord.limitation_date,
+    ),
+    judgment_at: toInputDateTime(
+      caseRecord.judgment_at,
+    ),
+    closed_at: toInputDateTime(caseRecord.closed_at),
+
+    case_value: toNumberString(caseRecord.case_value),
+    claim_amount: toNumberString(
+      caseRecord.claim_amount,
+    ),
+    settlement_amount: toNumberString(
+      caseRecord.settlement_amount,
+    ),
+    judgment_amount: toNumberString(
+      caseRecord.judgment_amount,
+    ),
+    recovered_amount: toNumberString(
+      caseRecord.recovered_amount,
+    ),
+    total_billed: toNumberString(
+      caseRecord.total_billed,
+    ),
+    total_paid: toNumberString(caseRecord.total_paid),
+    outstanding_balance: toNumberString(
+      caseRecord.outstanding_balance,
+    ),
+    currency: caseRecord.currency ?? 'AED',
+    fee_arrangement:
+      caseRecord.fee_arrangement ?? '',
+
+    description: caseRecord.description ?? '',
+    facts_summary: caseRecord.facts_summary ?? '',
+    client_objective:
+      caseRecord.client_objective ?? '',
+    legal_strategy:
+      caseRecord.legal_strategy ?? '',
+    next_actions: caseRecord.next_actions ?? '',
+    internal_notes: caseRecord.internal_notes ?? '',
+
+    ai_summary: caseRecord.ai_summary ?? '',
+    ai_risk_assessment:
+      caseRecord.ai_risk_analysis ?? '',
+    ai_recommended_actions:
+      caseRecord.ai_recommended_actions ?? '',
+  };
+}
 
 export function CaseForm({
   caseRecord,
@@ -60,94 +452,100 @@ export function CaseForm({
   onSubmit,
   submitLabel,
 }: CaseFormProps) {
-  const [formState, setFormState] = useState<FormState>(() => {
-    if (!caseRecord) {
-      return emptyFormState;
-    }
-
-    return {
-      client_id: caseRecord.client_id,
-      case_number: caseRecord.case_number,
-      case_type: caseRecord.case_type,
-      court: caseRecord.court,
-      court_case_number: caseRecord.court_case_number ?? '',
-      opponent_name: caseRecord.opponent_name ?? '',
-      opponent_lawyer: caseRecord.opponent_lawyer ?? '',
-      assigned_staff_id: caseRecord.assigned_staff_id ?? '',
-      status: caseRecord.status,
-      priority: caseRecord.priority,
-      filing_date: caseRecord.filing_date,
-      next_hearing_at: caseRecord.next_hearing_at ?? '',
-      case_value: caseRecord.case_value?.toString() ?? '',
-      currency: caseRecord.currency ?? 'AED',
-      description: caseRecord.description ?? '',
-      internal_notes: caseRecord.internal_notes ?? '',
-    };
-  });
-  const [error, setError] = useState<string | null>(null);
+  const [formState, setFormState] = useState<FormState>(
+    () => buildFormState(caseRecord),
+  );
+  const [error, setError] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
-    if (!caseRecord) {
-      setFormState(emptyFormState);
-      return;
-    }
-
-    setFormState({
-      client_id: caseRecord.client_id,
-      case_number: caseRecord.case_number,
-      case_type: caseRecord.case_type,
-      court: caseRecord.court,
-      court_case_number: caseRecord.court_case_number ?? '',
-      opponent_name: caseRecord.opponent_name ?? '',
-      opponent_lawyer: caseRecord.opponent_lawyer ?? '',
-      assigned_staff_id: caseRecord.assigned_staff_id ?? '',
-      status: caseRecord.status,
-      priority: caseRecord.priority,
-      filing_date: caseRecord.filing_date,
-      next_hearing_at: caseRecord.next_hearing_at ?? '',
-      case_value: caseRecord.case_value?.toString() ?? '',
-      currency: caseRecord.currency ?? 'AED',
-      description: caseRecord.description ?? '',
-      internal_notes: caseRecord.internal_notes ?? '',
-    });
+    setFormState(buildFormState(caseRecord));
   }, [caseRecord]);
 
   const clientOptions = useMemo(
-    () => [{ id: '', full_name: 'Select client' }, ...clients],
+    () => [
+      { id: '', full_name: 'Select client' },
+      ...clients,
+    ],
     [clients],
+  );
+
+  const staffOptions = useMemo(
+    () => [
+      { id: '', full_name: 'Select staff member' },
+      ...staff,
+    ],
+    [staff],
   );
 
   const validationErrors = useMemo(() => {
     const errors: string[] = [];
 
     if (!formState.client_id) {
-      errors.push('Please assign a client to the case.');
-    }
-
-    if (!formState.case_number.trim()) {
-      errors.push('Case number is required.');
+      errors.push('Please assign a client.');
     }
 
     if (!formState.case_type.trim()) {
-      errors.push('Case type is required.');
+      errors.push('Matter type is required.');
     }
 
-    if (!formState.court.trim()) {
-      errors.push('Court name is required.');
-    }
-
-    if (!formState.assigned_staff_id.trim()) {
+    if (!formState.assigned_staff_id) {
       errors.push('Assigned staff is required.');
     }
 
-    if (!formState.filing_date.trim()) {
-      errors.push('Filing date is required.');
+    if (
+      formState.completion_percentage &&
+      (Number(formState.completion_percentage) < 0 ||
+        Number(formState.completion_percentage) > 100)
+    ) {
+      errors.push(
+        'Completion percentage must be between 0 and 100.',
+      );
     }
+
+    const numericFields: Array<
+      [keyof FormState, string]
+    > = [
+      ['case_value', 'Case value'],
+      ['claim_amount', 'Claim amount'],
+      ['settlement_amount', 'Settlement amount'],
+      ['judgment_amount', 'Judgment amount'],
+      ['recovered_amount', 'Recovered amount'],
+      ['total_billed', 'Total billed'],
+      ['total_paid', 'Total paid'],
+      ['outstanding_balance', 'Outstanding balance'],
+    ];
+
+    numericFields.forEach(([key, label]) => {
+      const value = formState[key];
+
+      if (
+        typeof value === 'string' &&
+        value !== '' &&
+        (Number.isNaN(Number(value)) ||
+          Number(value) < 0)
+      ) {
+        errors.push(`${label} must be a valid number.`);
+      }
+    });
 
     return errors;
   }, [formState]);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const setField = <K extends keyof FormState>(
+    field: K,
+    value: FormState[K],
+  ) => {
+    setFormState((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault();
     setError(null);
 
@@ -156,304 +554,976 @@ export function CaseForm({
       return;
     }
 
-    const payload: CaseInsert | CaseUpdate = {
+    const optionalText = (value: string) =>
+      value.trim() || null;
+    const optionalNumber = (value: string) =>
+      value === '' ? null : Number(value);
+    const optionalDate = (value: string) =>
+      value || null;
+
+    const payload = {
       client_id: formState.client_id,
-      case_number: formState.case_number.trim(),
+      case_number:
+        optionalText(formState.case_number) ?? '',
+      matter_number:
+        optionalText(formState.matter_number),
       case_type: formState.case_type.trim(),
-      court: formState.court.trim(),
-      court_case_number: formState.court_case_number.trim() || null,
-      opponent_name: formState.opponent_name.trim() || null,
-      opponent_lawyer: formState.opponent_lawyer.trim() || null,
-      assigned_staff_id: formState.assigned_staff_id.trim() || null,
+      practice_area:
+        optionalText(formState.practice_area),
+      department:
+        optionalText(formState.department),
+      case_category:
+        optionalText(formState.case_category),
+      proceeding_type:
+        optionalText(formState.proceeding_type),
+      jurisdiction:
+        optionalText(formState.jurisdiction),
+      external_reference:
+        optionalText(formState.external_reference),
+      file_reference:
+        optionalText(formState.file_reference),
+
+      court: optionalText(formState.court) ?? '',
+      court_division:
+        optionalText(formState.court_division),
+      court_level:
+        optionalText(formState.court_level),
+      court_case_number:
+        optionalText(formState.court_case_number),
+      police_case_number:
+        optionalText(formState.police_case_number),
+      prosecution_number:
+        optionalText(formState.prosecution_number),
+      execution_number:
+        optionalText(formState.execution_number),
+      judge_name:
+        optionalText(formState.judge_name),
+
+      opponent_name:
+        optionalText(formState.opponent_name),
+      opponent_type:
+        optionalText(formState.opponent_type),
+      opponent_company:
+        optionalText(formState.opponent_company),
+      opponent_lawyer:
+        optionalText(formState.opponent_lawyer),
+      opponent_law_firm:
+        optionalText(formState.opponent_law_firm),
+      opponent_email:
+        optionalText(formState.opponent_email),
+      opponent_phone:
+        optionalText(formState.opponent_phone),
+
+      assigned_staff_id:
+        formState.assigned_staff_id,
+      responsible_lawyer_id:
+        optionalText(
+          formState.responsible_lawyer_id,
+        ),
+      case_manager_id:
+        optionalText(formState.case_manager_id),
+      legal_assistant_id:
+        optionalText(formState.legal_assistant_id),
+      assigned_team:
+        optionalText(formState.assigned_team),
+
       status: formState.status,
       priority: formState.priority,
-      filing_date: formState.filing_date,
-      next_hearing_at: formState.next_hearing_at || null,
-      case_value: formState.case_value
-        ? Number(formState.case_value)
-        : null,
-      currency: formState.currency || null,
-      description: formState.description.trim() || null,
-      internal_notes: formState.internal_notes.trim() || null,
-    };
+      case_stage:
+        optionalText(formState.case_stage),
+      risk_level: formState.risk_level,
+      confidentiality_level:
+        formState.confidentiality_level,
+      completion_percentage:
+        optionalNumber(
+          formState.completion_percentage,
+        ) ?? 0,
+      is_vip: formState.is_vip,
+      requires_urgent_action:
+        formState.requires_urgent_action,
+      is_archived: formState.is_archived,
+
+      filing_date:
+        optionalDate(formState.filing_date),
+      opened_at: optionalDate(formState.opened_at),
+      first_hearing_at:
+        optionalDate(formState.first_hearing_at),
+      next_hearing_at:
+        optionalDate(formState.next_hearing_at),
+      next_action_at:
+        optionalDate(formState.next_action_at),
+      limitation_date:
+        optionalDate(formState.limitation_date),
+      judgment_at:
+        optionalDate(formState.judgment_at),
+      closed_at: optionalDate(formState.closed_at),
+
+      case_value:
+        optionalNumber(formState.case_value),
+      claim_amount:
+        optionalNumber(formState.claim_amount),
+      settlement_amount:
+        optionalNumber(formState.settlement_amount),
+      judgment_amount:
+        optionalNumber(formState.judgment_amount),
+      recovered_amount:
+        optionalNumber(formState.recovered_amount),
+      total_billed:
+        optionalNumber(formState.total_billed),
+      total_paid:
+        optionalNumber(formState.total_paid),
+      outstanding_balance:
+        optionalNumber(formState.outstanding_balance),
+      currency:
+        formState.currency.trim().toUpperCase() ||
+        'AED',
+      fee_arrangement:
+        optionalText(formState.fee_arrangement),
+      description:
+        optionalText(formState.description),
+      facts_summary:
+        optionalText(formState.facts_summary),
+      client_objective:
+        optionalText(formState.client_objective),
+      legal_strategy:
+        optionalText(formState.legal_strategy),
+      next_actions:
+        optionalText(formState.next_actions),
+      internal_notes:
+        optionalText(formState.internal_notes),
+
+      ai_summary:
+        optionalText(formState.ai_summary),
+      ai_risk_analysis:
+        optionalText(formState.ai_risk_assessment),
+      ai_recommended_actions:
+        optionalText(
+          formState.ai_recommended_actions,
+        ),
+    } as unknown as CaseInsert | CaseUpdate;
 
     try {
       await onSubmit(payload);
     } catch (submitError) {
-      if (submitError instanceof Error) {
-        setError(submitError.message);
-      } else {
-        setError('Unable to save case.');
-      }
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : 'Unable to save matter.',
+      );
     }
   };
 
   return (
-    <form className="case-form" onSubmit={handleSubmit}>
-      <div className="case-form-grid">
-        <div className="case-form-field">
-          <label htmlFor="client_id">Client</label>
-          <select
-            id="client_id"
-            value={formState.client_id}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                client_id: event.target.value,
-              }))
-            }
-          >
-            {clientOptions.map((client) => (
-              <option key={client.id} value={client.id}>
-                {client.full_name}
-              </option>
-            ))}
-          </select>
-        </div>
+    <form
+      className="case-form"
+      onSubmit={handleSubmit}
+    >
+      <FormSection
+        icon={<BriefcaseBusiness size={20} />}
+        title="Matter Information"
+        description="Core classification and internal references."
+      >
+        <SelectField
+          id="client_id"
+          label="Client"
+          value={formState.client_id}
+          onChange={(value) =>
+            setField('client_id', value)
+          }
+          options={clientOptions.map((client) => ({
+            value: client.id,
+            label: client.full_name,
+          }))}
+          required
+        />
 
-        <div className="case-form-field">
-          <label htmlFor="case_number">Case Number</label>
-          <input
-            id="case_number"
-            value={formState.case_number}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                case_number: event.target.value,
-              }))
+        <TextField
+          id="case_number"
+          label="Internal Case Number"
+          value={formState.case_number}
+          onChange={(value) =>
+            setField('case_number', value)
+          }
+          placeholder="Leave blank if automatically generated"
+        />
+
+        <TextField
+          id="matter_number"
+          label="Matter Number"
+          value={formState.matter_number}
+          onChange={(value) =>
+            setField('matter_number', value)
+          }
+          placeholder="Automatically generated where configured"
+          disabled={!caseRecord}
+        />
+
+        <TextField
+          id="case_type"
+          label="Matter Type"
+          value={formState.case_type}
+          onChange={(value) =>
+            setField('case_type', value)
+          }
+          placeholder="e.g. Civil dispute"
+          required
+        />
+
+        <SelectField
+          id="practice_area"
+          label="Practice Area"
+          value={formState.practice_area}
+          onChange={(value) =>
+            setField('practice_area', value)
+          }
+          options={[
+            { value: '', label: 'Select practice area' },
+            { value: 'Civil', label: 'Civil' },
+            { value: 'Criminal', label: 'Criminal' },
+            { value: 'Commercial', label: 'Commercial' },
+            { value: 'Corporate', label: 'Corporate' },
+            { value: 'Labour', label: 'Labour' },
+            { value: 'Real Estate', label: 'Real Estate' },
+            { value: 'Family', label: 'Family' },
+            { value: 'Rental Dispute', label: 'Rental Dispute' },
+            { value: 'Banking', label: 'Banking' },
+            { value: 'Arbitration', label: 'Arbitration' },
+            { value: 'Immigration', label: 'Immigration' },
+            { value: 'Debt Recovery', label: 'Debt Recovery' },
+            { value: 'Other', label: 'Other' },
+          ]}
+        />
+
+        <TextField
+          id="department"
+          label="Department"
+          value={formState.department}
+          onChange={(value) =>
+            setField('department', value)
+          }
+          placeholder="e.g. Litigation"
+        />
+
+        <TextField
+          id="case_category"
+          label="Matter Category"
+          value={formState.case_category}
+          onChange={(value) =>
+            setField('case_category', value)
+          }
+          placeholder="e.g. Recovery claim"
+        />
+
+        <TextField
+          id="proceeding_type"
+          label="Proceeding Type"
+          value={formState.proceeding_type}
+          onChange={(value) =>
+            setField('proceeding_type', value)
+          }
+          placeholder="e.g. First instance"
+        />
+
+        <TextField
+          id="jurisdiction"
+          label="Jurisdiction"
+          value={formState.jurisdiction}
+          onChange={(value) =>
+            setField('jurisdiction', value)
+          }
+          placeholder="e.g. Dubai, UAE"
+        />
+
+        <TextField
+          id="external_reference"
+          label="External Reference"
+          value={formState.external_reference}
+          onChange={(value) =>
+            setField('external_reference', value)
+          }
+        />
+
+        <TextField
+          id="file_reference"
+          label="File Reference"
+          value={formState.file_reference}
+          onChange={(value) =>
+            setField('file_reference', value)
+          }
+        />
+      </FormSection>
+
+      <FormSection
+        icon={<Gavel size={20} />}
+        title="Court & Proceedings"
+        description="Court, police, prosecution and execution references."
+      >
+        <TextField
+          id="court"
+          label="Court"
+          value={formState.court}
+          onChange={(value) =>
+            setField('court', value)
+          }
+          placeholder="e.g. Dubai Courts"
+        />
+
+        <TextField
+          id="court_division"
+          label="Court Division"
+          value={formState.court_division}
+          onChange={(value) =>
+            setField('court_division', value)
+          }
+        />
+
+        <TextField
+          id="court_level"
+          label="Court Level"
+          value={formState.court_level}
+          onChange={(value) =>
+            setField('court_level', value)
+          }
+          placeholder="e.g. First Instance"
+        />
+
+        <TextField
+          id="court_case_number"
+          label="Court Case Number"
+          value={formState.court_case_number}
+          onChange={(value) =>
+            setField('court_case_number', value)
+          }
+        />
+
+        <TextField
+          id="police_case_number"
+          label="Police Case Number"
+          value={formState.police_case_number}
+          onChange={(value) =>
+            setField('police_case_number', value)
+          }
+        />
+
+        <TextField
+          id="prosecution_number"
+          label="Prosecution Number"
+          value={formState.prosecution_number}
+          onChange={(value) =>
+            setField('prosecution_number', value)
+          }
+        />
+
+        <TextField
+          id="execution_number"
+          label="Execution Number"
+          value={formState.execution_number}
+          onChange={(value) =>
+            setField('execution_number', value)
+          }
+        />
+
+        <TextField
+          id="judge_name"
+          label="Judge"
+          value={formState.judge_name}
+          onChange={(value) =>
+            setField('judge_name', value)
+          }
+        />
+      </FormSection>
+
+      <FormSection
+        icon={<Building2 size={20} />}
+        title="Opponent Information"
+        description="Adverse party and opposing legal representatives."
+      >
+        <TextField
+          id="opponent_name"
+          label="Opponent Name"
+          value={formState.opponent_name}
+          onChange={(value) =>
+            setField('opponent_name', value)
+          }
+        />
+
+        <TextField
+          id="opponent_type"
+          label="Opponent Type"
+          value={formState.opponent_type}
+          onChange={(value) =>
+            setField('opponent_type', value)
+          }
+          placeholder="Individual, company or authority"
+        />
+
+        <TextField
+          id="opponent_company"
+          label="Opponent Company"
+          value={formState.opponent_company}
+          onChange={(value) =>
+            setField('opponent_company', value)
+          }
+        />
+
+        <TextField
+          id="opponent_lawyer"
+          label="Opponent Lawyer"
+          value={formState.opponent_lawyer}
+          onChange={(value) =>
+            setField('opponent_lawyer', value)
+          }
+        />
+
+        <TextField
+          id="opponent_law_firm"
+          label="Opponent Law Firm"
+          value={formState.opponent_law_firm}
+          onChange={(value) =>
+            setField('opponent_law_firm', value)
+          }
+        />
+
+        <TextField
+          id="opponent_email"
+          label="Opponent Email"
+          type="email"
+          value={formState.opponent_email}
+          onChange={(value) =>
+            setField('opponent_email', value)
+          }
+        />
+
+        <TextField
+          id="opponent_phone"
+          label="Opponent Phone"
+          type="tel"
+          value={formState.opponent_phone}
+          onChange={(value) =>
+            setField('opponent_phone', value)
+          }
+        />
+      </FormSection>
+
+      <FormSection
+        icon={<UsersRound size={20} />}
+        title="Legal Team"
+        description="Assign the responsible legal professionals."
+      >
+        <SelectField
+          id="assigned_staff_id"
+          label="Primary Assigned Staff"
+          value={formState.assigned_staff_id}
+          onChange={(value) =>
+            setField('assigned_staff_id', value)
+          }
+          options={staffOptions.map((member) => ({
+            value: member.id,
+            label: member.full_name,
+          }))}
+          required
+        />
+
+        <SelectField
+          id="responsible_lawyer_id"
+          label="Responsible Lawyer"
+          value={formState.responsible_lawyer_id}
+          onChange={(value) =>
+            setField('responsible_lawyer_id', value)
+          }
+          options={staffOptions.map((member) => ({
+            value: member.id,
+            label: member.full_name,
+          }))}
+        />
+
+        <SelectField
+          id="case_manager_id"
+          label="Case Manager"
+          value={formState.case_manager_id}
+          onChange={(value) =>
+            setField('case_manager_id', value)
+          }
+          options={staffOptions.map((member) => ({
+            value: member.id,
+            label: member.full_name,
+          }))}
+        />
+
+        <SelectField
+          id="legal_assistant_id"
+          label="Legal Assistant"
+          value={formState.legal_assistant_id}
+          onChange={(value) =>
+            setField('legal_assistant_id', value)
+          }
+          options={staffOptions.map((member) => ({
+            value: member.id,
+            label: member.full_name,
+          }))}
+        />
+
+        <TextField
+          id="assigned_team"
+          label="Assigned Team"
+          value={formState.assigned_team}
+          onChange={(value) =>
+            setField('assigned_team', value)
+          }
+          placeholder="e.g. Litigation Team A"
+        />
+      </FormSection>
+
+      <FormSection
+        icon={<CalendarDays size={20} />}
+        title="Important Dates"
+        description="Track filing, hearings, limitation and closure dates."
+      >
+        <TextField
+          id="filing_date"
+          label="Filing Date"
+          type="date"
+          value={formState.filing_date}
+          onChange={(value) =>
+            setField('filing_date', value)
+          }
+        />
+
+        <TextField
+          id="opened_at"
+          label="Opened At"
+          type="datetime-local"
+          value={formState.opened_at}
+          onChange={(value) =>
+            setField('opened_at', value)
+          }
+        />
+
+        <TextField
+          id="first_hearing_at"
+          label="First Hearing"
+          type="datetime-local"
+          value={formState.first_hearing_at}
+          onChange={(value) =>
+            setField('first_hearing_at', value)
+          }
+        />
+
+        <TextField
+          id="next_hearing_at"
+          label="Next Hearing"
+          type="datetime-local"
+          value={formState.next_hearing_at}
+          onChange={(value) =>
+            setField('next_hearing_at', value)
+          }
+        />
+
+        <TextField
+          id="next_action_at"
+          label="Next Action Due"
+          type="datetime-local"
+          value={formState.next_action_at}
+          onChange={(value) =>
+            setField('next_action_at', value)
+          }
+        />
+
+        <TextField
+          id="limitation_date"
+          label="Limitation Date"
+          type="date"
+          value={formState.limitation_date}
+          onChange={(value) =>
+            setField('limitation_date', value)
+          }
+        />
+
+        <TextField
+          id="judgment_at"
+          label="Judgment Date"
+          type="datetime-local"
+          value={formState.judgment_at}
+          onChange={(value) =>
+            setField('judgment_at', value)
+          }
+        />
+
+        <TextField
+          id="closed_at"
+          label="Closed At"
+          type="datetime-local"
+          value={formState.closed_at}
+          onChange={(value) =>
+            setField('closed_at', value)
+          }
+        />
+      </FormSection>
+
+      <FormSection
+        icon={<CircleDollarSign size={20} />}
+        title="Financial Position"
+        description="Matter value, recovery, billing and payment tracking."
+      >
+        <SelectField
+          id="currency"
+          label="Currency"
+          value={formState.currency}
+          onChange={(value) =>
+            setField('currency', value)
+          }
+          options={[
+            { value: 'AED', label: 'AED' },
+            { value: 'USD', label: 'USD' },
+            { value: 'EUR', label: 'EUR' },
+            { value: 'GBP', label: 'GBP' },
+            { value: 'PKR', label: 'PKR' },
+            { value: 'INR', label: 'INR' },
+          ]}
+        />
+
+        <NumberField
+          id="case_value"
+          label="Case Value"
+          value={formState.case_value}
+          onChange={(value) =>
+            setField('case_value', value)
+          }
+        />
+
+        <NumberField
+          id="claim_amount"
+          label="Claim Amount"
+          value={formState.claim_amount}
+          onChange={(value) =>
+            setField('claim_amount', value)
+          }
+        />
+
+        <NumberField
+          id="settlement_amount"
+          label="Settlement Amount"
+          value={formState.settlement_amount}
+          onChange={(value) =>
+            setField('settlement_amount', value)
+          }
+        />
+
+        <NumberField
+          id="judgment_amount"
+          label="Judgment Amount"
+          value={formState.judgment_amount}
+          onChange={(value) =>
+            setField('judgment_amount', value)
+          }
+        />
+
+        <NumberField
+          id="recovered_amount"
+          label="Recovered Amount"
+          value={formState.recovered_amount}
+          onChange={(value) =>
+            setField('recovered_amount', value)
+          }
+        />
+
+        <NumberField
+          id="total_billed"
+          label="Total Billed"
+          value={formState.total_billed}
+          onChange={(value) =>
+            setField('total_billed', value)
+          }
+        />
+
+        <NumberField
+          id="total_paid"
+          label="Total Paid"
+          value={formState.total_paid}
+          onChange={(value) =>
+            setField('total_paid', value)
+          }
+        />
+
+        <NumberField
+          id="outstanding_balance"
+          label="Outstanding Balance"
+          value={formState.outstanding_balance}
+          onChange={(value) =>
+            setField('outstanding_balance', value)
+          }
+        />
+
+        <TextField
+          id="fee_arrangement"
+          label="Fee Arrangement"
+          value={formState.fee_arrangement}
+          onChange={(value) =>
+            setField('fee_arrangement', value)
+          }
+          placeholder="Fixed, hourly, retainer or contingency"
+        />
+
+      </FormSection>
+
+      <FormSection
+        icon={<ShieldCheck size={20} />}
+        title="Matter Management"
+        description="Status, stage, risk and access controls."
+      >
+        <SelectField
+          id="status"
+          label="Status"
+          value={formState.status}
+          onChange={(value) =>
+            setField('status', value as CaseStatus)
+          }
+          options={[
+            { value: 'open', label: 'Open' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'in_court', label: 'In Court' },
+            { value: 'appeal', label: 'Appeal' },
+            { value: 'closed', label: 'Closed' },
+          ]}
+          required
+        />
+
+        <SelectField
+          id="priority"
+          label="Priority"
+          value={formState.priority}
+          onChange={(value) =>
+            setField(
+              'priority',
+              value as CasePriority,
+            )
+          }
+          options={[
+            { value: 'low', label: 'Low' },
+            { value: 'medium', label: 'Medium' },
+            { value: 'high', label: 'High' },
+            { value: 'urgent', label: 'Urgent' },
+          ]}
+          required
+        />
+
+        <SelectField
+          id="case_stage"
+          label="Matter Stage"
+          value={formState.case_stage}
+          onChange={(value) =>
+            setField('case_stage', value)
+          }
+          options={[
+            { value: 'intake', label: 'Intake' },
+            { value: 'review', label: 'Review' },
+            { value: 'notice', label: 'Legal Notice' },
+            { value: 'negotiation', label: 'Negotiation' },
+            { value: 'filing', label: 'Filing' },
+            { value: 'in_court', label: 'In Court' },
+            { value: 'judgment', label: 'Judgment' },
+            { value: 'execution', label: 'Execution' },
+            { value: 'appeal', label: 'Appeal' },
+            { value: 'settlement', label: 'Settlement' },
+            { value: 'closed', label: 'Closed' },
+          ]}
+        />
+
+        <SelectField
+          id="risk_level"
+          label="Risk Level"
+          value={formState.risk_level}
+          onChange={(value) =>
+            setField(
+              'risk_level',
+              value as RiskLevel,
+            )
+          }
+          options={[
+            { value: 'low', label: 'Low' },
+            { value: 'medium', label: 'Medium' },
+            { value: 'high', label: 'High' },
+            { value: 'critical', label: 'Critical' },
+          ]}
+        />
+
+        <SelectField
+          id="confidentiality_level"
+          label="Confidentiality"
+          value={formState.confidentiality_level}
+          onChange={(value) =>
+            setField(
+              'confidentiality_level',
+              value as ConfidentialityLevel,
+            )
+          }
+          options={[
+            { value: 'internal', label: 'Internal' },
+            { value: 'confidential', label: 'Confidential' },
+            {
+              value: 'highly_confidential',
+              label: 'Highly Confidential',
+            },
+          ]}
+        />
+
+        <NumberField
+          id="completion_percentage"
+          label="Completion Percentage"
+          value={formState.completion_percentage}
+          onChange={(value) =>
+            setField('completion_percentage', value)
+          }
+          min={0}
+          max={100}
+          step={1}
+        />
+
+        <div className="case-form-toggle-grid case-form-field-wide">
+          <ToggleField
+            id="is_vip"
+            label="VIP Matter"
+            description="Flag this matter for priority client handling."
+            checked={formState.is_vip}
+            onChange={(checked) =>
+              setField('is_vip', checked)
             }
-            placeholder="e.g. C-2026-001"
+          />
+
+          <ToggleField
+            id="requires_urgent_action"
+            label="Urgent Action Required"
+            description="Display urgent warnings across the matter workspace."
+            checked={formState.requires_urgent_action}
+            onChange={(checked) =>
+              setField(
+                'requires_urgent_action',
+                checked,
+              )
+            }
+          />
+
+          <ToggleField
+            id="is_archived"
+            label="Archived"
+            description="Hide this matter from active operational views."
+            checked={formState.is_archived}
+            onChange={(checked) =>
+              setField('is_archived', checked)
+            }
           />
         </div>
+      </FormSection>
 
-        <div className="case-form-field">
-          <label htmlFor="case_type">Case Type</label>
-          <input
-            id="case_type"
-            value={formState.case_type}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                case_type: event.target.value,
-              }))
-            }
-            placeholder="e.g. Civil dispute"
-          />
-        </div>
+      <FormSection
+        icon={<FileText size={20} />}
+        title="Matter Details"
+        description="Facts, objectives, strategy and internal notes."
+      >
+        <TextAreaField
+          id="description"
+          label="Matter Description"
+          value={formState.description}
+          onChange={(value) =>
+            setField('description', value)
+          }
+          placeholder="General summary of the legal matter"
+        />
 
-        <div className="case-form-field">
-          <label htmlFor="court">Court</label>
-          <input
-            id="court"
-            value={formState.court}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                court: event.target.value,
-              }))
-            }
-            placeholder="e.g. Dubai Court"
-          />
-        </div>
+        <TextAreaField
+          id="facts_summary"
+          label="Facts Summary"
+          value={formState.facts_summary}
+          onChange={(value) =>
+            setField('facts_summary', value)
+          }
+          placeholder="Chronology and material facts"
+        />
 
-        <div className="case-form-field">
-          <label htmlFor="court_case_number">Court Case Number</label>
-          <input
-            id="court_case_number"
-            value={formState.court_case_number}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                court_case_number: event.target.value,
-              }))
-            }
-            placeholder="Court file/reference number"
-          />
-        </div>
+        <TextAreaField
+          id="client_objective"
+          label="Client Objective"
+          value={formState.client_objective}
+          onChange={(value) =>
+            setField('client_objective', value)
+          }
+          placeholder="What outcome is the client seeking?"
+        />
 
-        <div className="case-form-field">
-          <label htmlFor="opponent_name">Opponent</label>
-          <input
-            id="opponent_name"
-            value={formState.opponent_name}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                opponent_name: event.target.value,
-              }))
-            }
-            placeholder="Opponent name"
-          />
-        </div>
+        <TextAreaField
+          id="legal_strategy"
+          label="Legal Strategy"
+          value={formState.legal_strategy}
+          onChange={(value) =>
+            setField('legal_strategy', value)
+          }
+          placeholder="Planned legal approach"
+        />
 
-        <div className="case-form-field">
-          <label htmlFor="opponent_lawyer">Opponent Lawyer</label>
-          <input
-            id="opponent_lawyer"
-            value={formState.opponent_lawyer}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                opponent_lawyer: event.target.value,
-              }))
-            }
-            placeholder="Opponent lawyer"
-          />
-        </div>
+        <TextAreaField
+          id="next_actions"
+          label="Next Actions"
+          value={formState.next_actions}
+          onChange={(value) =>
+            setField('next_actions', value)
+          }
+          placeholder="Immediate and upcoming action items"
+        />
 
-        <div className="case-form-field">
-          <label htmlFor="assigned_staff_id">Assigned Staff</label>
-          <select
-            id="assigned_staff_id"
-            value={formState.assigned_staff_id}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                assigned_staff_id: event.target.value,
-              }))
-            }
-          >
-            {[{ id: '', full_name: 'Unassigned' }, ...staff].map((s) => (
-              <option key={s.id} value={s.id}>{s.full_name}</option>
-            ))}
-          </select>
-        </div>
+        <TextAreaField
+          id="internal_notes"
+          label="Internal Notes"
+          value={formState.internal_notes}
+          onChange={(value) =>
+            setField('internal_notes', value)
+          }
+          placeholder="Private notes for the legal team"
+        />
+      </FormSection>
 
-        <div className="case-form-field">
-          <label htmlFor="status">Status</label>
-          <select
-            id="status"
-            value={formState.status}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                status: event.target.value as CaseStatus,
-              }))
-            }
-          >
-            <option value="Open">Open</option>
-            <option value="Pending">Pending</option>
-            <option value="In Court">In Court</option>
-            <option value="Closed">Closed</option>
-            <option value="Appeal">Appeal</option>
-          </select>
-        </div>
+      <FormSection
+        icon={<Sparkles size={20} />}
+        title="AI Legal Intelligence"
+        description="Optional AI-generated summaries and recommendations."
+      >
+        <TextAreaField
+          id="ai_summary"
+          label="AI Summary"
+          value={formState.ai_summary}
+          onChange={(value) =>
+            setField('ai_summary', value)
+          }
+        />
 
-        <div className="case-form-field">
-          <label htmlFor="priority">Priority</label>
-          <select
-            id="priority"
-            value={formState.priority}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                priority: event.target.value as CasePriority,
-              }))
-            }
-          >
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-            <option value="Urgent">Urgent</option>
-          </select>
-        </div>
+        <TextAreaField
+          id="ai_risk_assessment"
+          label="AI Risk Assessment"
+          value={formState.ai_risk_assessment}
+          onChange={(value) =>
+            setField('ai_risk_assessment', value)
+          }
+        />
 
-        <div className="case-form-field">
-          <label htmlFor="filing_date">Filing Date</label>
-          <input
-            id="filing_date"
-            type="date"
-            value={formState.filing_date}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                filing_date: event.target.value,
-              }))
-            }
-          />
-        </div>
-
-        <div className="case-form-field">
-          <label htmlFor="next_hearing_at">Next Hearing</label>
-          <input
-            id="next_hearing_at"
-            type="datetime-local"
-            value={formState.next_hearing_at}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                next_hearing_at: event.target.value,
-              }))
-            }
-          />
-        </div>
-
-        <div className="case-form-field">
-          <label htmlFor="currency">Currency</label>
-          <input
-            id="currency"
-            value={formState.currency}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                currency: event.target.value,
-              }))
-            }
-          />
-        </div>
-
-        <div className="case-form-field">
-          <label htmlFor="case_value">Case Value</label>
-          <input
-            id="case_value"
-            type="number"
-            min="0"
-            step="0.01"
-            value={formState.case_value}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                case_value: event.target.value,
-              }))
-            }
-            placeholder="AED 0.00"
-          />
-        </div>
-
-        <div className="case-form-field case-form-field-wide">
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            value={formState.description}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                description: event.target.value,
-              }))
-            }
-            placeholder="Case summary and key details"
-          />
-        </div>
-
-        <div className="case-form-field case-form-field-wide">
-          <label htmlFor="internal_notes">Internal Notes</label>
-          <textarea
-            id="internal_notes"
-            value={formState.internal_notes}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                internal_notes: event.target.value,
-              }))
-            }
-            placeholder="Internal notes for the legal team"
-          />
-        </div>
-      </div>
+        <TextAreaField
+          id="ai_recommended_actions"
+          label="AI Recommended Actions"
+          value={formState.ai_recommended_actions}
+          onChange={(value) =>
+            setField(
+              'ai_recommended_actions',
+              value,
+            )
+          }
+        />
+      </FormSection>
 
       {error ? (
-        <div className="case-form-error" role="alert">
-          {error}
+        <div
+          className="case-form-error"
+          role="alert"
+        >
+          <AlertTriangle size={18} />
+          <span>{error}</span>
         </div>
       ) : null}
 
@@ -463,9 +1533,227 @@ export function CaseForm({
           className="primary-action-button"
           disabled={loading}
         >
+          <Save size={18} />
           {loading ? 'Saving…' : submitLabel}
         </button>
       </div>
     </form>
+  );
+}
+
+function FormSection({
+  icon,
+  title,
+  description,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="case-form-section">
+      <header className="case-form-section-header">
+        <div className="case-form-section-icon">
+          {icon}
+        </div>
+        <div>
+          <h3>{title}</h3>
+          <p>{description}</p>
+        </div>
+      </header>
+
+      <div className="case-form-grid">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function TextField({
+  id,
+  label,
+  value,
+  onChange,
+  type = 'text',
+  placeholder,
+  required,
+  disabled,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="case-form-field">
+      <label htmlFor={id}>
+        {label}
+        {required ? <span>*</span> : null}
+      </label>
+      <input
+        id={id}
+        type={type}
+        value={value}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        placeholder={placeholder}
+        required={required}
+        disabled={disabled}
+      />
+    </div>
+  );
+}
+
+function NumberField({
+  id,
+  label,
+  value,
+  onChange,
+  min = 0,
+  max,
+  step = 0.01,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+}) {
+  return (
+    <div className="case-form-field">
+      <label htmlFor={id}>{label}</label>
+      <input
+        id={id}
+        type="number"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+      />
+    </div>
+  );
+}
+
+function SelectField({
+  id,
+  label,
+  value,
+  onChange,
+  options,
+  required,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{
+    value: string;
+    label: string;
+  }>;
+  required?: boolean;
+}) {
+  return (
+    <div className="case-form-field">
+      <label htmlFor={id}>
+        {label}
+        {required ? <span>*</span> : null}
+      </label>
+      <select
+        id={id}
+        value={value}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        required={required}
+      >
+        {options.map((option) => (
+          <option
+            key={`${id}-${option.value}`}
+            value={option.value}
+          >
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function TextAreaField({
+  id,
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="case-form-field case-form-field-wide">
+      <label htmlFor={id}>{label}</label>
+      <textarea
+        id={id}
+        value={value}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        placeholder={placeholder}
+        rows={5}
+      />
+    </div>
+  );
+}
+
+function ToggleField({
+  id,
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label
+      className="case-form-toggle"
+      htmlFor={id}
+    >
+      <div>
+        <strong>{label}</strong>
+        <span>{description}</span>
+      </div>
+
+      <span className="case-form-switch">
+        <input
+          id={id}
+          type="checkbox"
+          checked={checked}
+          onChange={(event) =>
+            onChange(event.target.checked)
+          }
+        />
+        <span />
+      </span>
+    </label>
   );
 }

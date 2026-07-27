@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import './KPICard.css';
 
 type KPICardProps = {
   icon: LucideIcon;
@@ -19,26 +20,29 @@ export function KPICard({
 }: KPICardProps) {
   return (
     <article className="kpi-card">
-      <div className="kpi-card-icon">
-        <Icon size={20} />
-      </div>
+      <div className="kpi-card-accent" />
 
-      <div className="kpi-card-content">
-        <span className="kpi-card-value">{value}</span>
-        <p className="kpi-card-label">{label}</p>
-      </div>
+      <div className="kpi-card-top">
+        <div className="kpi-card-icon">
+          <Icon size={24} strokeWidth={2} />
+        </div>
 
-      <div className="kpi-card-footer">
-        <span>{subtitle}</span>
         <span
-          className={
-            trendPositive
-              ? 'kpi-trend positive'
-              : 'kpi-trend negative'
-          }
+          className={`kpi-trend ${trendPositive ? 'positive' : 'negative'}`}
         >
           {trend}
         </span>
+      </div>
+
+      <div className="kpi-card-body">
+        <h2 className="kpi-card-value">{value}</h2>
+        <p className="kpi-card-label">{label}</p>
+      </div>
+
+      <div className="kpi-card-divider" />
+
+      <div className="kpi-card-footer">
+        <span>{subtitle}</span>
       </div>
     </article>
   );

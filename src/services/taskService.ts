@@ -1,11 +1,20 @@
 import type { PostgrestError } from '@supabase/supabase-js';
 
 import { supabase } from '../lib/supabase';
-import type { Task, TaskInsert, TaskListResult, TaskUpdate, TaskFilterOptions } from '../types/task';
+import type {
+  Task,
+  TaskInsert,
+  TaskListResult,
+  TaskUpdate,
+  TaskFilterOptions,
+} from '../types/task';
 import type { Client } from '../types/client';
 import type { Case } from '../types/case';
 
-function handleError<T>(result: { error: PostgrestError | null; data: T | null; }) {
+function handleError<T>(result: {
+  error: PostgrestError | null;
+  data: T | null;
+}): T {
   if (result.error) {
     throw new Error(result.error.message);
   }
@@ -15,6 +24,93 @@ function handleError<T>(result: { error: PostgrestError | null; data: T | null; 
   }
 
   return result.data;
+}
+
+function handleCount(result: {
+  error: PostgrestError | null;
+  count: number | null;
+}): number {
+  if (result.error) {
+    throw new Error(result.error.message);
+  }
+
+  return result.count ?? 0;
+}
+
+export type TaskDashboardStats = {
+  total: number;
+  dueToday: number;
+  overdue: number;
+  inProgress: number;
+  completed: number;
+};
+
+export async function getTaskDashboardStats(): Promise<TaskDashboardStats> {
+  const now = new Date();
+
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const startOfTomorrow = new Date(startOfToday);
+  startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+  const [
+    totalResult,
+    dueTodayResult,
+    overdueResult,
+    inProgressResult,
+    completedResult,
+  ] = await Promise.all([
+    supabase
+      .from('tasks')
+      .select('*', {
+        count: 'exact',
+        head: true,
+      }),
+
+    supabase
+      .from('tasks')
+      .select('*', {
+        count: 'exact',
+        head: true,
+      })
+      .in('status', ['Pending', 'In Progress'])
+      .gte('due_at', startOfToday.toISOString())
+      .lt('due_at', startOfTomorrow.toISOString()),
+
+    supabase
+      .from('tasks')
+      .select('*', {
+        count: 'exact',
+        head: true,
+      })
+      .in('status', ['Pending', 'In Progress'])
+      .lt('due_at', now.toISOString()),
+
+    supabase
+      .from('tasks')
+      .select('*', {
+        count: 'exact',
+        head: true,
+      })
+      .eq('status', 'In Progress'),
+
+    supabase
+      .from('tasks')
+      .select('*', {
+        count: 'exact',
+        head: true,
+      })
+      .eq('status', 'Completed'),
+  ]);
+
+  return {
+    total: handleCount(totalResult),
+    dueToday: handleCount(dueTodayResult),
+    overdue: handleCount(overdueResult),
+    inProgress: handleCount(inProgressResult),
+    completed: handleCount(completedResult),
+  };
 }
 
 export async function getTasks(
@@ -34,7 +130,8 @@ export async function getTasks(
   const query = supabase
     .from('tasks')
     .select('*', { count: 'exact' })
-    .order('due_at', { ascending: true, nullsFirst: false });
+    .order('due_at', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: false });
 
   if (status !== 'all') {
     query.eq('status', status);
@@ -56,15 +153,15 @@ export async function getTasks(
     query.lte('due_at', dueBefore);
   }
 
-  if (search && search.trim()) {
+  if (search?.trim()) {
     const term = `%${search.trim()}%`;
-    query.or(
-      `title.ilike.${term},description.ilike.${term}`,
-    );
+    query.or(`title.ilike.${term},description.ilike.${term}`);
   }
 
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
+  const safePage = Math.max(1, page);
+  const safePageSize = Math.max(1, pageSize);
+  const from = (safePage - 1) * safePageSize;
+  const to = from + safePageSize - 1;
 
   const result = await query.range(from, to);
   const data = handleError(result);
@@ -73,6 +170,16 @@ export async function getTasks(
     data,
     count: result.count ?? 0,
   };
+}
+
+export async function getAllTasks(): Promise<Task[]> {
+  const result = await supabase
+    .from('tasks')
+    .select('*')
+    .order('due_at', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: false });
+
+  return handleError(result);
 }
 
 export async function getTaskById(id: string): Promise<Task | null> {
@@ -153,9 +260,23 @@ export async function getClientOptions(): Promise<ClientOption[]> {
   return handleError(result);
 }
 
-export type CaseOption = Pick<Case, 'id' | 'case_number' | 'case_type' | 'client_id'>;
+export type CaseOption = Pick<
+  Case,
+  'id' | 'case_number' | 'case_type' | 'client_id'
+>;
 
-export async function getCasesByClient(clientId: string): Promise<CaseOption[]> {
+export async function getCaseOptions(): Promise<CaseOption[]> {
+  const result = await supabase
+    .from('cases')
+    .select('id, case_number, case_type, client_id')
+    .order('case_number', { ascending: true });
+
+  return handleError(result);
+}
+
+export async function getCasesByClient(
+  clientId: string,
+): Promise<CaseOption[]> {
   const result = await supabase
     .from('cases')
     .select('id, case_number, case_type, client_id')
@@ -180,6 +301,7 @@ export async function getStaffOptions(): Promise<StaffOption[]> {
     if (result.error.code === 'PGRST116') {
       return [];
     }
+
     throw new Error(result.error.message);
   }
 
@@ -187,20 +309,18 @@ export async function getStaffOptions(): Promise<StaffOption[]> {
 }
 
 export async function getTasksForToday(): Promise<Task[]> {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
 
-  const todayIso = today.toISOString().split('T')[0];
-  const tomorrowIso = tomorrow.toISOString().split('T')[0];
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
 
   const result = await supabase
     .from('tasks')
     .select('*')
     .in('status', ['Pending', 'In Progress'])
-    .gte('due_at', `${todayIso}T00:00:00`)
-    .lt('due_at', `${tomorrowIso}T00:00:00`)
+    .gte('due_at', start.toISOString())
+    .lt('due_at', end.toISOString())
     .order('due_at', { ascending: true });
 
   return handleError(result);

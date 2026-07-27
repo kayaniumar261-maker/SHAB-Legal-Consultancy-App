@@ -1,20 +1,25 @@
 import {
   Building2,
+  CircleDollarSign,
   Edit3,
+  FileSpreadsheet,
+  FolderKanban,
   Mail,
-  MapPin,
   Phone,
   Plus,
   Search,
+  ShieldAlert,
+  Star,
   Trash2,
   UserRound,
-  X,
+  UsersRound,
 } from 'lucide-react';
 import {
-  FormEvent,
+  ChangeEvent,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { Link } from 'react-router-dom';
@@ -33,10 +38,22 @@ import './Clients.css';
 type StatusFilter = Client['status'] | 'all';
 type TypeFilter = Client['client_type'] | 'all';
 
+type ProfessionalClient = Client & {
+  client_code?: string | null;
+  legacy_client_id?: string | null;
+  whatsapp?: string | null;
+  source?: string | null;
+  vip?: boolean | null;
+  risk_level?: 'low' | 'medium' | 'high' | null;
+  total_cases?: number | null;
+  active_cases?: number | null;
+  outstanding_balance?: number | string | null;
+};
+
 const PAGE_SIZE = 12;
 
 export function Clients() {
-  const [clients, setClients] = useState<Client[]>([]);
+  const [clients, setClients] = useState<ProfessionalClient[]>([]);
   const [totalClients, setTotalClients] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +66,7 @@ export function Clients() {
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchClients = useCallback(async () => {
     setLoading(true);
@@ -63,21 +81,21 @@ export function Clients() {
         pageSize: PAGE_SIZE,
       });
 
-      setClients(result.data);
+      setClients(result.data as ProfessionalClient[]);
       setTotalClients(result.count);
     } catch (fetchError) {
-      if (fetchError instanceof Error) {
-        setError(fetchError.message);
-      } else {
-        setError('Unable to load clients.');
-      }
+      setError(
+        fetchError instanceof Error
+          ? fetchError.message
+          : 'Unable to load clients.',
+      );
     } finally {
       setLoading(false);
     }
   }, [searchTerm, statusFilter, clientTypeFilter, page]);
 
   useEffect(() => {
-    fetchClients();
+    void fetchClients();
   }, [fetchClients]);
 
   const filteredLabel = useMemo(() => {
@@ -88,13 +106,25 @@ export function Clients() {
     return 'All clients';
   }, [searchTerm, statusFilter, clientTypeFilter]);
 
-  const statusBadgeClass = (status: Client['status']) => {
-    return `status-badge ${status}`;
-  };
-
-  const typeBadgeClass = (type: Client['client_type']) => {
-    return `type-badge ${type}`;
-  };
+  const summary = useMemo(() => {
+    return clients.reduce(
+      (current, client) => {
+        current.active += client.status === 'active' ? 1 : 0;
+        current.companies += client.client_type === 'company' ? 1 : 0;
+        current.vip += client.vip ? 1 : 0;
+        current.cases += Number(client.total_cases ?? 0);
+        current.outstanding += Number(client.outstanding_balance ?? 0);
+        return current;
+      },
+      {
+        active: 0,
+        companies: 0,
+        vip: 0,
+        cases: 0,
+        outstanding: 0,
+      },
+    );
+  }, [clients]);
 
   const openNewClient = () => {
     setActiveClient(null);
@@ -113,22 +143,34 @@ export function Clients() {
 
   const handleSave = async (
     id: string | null,
-    data: Parameters<typeof createClient>[0] | Parameters<typeof updateClient>[1],
+    data:
+      | Parameters<typeof createClient>[0]
+      | Parameters<typeof updateClient>[1],
   ) => {
     setFormLoading(true);
+    setError(null);
+
     try {
       if (id) {
-        const updated = await updateClient(id, data as Parameters<typeof updateClient>[1]);
-        setClients((current) =>
-          current.map((client) =>
-            client.id === id ? updated : client,
-          ),
+        await updateClient(
+          id,
+          data as Parameters<typeof updateClient>[1],
         );
       } else {
-        const created = await createClient(data as Parameters<typeof createClient>[0]);
-        setClients((current) => [created, ...current]);
-        setTotalClients((current) => current + 1);
+        await createClient(
+          data as Parameters<typeof createClient>[0],
+        );
       }
+
+      closeForm();
+      await fetchClients();
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : 'Unable to save client.',
+      );
+      throw saveError;
     } finally {
       setFormLoading(false);
     }
@@ -140,68 +182,131 @@ export function Clients() {
     }
 
     setDeleteLoading(true);
+    setError(null);
+
     try {
       await deleteClient(deleteTarget.id);
-      setClients((current) =>
-        current.filter((client) => client.id !== deleteTarget.id),
-      );
-      setTotalClients((current) => Math.max(0, current - 1));
       setDeleteTarget(null);
-    } catch (deleteError) {
-      if (deleteError instanceof Error) {
-        setError(deleteError.message);
+
+      if (clients.length === 1 && page > 1) {
+        setPage((current) => current - 1);
       } else {
-        setError('Unable to delete client.');
+        await fetchClients();
       }
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : 'Unable to delete client.',
+      );
     } finally {
       setDeleteLoading(false);
     }
   };
 
-  const closeDelete = () => {
-    setDeleteTarget(null);
+  const handleImportClick = () => {
+    importInputRef.current?.click();
   };
 
-  const startDelete = (client: Client) => {
-    setDeleteTarget(client);
+  const handleImportFile = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setError(
+      `Selected "${file.name}". The Excel mapping and duplicate-check wizard will be connected in the next step.`,
+    );
+
+    event.target.value = '';
   };
 
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    setPage(1);
-  };
-
-  const handleStatusChange = (value: StatusFilter) => {
-    setStatusFilter(value);
-    setPage(1);
-  };
-
-  const handleTypeChange = (value: TypeFilter) => {
-    setClientTypeFilter(value);
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setClientTypeFilter('all');
     setPage(1);
   };
 
   const pageCount = Math.max(1, Math.ceil(totalClients / PAGE_SIZE));
+  const hasFilters =
+    Boolean(searchTerm) ||
+    statusFilter !== 'all' ||
+    clientTypeFilter !== 'all';
 
   return (
     <div className="clients-page page-container">
       <section className="page-heading clients-heading">
         <div>
-          <p className="page-eyebrow">Client management</p>
+          <p className="page-eyebrow">Client relationship management</p>
           <h2>Clients</h2>
           <p className="page-intro">
-            Manage client records, onboarding status, identification, and company details with direct access to every client profile.
+            Manage client profiles, linked matters, identification,
+            communication details, risk indicators, and outstanding balances.
           </p>
         </div>
 
-        <button
-          type="button"
-          className="primary-action-button"
-          onClick={openNewClient}
-        >
-          <Plus size={18} />
-          Add Client
-        </button>
+        <div className="clients-heading-actions">
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            hidden
+            onChange={handleImportFile}
+          />
+
+          <button
+            type="button"
+            className="secondary-action-button"
+            onClick={handleImportClick}
+          >
+            <FileSpreadsheet size={18} />
+            Import Excel
+          </button>
+
+          <button
+            type="button"
+            className="primary-action-button"
+            onClick={openNewClient}
+          >
+            <Plus size={18} />
+            Add Client
+          </button>
+        </div>
+      </section>
+
+      <section className="client-summary-grid" aria-label="Client summary">
+        <SummaryCard
+          icon={<UsersRound size={20} />}
+          label="Total clients"
+          value={formatNumber(totalClients)}
+          detail={`${filteredLabel}`}
+        />
+        <SummaryCard
+          icon={<UserRound size={20} />}
+          label="Active on this page"
+          value={formatNumber(summary.active)}
+          detail={`of ${clients.length} displayed`}
+        />
+        <SummaryCard
+          icon={<Building2 size={20} />}
+          label="Companies"
+          value={formatNumber(summary.companies)}
+          detail="Displayed page"
+        />
+        <SummaryCard
+          icon={<FolderKanban size={20} />}
+          label="Linked cases"
+          value={formatNumber(summary.cases)}
+          detail="Displayed page"
+        />
+        <SummaryCard
+          icon={<CircleDollarSign size={20} />}
+          label="Outstanding"
+          value={formatCurrency(summary.outstanding)}
+          detail="Displayed page"
+        />
       </section>
 
       <section className="clients-toolbar">
@@ -209,24 +314,25 @@ export function Clients() {
           <Search size={18} />
           <input
             value={searchTerm}
-            onChange={(event) =>
-              handleSearchChange(event.target.value)
-            }
-            placeholder="Search clients, phone, email, company, Emirates ID, passport"
+            onChange={(event) => {
+              setSearchTerm(event.target.value);
+              setPage(1);
+            }}
+            placeholder="Search name, code, phone, email, company, Emirates ID or passport"
             aria-label="Search clients"
           />
         </div>
 
         <div className="clients-filters">
           <div className="filter-field">
-            <label>Status</label>
+            <label htmlFor="client-status-filter">Status</label>
             <select
+              id="client-status-filter"
               value={statusFilter}
-              onChange={(event) =>
-                handleStatusChange(
-                  event.target.value as StatusFilter,
-                )
-              }
+              onChange={(event) => {
+                setStatusFilter(event.target.value as StatusFilter);
+                setPage(1);
+              }}
             >
               <option value="all">All statuses</option>
               <option value="active">Active</option>
@@ -236,37 +342,45 @@ export function Clients() {
           </div>
 
           <div className="filter-field">
-            <label>Client type</label>
+            <label htmlFor="client-type-filter">Client type</label>
             <select
+              id="client-type-filter"
               value={clientTypeFilter}
-              onChange={(event) =>
-                handleTypeChange(
-                  event.target.value as TypeFilter,
-                )
-              }
+              onChange={(event) => {
+                setClientTypeFilter(event.target.value as TypeFilter);
+                setPage(1);
+              }}
             >
               <option value="all">All types</option>
               <option value="individual">Individual</option>
               <option value="company">Company</option>
             </select>
           </div>
+
+          {hasFilters && (
+            <button
+              type="button"
+              className="clear-filter-button"
+              onClick={clearFilters}
+            >
+              Clear filters
+            </button>
+          )}
         </div>
       </section>
 
       <section className="clients-status-row">
         <div>
           <strong>{filteredLabel}</strong>
-          <span>{totalClients} total clients</span>
+          <span>{formatNumber(totalClients)} total clients</span>
         </div>
 
         <div>
-          {loading ? (
-            <span>Loading clients…</span>
-          ) : (
-            <span>
-              Showing {clients.length} of {totalClients}
-            </span>
-          )}
+          <span>
+            {loading
+              ? 'Loading clients…'
+              : `Showing ${clients.length} of ${totalClients}`}
+          </span>
         </div>
       </section>
 
@@ -281,15 +395,16 @@ export function Clients() {
           <thead>
             <tr>
               <th>Client</th>
+              <th>Contact</th>
               <th>Type</th>
-              <th>Phone</th>
-              <th>Email</th>
-              <th>Identification</th>
+              <th>Cases</th>
+              <th>Outstanding</th>
               <th>Status</th>
-              <th>Created Date</th>
+              <th>Risk</th>
               <th>Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {loading ? (
               <tr>
@@ -300,36 +415,92 @@ export function Clients() {
             ) : clients.length === 0 ? (
               <tr>
                 <td colSpan={8} className="clients-empty-cell">
-                  No clients match the current filters.
+                  <UserRound size={30} />
+                  <strong>No clients found</strong>
+                  <span>
+                    Change the filters or create a new client profile.
+                  </span>
                 </td>
               </tr>
             ) : (
               clients.map((client) => (
                 <tr key={client.id}>
                   <td className="client-name-cell">
+                    <div className="client-avatar">
+                      {getInitials(client.full_name)}
+                    </div>
+
                     <div className="client-name-stack">
-                      <strong>{client.full_name}</strong>
-                      {client.company_name && (
-                        <span>{client.company_name}</span>
-                      )}
+                      <div className="client-title-line">
+                        <Link to={`/clients/${client.id}`}>
+                          {client.full_name}
+                        </Link>
+
+                        {client.vip && (
+                          <span className="vip-indicator" title="VIP client">
+                            <Star size={14} fill="currentColor" />
+                            VIP
+                          </span>
+                        )}
+                      </div>
+
+                      <span>
+                        {client.client_code ?? 'Code pending'}
+                        {client.company_name
+                          ? ` · ${client.company_name}`
+                          : ''}
+                      </span>
                     </div>
                   </td>
+
                   <td>
-                    <span className={typeBadgeClass(client.client_type)}>
-                      {client.client_type}
+                    <div className="client-contact-stack">
+                      <span>
+                        <Phone size={14} />
+                        {client.phone ?? 'No phone'}
+                      </span>
+                      <span>
+                        <Mail size={14} />
+                        {client.email ?? 'No email'}
+                      </span>
+                    </div>
+                  </td>
+
+                  <td>
+                    <span
+                      className={`type-badge ${client.client_type}`}
+                    >
+                      {formatLabel(client.client_type)}
                     </span>
                   </td>
-                  <td>{client.phone ?? '-'}</td>
-                  <td>{client.email ?? '-'}</td>
+
                   <td>
-                    {client.emirates_id || client.passport_number || '-'}
+                    <div className="case-count-cell">
+                      <strong>{Number(client.total_cases ?? 0)}</strong>
+                      <span>
+                        {Number(client.active_cases ?? 0)} active
+                      </span>
+                    </div>
                   </td>
+
                   <td>
-                    <span className={statusBadgeClass(client.status)}>
-                      {client.status}
+                    <strong className="balance-value">
+                      {formatCurrency(
+                        Number(client.outstanding_balance ?? 0),
+                      )}
+                    </strong>
+                  </td>
+
+                  <td>
+                    <span className={`status-badge ${client.status}`}>
+                      {formatLabel(client.status)}
                     </span>
                   </td>
-                  <td>{formatDate(client.created_at)}</td>
+
+                  <td>
+                    <RiskBadge risk={client.risk_level ?? 'low'} />
+                  </td>
+
                   <td className="table-actions">
                     <Link
                       className="action-link"
@@ -337,19 +508,25 @@ export function Clients() {
                     >
                       View
                     </Link>
+
                     <button
                       type="button"
-                      className="action-button"
+                      className="icon-action-button"
+                      title="Edit client"
+                      aria-label={`Edit ${client.full_name}`}
                       onClick={() => openEditClient(client)}
                     >
-                      Edit
+                      <Edit3 size={16} />
                     </button>
+
                     <button
                       type="button"
-                      className="action-button danger"
-                      onClick={() => startDelete(client)}
+                      className="icon-action-button danger"
+                      title="Delete client"
+                      aria-label={`Delete ${client.full_name}`}
+                      onClick={() => setDeleteTarget(client)}
                     >
-                      Delete
+                      <Trash2 size={16} />
                     </button>
                   </td>
                 </tr>
@@ -362,14 +539,18 @@ export function Clients() {
       <section className="pagination-controls">
         <button
           type="button"
-          onClick={() => setPage((current) => Math.max(1, current - 1))}
+          onClick={() =>
+            setPage((current) => Math.max(1, current - 1))
+          }
           disabled={page === 1 || loading}
         >
           Previous
         </button>
+
         <span>
           Page {page} of {pageCount}
         </span>
+
         <button
           type="button"
           onClick={() =>
@@ -393,93 +574,76 @@ export function Clients() {
         open={Boolean(deleteTarget)}
         clientName={deleteTarget?.full_name ?? ''}
         loading={deleteLoading}
-        onCancel={closeDelete}
+        onCancel={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
       />
     </div>
   );
 }
 
-type ClientDetailProps = {
+type SummaryCardProps = {
   icon: React.ReactNode;
   label: string;
   value: string;
+  detail: string;
 };
 
-function ClientDetail({
+function SummaryCard({
   icon,
   label,
   value,
-}: ClientDetailProps) {
+  detail,
+}: SummaryCardProps) {
   return (
-    <div className="client-detail-row">
-      <div className="client-detail-icon">
-        {icon}
-      </div>
-
+    <article className="client-summary-card">
+      <div className="client-summary-icon">{icon}</div>
       <div>
         <span>{label}</span>
         <strong>{value}</strong>
+        <small>{detail}</small>
       </div>
-    </div>
+    </article>
   );
 }
 
-type FormFieldProps = {
-  label: string;
-  required?: boolean;
-  wide?: boolean;
-  children: React.ReactNode;
-};
-
-function FormField({
-  label,
-  required = false,
-  wide = false,
-  children,
-}: FormFieldProps) {
+function RiskBadge({
+  risk,
+}: {
+  risk: NonNullable<ProfessionalClient['risk_level']>;
+}) {
   return (
-    <label
-      className={[
-        'client-form-field',
-        wide ? 'client-form-field-wide' : '',
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      <span>
-        {label}
-        {required && (
-          <strong aria-hidden="true">
-            *
-          </strong>
-        )}
-      </span>
-
-      {children}
-    </label>
+    <span className={`risk-badge ${risk}`}>
+      {risk !== 'low' && <ShieldAlert size={14} />}
+      {formatLabel(risk)}
+    </span>
   );
 }
 
 function getInitials(name: string): string {
-  return name
+  const initials = name
     .trim()
     .split(/\s+/)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join('');
+
+  return initials || 'CL';
 }
 
-function formatDate(value: string): string {
-  const date = new Date(value);
+function formatLabel(value: string): string {
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
 
-  if (Number.isNaN(date.getTime())) {
-    return 'Unknown';
-  }
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat('en-AE').format(value);
+}
 
-  return new Intl.DateTimeFormat('en-AE', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(date);
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('en-AE', {
+    style: 'currency',
+    currency: 'AED',
+    maximumFractionDigits: 2,
+  }).format(value);
 }

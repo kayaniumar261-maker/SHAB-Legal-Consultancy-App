@@ -1,0 +1,138 @@
+.hearings-panel{
+    background:#fff;
+    border:1px solid #e7ebf2;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 12px 28px rgba(15,23,42,.05);
+}
+
+.hearings-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    padding:22px;
+    border-bottom:1px solid #edf2f7;
+}
+
+.hearings-tag{
+    display:block;
+    color:#9a7825;
+    font-size:.72rem;
+    font-weight:800;
+    margin-bottom:6px;
+    letter-spacing:.08em;
+}
+
+.hearings-header h3{
+    margin:0;
+    color:#0f172a;
+}
+
+.hearings-header p{
+    margin-top:6px;
+    color:#64748b;
+    font-size:.82rem;
+}
+
+.hearings-header-icon{
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(200,165,72,.15);
+    color:#9a7825;
+}
+
+.hearings-list{
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.hearing-card{
+    display:flex;
+    gap:18px;
+    padding:18px;
+    border:1px solid #edf2f7;
+    border-radius:16px;
+    transition:.2s;
+}
+
+.hearing-card:hover{
+    border-color:#d8c188;
+    background:#fffdf8;
+}
+
+.hearing-time{
+    min-width:95px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    color:#9a7825;
+    border-right:1px solid #edf2f7;
+    padding-right:18px;
+}
+
+.hearing-time strong{
+    color:#0f172a;
+}
+
+.hearing-content{
+    flex:1;
+}
+
+.hearing-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:#64748b;
+    margin-bottom:10px;
+}
+
+.hearing-row span{
+    color:#334155;
+    font-size:.82rem;
+}
+
+.courtroom-badge{
+    display:inline-block;
+    margin-top:8px;
+    background:#f8f4e7;
+    color:#9a7825;
+    padding:6px 12px;
+    border-radius:999px;
+    font-size:.72rem;
+    font-weight:700;
+}
+
+.hearings-empty{
+    text-align:center;
+    padding:50px;
+    color:#94a3b8;
+}
+
+.hearings-loading{
+    padding:50px;
+    text-align:center;
+    color:#64748b;
+}
+
+@media(max-width:700px){
+
+.hearing-card{
+flex-direction:column;
+}
+
+.hearing-time{
+border-right:none;
+border-bottom:1px solid #edf2f7;
+padding-right:0;
+padding-bottom:15px;
+}
+
+}

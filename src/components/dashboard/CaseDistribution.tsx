@@ -1,40 +1,131 @@
-const distribution = [
-  { label: 'Civil', value: 28 },
-  { label: 'Criminal', value: 18 },
-  { label: 'Labour', value: 16 },
-  { label: 'Corporate', value: 20 },
-  { label: 'Family', value: 12 },
-  { label: 'Arbitration', value: 6 },
-];
+import { useEffect, useMemo, useState } from 'react';
+import {
+  BriefcaseBusiness,
+  LoaderCircle,
+} from 'lucide-react';
+
+import {
+  getCaseDistribution,
+  type CaseDistributionItem,
+} from '../../services/caseDistributionService';
+
+function formatStatus(status: string): string {
+  return status
+    .replace(/[_-]/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
 
 export function CaseDistribution() {
+  const [items, setItems] = useState<CaseDistributionItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const result = await getCaseDistribution();
+
+        if (active) {
+          setItems(result);
+        }
+      } catch (loadError) {
+        if (active) {
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : 'Unable to load case distribution.',
+          );
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const totalCases = useMemo(
+    () =>
+      items.reduce(
+        (total, item) => total + item.count,
+        0,
+      ),
+    [items],
+  );
+
   return (
     <section className="dashboard-panel case-distribution-panel">
       <div className="panel-heading-row">
         <div>
+          <span className="section-tag">CASE PORTFOLIO</span>
           <h3>Case Distribution</h3>
-          <p>Portfolio by practice area.</p>
+          <p>
+            Live breakdown of non-archived matters by status.
+          </p>
+        </div>
+
+        <div className="case-distribution-total">
+          <strong>{totalCases}</strong>
+          <span>Total</span>
         </div>
       </div>
 
-      <div className="distribution-body">
-        <div className="pie-placeholder">
-          <span>Pie chart placeholder</span>
+      {loading ? (
+        <div className="case-distribution-state">
+          <LoaderCircle
+            size={22}
+            className="case-distribution-loader"
+          />
+          <span>Loading case portfolio…</span>
         </div>
-
-        <div className="distribution-legend">
-          {distribution.map((item) => (
+      ) : error ? (
+        <div className="case-distribution-state error">
+          {error}
+        </div>
+      ) : items.length === 0 ? (
+        <div className="case-distribution-state">
+          <BriefcaseBusiness size={22} />
+          <span>No case data available yet.</span>
+        </div>
+      ) : (
+        <div className="case-distribution-list">
+          {items.map((item) => (
             <div
-              key={item.label}
-              className="distribution-row"
+              className="case-distribution-row"
+              key={item.status}
             >
-              <span className="distribution-badge" />
-              <span>{item.label}</span>
-              <strong>{item.value}%</strong>
+              <div className="case-distribution-row-top">
+                <span>{formatStatus(item.status)}</span>
+
+                <div>
+                  <strong>{item.count}</strong>
+                  <small>{item.percentage}%</small>
+                </div>
+              </div>
+
+              <div className="case-distribution-track">
+                <div
+                  className="case-distribution-progress"
+                  style={{
+                    width: `${item.percentage}%`,
+                  }}
+                />
+              </div>
             </div>
           ))}
         </div>
-      </div>
+      )}
     </section>
   );
 }

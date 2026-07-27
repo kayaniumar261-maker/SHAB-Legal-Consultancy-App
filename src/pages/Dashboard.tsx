@@ -5,10 +5,17 @@ import {
   CreditCard,
   FileText,
   FolderOpen,
-  LayoutDashboard,
+  RefreshCw,
   ShieldCheck,
   Users,
 } from 'lucide-react';
+
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { KPICard } from '../components/dashboard/KPICard';
 import { QuickActions } from '../components/dashboard/QuickActions';
@@ -21,15 +28,11 @@ import { CaseDistribution } from '../components/dashboard/CaseDistribution';
 import { CalendarWidget } from '../components/dashboard/CalendarWidget';
 import { Notifications } from '../components/dashboard/Notifications';
 
-import { useEffect, useState } from 'react';
-import { countStaff } from '../services/staffService';
-import { countDocuments } from '../services/documentService';
-import { getHearingsToday } from '../services/hearingService';
-import { getTasksForToday } from '../services/taskService';
-import { getOutstandingInvoicesAmount } from '../services/invoiceService';
-import { getRevenueForMonth } from '../services/paymentService';
-import { getClients } from '../services/clientService';
-import { getCases } from '../services/caseService';
+import {
+  getDashboardSummary,
+  type DashboardKPIData,
+  type DashboardServiceError,
+} from '../services/dashboardService';
 
 type KPI = {
   label: string;
@@ -37,113 +40,262 @@ type KPI = {
   subtitle: string;
   trend: string;
   trendPositive: boolean;
-  icon: any;
+  icon: typeof Briefcase;
 };
 
-const kpiInitial: KPI[] = [];
+const emptyDashboardData: DashboardKPIData = {
+  activeCases: 0,
+  totalClients: 0,
+  hearingsToday: 0,
+  tasksDueToday: 0,
+  outstandingPayments: 0,
+  monthlyRevenue: 0,
+  documentsUploaded: 0,
+  activeStaff: 0,
+};
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('en-AE', {
+    style: 'currency',
+    currency: 'AED',
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function formatLoadedTime(value: string | null): string {
+  if (!value) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat('en-AE', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
 
 export function Dashboard() {
-  const [kpis, setKpis] = useState<KPI[]>(kpiInitial);
+  const [dashboardData, setDashboardData] =
+    useState<DashboardKPIData>(emptyDashboardData);
 
-  useEffect(() => {
-    async function load() {
+  const [dashboardErrors, setDashboardErrors] =
+    useState<DashboardServiceError[]>([]);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loadedAt, setLoadedAt] = useState<string | null>(null);
+
+  const loadDashboard = useCallback(
+    async (refresh = false) => {
+      if (refresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+
       try {
-        const clients = await getClients({ pageSize: 1 });
-        const cases = await getCases({ pageSize: 1 });
-        const hearingsToday = await getHearingsToday();
-        const tasksToday = await getTasksForToday();
-        const docsCount = await countDocuments();
-        const staffCount = await countStaff();
-        const outstanding = await getOutstandingInvoicesAmount();
-        const now = new Date();
-        const revenue = await getRevenueForMonth(now.getFullYear(), now.getMonth() + 1);
+        const summary = await getDashboardSummary();
 
-        setKpis([
+        setDashboardData(summary.data);
+        setDashboardErrors(summary.errors);
+        setLoadedAt(summary.loadedAt);
+      } catch (error) {
+        console.error(
+          'Unable to load dashboard summary:',
+          error,
+        );
+
+        setDashboardErrors([
           {
-            label: 'Active Cases',
-            value: String(cases.count ?? 0),
-            subtitle: 'Live matters',
-            trend: '+0%',
-            trendPositive: true,
-            icon: Briefcase,
-          },
-          {
-            label: 'Total Clients',
-            value: String(clients.count ?? 0),
-            subtitle: 'Managed relationships',
-            trend: '+0%',
-            trendPositive: true,
-            icon: Users,
-          },
-          {
-            label: 'Hearings Today',
-            value: String(hearingsToday.length),
-            subtitle: 'Court events',
-            trend: '+0%',
-            trendPositive: true,
-            icon: CalendarDays,
-          },
-          {
-            label: 'Tasks Due Today',
-            value: String(tasksToday.length),
-            subtitle: 'Due by end of day',
-            trend: '+0%',
-            trendPositive: false,
-            icon: ClipboardList,
-          },
-          {
-            label: 'Outstanding Payments',
-            value: `AED ${Math.round(outstanding)}`,
-            subtitle: 'Pending receivables',
-            trend: '+0%',
-            trendPositive: true,
-            icon: CreditCard,
-          },
-          {
-            label: 'Monthly Revenue',
-            value: `AED ${Math.round(revenue)}`,
-            subtitle: 'This month',
-            trend: '+0%',
-            trendPositive: true,
-            icon: ShieldCheck,
-          },
-          {
-            label: 'Documents Uploaded',
-            value: String(docsCount),
-            subtitle: 'Case materials',
-            trend: '+0%',
-            trendPositive: true,
-            icon: FileText,
-          },
-          {
-            label: 'Staff Online',
-            value: String(staffCount),
-            subtitle: 'Available team',
-            trend: '+0%',
-            trendPositive: true,
-            icon: FolderOpen,
+            section: 'activeCases',
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Unable to load dashboard.',
           },
         ]);
-      } catch (err) {
-        // ignore errors for now
-        // console.error(err);
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
       }
-    }
+    },
+    [],
+  );
 
-    load();
-  }, []);
+  useEffect(() => {
+    void loadDashboard();
+  }, [loadDashboard]);
+
+  const kpis = useMemo<KPI[]>(
+    () => [
+      {
+        label: 'Active Cases',
+        value: isLoading
+          ? '—'
+          : String(dashboardData.activeCases),
+        subtitle: 'Open legal matters',
+        trend: 'Live',
+        trendPositive: true,
+        icon: Briefcase,
+      },
+      {
+        label: 'Total Clients',
+        value: isLoading
+          ? '—'
+          : String(dashboardData.totalClients),
+        subtitle: 'Managed relationships',
+        trend: 'Live',
+        trendPositive: true,
+        icon: Users,
+      },
+      {
+        label: 'Hearings Today',
+        value: isLoading
+          ? '—'
+          : String(dashboardData.hearingsToday),
+        subtitle: 'Court appearances today',
+        trend:
+          dashboardData.hearingsToday > 0
+            ? 'Action'
+            : 'Clear',
+        trendPositive:
+          dashboardData.hearingsToday === 0,
+        icon: CalendarDays,
+      },
+      {
+        label: 'Tasks Due Today',
+        value: isLoading
+          ? '—'
+          : String(dashboardData.tasksDueToday),
+        subtitle: 'Due before end of day',
+        trend:
+          dashboardData.tasksDueToday > 0
+            ? 'Due'
+            : 'Clear',
+        trendPositive:
+          dashboardData.tasksDueToday === 0,
+        icon: ClipboardList,
+      },
+      {
+        label: 'Outstanding Payments',
+        value: isLoading
+          ? '—'
+          : formatCurrency(
+              dashboardData.outstandingPayments,
+            ),
+        subtitle: 'Pending receivables',
+        trend:
+          dashboardData.outstandingPayments > 0
+            ? 'Pending'
+            : 'Clear',
+        trendPositive:
+          dashboardData.outstandingPayments === 0,
+        icon: CreditCard,
+      },
+      {
+        label: 'Monthly Revenue',
+        value: isLoading
+          ? '—'
+          : formatCurrency(
+              dashboardData.monthlyRevenue,
+            ),
+        subtitle: 'Collected this month',
+        trend: 'Live',
+        trendPositive: true,
+        icon: ShieldCheck,
+      },
+      {
+        label: 'Documents Uploaded',
+        value: isLoading
+          ? '—'
+          : String(
+              dashboardData.documentsUploaded,
+            ),
+        subtitle: 'Stored case materials',
+        trend: 'Live',
+        trendPositive: true,
+        icon: FileText,
+      },
+      {
+        label: 'Active Staff',
+        value: isLoading
+          ? '—'
+          : String(dashboardData.activeStaff),
+        subtitle: 'Available team members',
+        trend: 'Live',
+        trendPositive: true,
+        icon: FolderOpen,
+      },
+    ],
+    [
+      dashboardData,
+      isLoading,
+    ],
+  );
 
   return (
     <div className="dashboard-page">
       <section className="dashboard-header">
         <div>
-          <p className="page-eyebrow">Executive overview</p>
+          <p className="page-eyebrow">
+            Executive overview
+          </p>
+
           <h2>SHAB Legal Consultancy</h2>
+
           <p className="page-intro">
-            A premium overview of cases, clients, hearings, and revenue with a centralized command center for your legal practice.
+            A centralized command centre for cases,
+            clients, hearings, tasks, documents and
+            financial performance.
           </p>
         </div>
+
+        <div className="dashboard-header-actions">
+          {loadedAt && (
+            <span className="dashboard-updated-time">
+              Updated {formatLoadedTime(loadedAt)}
+            </span>
+          )}
+
+          <button
+            type="button"
+            className="dashboard-refresh-button"
+            onClick={() => {
+              void loadDashboard(true);
+            }}
+            disabled={isRefreshing}
+          >
+            <RefreshCw
+              size={16}
+              className={
+                isRefreshing
+                  ? 'dashboard-refresh-icon spinning'
+                  : 'dashboard-refresh-icon'
+              }
+            />
+
+            {isRefreshing
+              ? 'Refreshing'
+              : 'Refresh'}
+          </button>
+        </div>
       </section>
+
+      {dashboardErrors.length > 0 && (
+        <section
+          className="dashboard-data-warning"
+          role="status"
+        >
+          <strong>
+            Some dashboard information could not be
+            loaded.
+          </strong>
+
+          <span>
+            The available sections are still displayed.
+            Refresh the page after checking Supabase.
+          </span>
+        </section>
+      )}
 
       <section className="kpi-grid">
         {kpis.map((item) => (

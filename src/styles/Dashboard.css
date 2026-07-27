@@ -1,0 +1,499 @@
+/* ================================
+   UPCOMING HEARINGS
+================================ */
+
+.hearing-dashboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.hearing-dashboard-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid #ece7dc;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.hearing-date-box {
+  min-width: 76px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f8f4e8;
+  text-align: center;
+}
+
+.hearing-date-box strong {
+  display: block;
+  color: #27231b;
+  font-size: 13px;
+}
+
+.hearing-date-box span {
+  display: block;
+  margin-top: 4px;
+  color: #877e6c;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.hearing-dashboard-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.hearing-dashboard-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.hearing-dashboard-title strong {
+  color: #27231b;
+  font-size: 13px;
+}
+
+.hearing-client {
+  display: block;
+  margin-top: 5px;
+  color: #777064;
+  font-size: 12px;
+}
+
+.hearing-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.hearing-meta-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #8a8275;
+  font-size: 11px;
+}
+
+.hearing-status-pill {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #edf7ed;
+  color: #447047;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.hearing-empty-state {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #837b6e;
+  font-size: 13px;
+}
+
+.hearing-empty-state.error {
+  color: #a94442;
+}
+
+
+/* ================================
+   LIVE CALENDAR
+================================ */
+
+.calendar-heading {
+  gap: 18px;
+}
+
+.calendar-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-navigation strong {
+  min-width: 115px;
+  color: #403b32;
+  font-size: 12px;
+  text-align: center;
+}
+
+.calendar-navigation button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e7e1d5;
+  border-radius: 9px;
+  background: #fff;
+  color: #5c5549;
+  cursor: pointer;
+}
+
+.calendar-navigation button:hover {
+  background: #f8f4e8;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(7, 1fr);
+  gap: 7px;
+  margin-top: 18px;
+}
+
+.calendar-day-label {
+  padding-bottom: 5px;
+  color: #9a9183;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.calendar-day {
+  position: relative;
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #f8f7f3;
+  color: #625c52;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.calendar-day.highlighted {
+  background: #f0e4bd;
+  color: #6c5210;
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(
+      178,
+      139,
+      37,
+      0.24
+    );
+}
+
+.calendar-day.today {
+  outline: 2px solid #b58b28;
+  outline-offset: -2px;
+}
+
+.calendar-day small {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  min-width: 14px;
+  height: 14px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #8c6914;
+  color: #fff;
+  font-size: 8px;
+}
+
+.calendar-empty {
+  background: transparent;
+}
+
+.calendar-loading {
+  margin-top: 10px;
+  color: #958c7e;
+  font-size: 11px;
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .hearing-dashboard-item {
+    align-items: flex-start;
+  }
+
+  .hearing-status-pill {
+    display: none;
+  }
+
+  .calendar-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .calendar-navigation {
+    width: 100%;
+    justify-content:
+      space-between;
+  }
+
+  .calendar-grid {
+    gap: 4px;
+  }
+
+  .calendar-day {
+    min-height: 34px;
+    font-size: 11px;
+  }
+}
+/* ================================
+   SHARED DASHBOARD STATES
+================================ */
+
+.dashboard-widget-state {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #81796d;
+  font-size: 13px;
+  text-align: center;
+}
+
+.dashboard-widget-state.error,
+.dashboard-inline-error {
+  color: #a94442;
+}
+
+.dashboard-inline-error {
+  margin-top: 10px;
+  font-size: 11px;
+}
+
+
+/* ================================
+   TASK WIDGET
+================================ */
+
+.task-count-badge {
+  min-width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #f4edda;
+  color: #755916;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.task-dashboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.task-dashboard-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid #ece7dc;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.task-dashboard-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-dashboard-main > strong {
+  color: #29251f;
+  font-size: 13px;
+}
+
+.task-dashboard-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 7px;
+  color: #877f72;
+  font-size: 10px;
+}
+
+.task-dashboard-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.task-priority {
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.task-priority.urgent {
+  background: #fde8e8;
+  color: #a33c3c;
+}
+
+.task-priority.high {
+  background: #fff1df;
+  color: #996018;
+}
+
+.task-priority.medium {
+  background: #f4edda;
+  color: #755916;
+}
+
+.task-priority.low {
+  background: #edf4ed;
+  color: #4f7352;
+}
+
+.task-complete-button,
+.notification-read-button {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e5dfd3;
+  border-radius: 9px;
+  background: #fff;
+  color: #817761;
+  cursor: pointer;
+}
+
+.task-complete-button:hover,
+.notification-read-button:hover {
+  background: #f7f2e6;
+  color: #8b691c;
+}
+
+.task-complete-button:disabled,
+.notification-read-button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+
+/* ================================
+   ACTIVITY FEED
+================================ */
+
+.activity-dashboard-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 18px;
+}
+
+.activity-dashboard-item {
+  display: grid;
+  grid-template-columns:
+    34px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  padding: 13px 0;
+  border-bottom: 1px solid #eee9df;
+}
+
+.activity-dashboard-item:last-child {
+  border-bottom: 0;
+}
+
+.activity-icon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #f4edda;
+  color: #84641a;
+}
+
+.activity-dashboard-content strong {
+  color: #302c25;
+  font-size: 12px;
+}
+
+.activity-dashboard-content p {
+  margin: 4px 0 0;
+  color: #827b70;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.activity-dashboard-item time {
+  color: #9c9487;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+
+/* ================================
+   NOTIFICATIONS
+================================ */
+
+.notification-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #f4edda;
+  color: #765915;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.notification-dashboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.notification-dashboard-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid #ece7dc;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.notification-dashboard-item.unread {
+  border-color: rgba(
+    178,
+    139,
+    37,
+    0.32
+  );
+  background: #fffdf7;
+}
+
+.notification-dashboard-item.read {
+  opacity: 0.68;
+}
+
+.notification-dashboard-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-dashboard-content strong {
+  color: #302c25;
+  font-size: 12px;
+}
+
+.notification-dashboard-content p {
+  margin: 5px 0 0;
+  color: #81796d;
+  font-size: 11px;
+  line-height: 1.45;
+}
