@@ -619,3 +619,122 @@ export async function getStaffOptions(): Promise<
     result.data ?? []
   ) as HearingStaffOption[];
 }
+/* =========================================================
+   HEARINGS BY CLIENT
+========================================================= */
+
+export type ClientHearing = {
+  id: string;
+  case_id: string | null;
+  case_number: string | null;
+  case_type: string | null;
+  hearing_at: string;
+  end_at: string | null;
+  title: string | null;
+  court: string | null;
+  courtroom: string | null;
+  location: string | null;
+  hearing_type: string | null;
+  status: string | null;
+  outcome: string | null;
+  notes: string | null;
+  assigned_staff_name: string | null;
+};
+
+export async function getHearingsByClient(
+  clientId: string,
+): Promise<ClientHearing[]> {
+  const result = await supabase
+    .from('hearings')
+    .select(`
+      id,
+      case_id,
+      hearing_at,
+      end_at,
+      title,
+      court,
+      courtroom,
+      location,
+      hearing_type,
+      status,
+      outcome,
+      notes,
+      assigned_staff:staff (
+        full_name
+      ),
+      case:cases!inner (
+        id,
+        client_id,
+        case_number,
+        case_type
+      )
+    `)
+    .eq(
+      'case.client_id',
+      clientId,
+    )
+    .order(
+      'hearing_at',
+      {
+        ascending: false,
+      },
+    );
+
+  if (result.error) {
+    throw new Error(
+      result.error.message,
+    );
+  }
+
+  return (
+    result.data ?? []
+  ).map((row: any) => ({
+    id:
+      row.id,
+
+    case_id:
+      row.case_id ?? null,
+
+    case_number:
+      row.case?.case_number ??
+      null,
+
+    case_type:
+      row.case?.case_type ??
+      null,
+
+    hearing_at:
+      row.hearing_at,
+
+    end_at:
+      row.end_at ?? null,
+
+    title:
+      row.title ?? null,
+
+    court:
+      row.court ?? null,
+
+    courtroom:
+      row.courtroom ?? null,
+
+    location:
+      row.location ?? null,
+
+    hearing_type:
+      row.hearing_type ?? null,
+
+    status:
+      row.status ?? null,
+
+    outcome:
+      row.outcome ?? null,
+
+    notes:
+      row.notes ?? null,
+
+    assigned_staff_name:
+      row.assigned_staff?.full_name ??
+      null,
+  }));
+}
