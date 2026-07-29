@@ -18,6 +18,7 @@ import { Login } from './pages/Login';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { Staff } from './pages/Staff';
 import { Tasks } from './pages/Tasks';
+import { Documents } from './pages/Documents';
 
 function App() {
   return (
@@ -46,9 +47,9 @@ function App() {
           />
 
           <Route
-            path="/documents"
-            element={<PlaceholderPage title="Documents" />}
-          />
+  path="/documents"
+  element={<Documents />}
+/>
 
           <Route
             path="/payments"
