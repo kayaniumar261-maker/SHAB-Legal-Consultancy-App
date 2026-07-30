@@ -156,6 +156,12 @@ export function Payments() {
   const [invoiceModalOpen, setInvoiceModalOpen] =
     useState(false);
 
+  const [viewingInvoice, setViewingInvoice] =
+    useState<Invoice | null>(null);
+
+  const [editingInvoice, setEditingInvoice] =
+    useState<Invoice | null>(null);
+
   const [paymentModalOpen, setPaymentModalOpen] =
     useState(false);
 
@@ -383,72 +389,211 @@ export function Payments() {
       return;
     }
 
+    const subtotal =
+      Number(invoiceForm.subtotal || 0);
+
+    const vatRate =
+      Number(invoiceForm.vat_rate || 0);
+
+    const discountAmount =
+      Number(invoiceForm.discount_amount || 0);
+
+    if (subtotal < 0) {
+      setError(
+        'Subtotal cannot be negative.',
+      );
+      return;
+    }
+
+    if (vatRate < 0) {
+      setError(
+        'VAT rate cannot be negative.',
+      );
+      return;
+    }
+
+    if (discountAmount < 0) {
+      setError(
+        'Discount cannot be negative.',
+      );
+      return;
+    }
+
+    const vatAmount =
+      subtotal * (vatRate / 100);
+
+    const totalAmount =
+      subtotal +
+      vatAmount -
+      discountAmount;
+
+    if (totalAmount < 0) {
+      setError(
+        'Invoice total cannot be negative.',
+      );
+      return;
+    }
+
+    const existingPaidAmount =
+      editingInvoice
+        ? Number(editingInvoice.paid_amount ?? 0)
+        : 0;
+
+    if (
+      editingInvoice &&
+      totalAmount < existingPaidAmount
+    ) {
+      setError(
+        `Invoice total cannot be reduced below the amount already paid (${formatCurrency(
+          existingPaidAmount,
+        )}).`,
+      );
+      return;
+    }
+
+    const balanceAmount =
+      Math.max(
+        0,
+        totalAmount - existingPaidAmount,
+      );
+
+    let calculatedStatus: InvoiceStatus =
+      invoiceForm.status;
+
+    if (editingInvoice) {
+      if (
+        existingPaidAmount >= totalAmount &&
+        totalAmount > 0
+      ) {
+        calculatedStatus = 'paid';
+      } else if (existingPaidAmount > 0) {
+        calculatedStatus = 'partially_paid';
+      } else if (
+        invoiceForm.status === 'paid' ||
+        invoiceForm.status === 'partially_paid'
+      ) {
+        calculatedStatus = 'issued';
+      }
+    }
+
     setFormLoading(true);
     setError(null);
 
     try {
-      const subtotal =
-        Number(invoiceForm.subtotal || 0);
+      if (editingInvoice) {
+        await updateInvoice(
+          editingInvoice.id,
+          {
+            client_id:
+              invoiceForm.client_id,
 
-      const vatRate =
-        Number(invoiceForm.vat_rate || 0);
+            case_id:
+              invoiceForm.case_id || null,
 
-      const discountAmount =
-        Number(invoiceForm.discount_amount || 0);
+            invoice_number:
+              invoiceForm.invoice_number.trim(),
 
-      const vatAmount =
-        subtotal * (vatRate / 100);
+            issue_date:
+              invoiceForm.issue_date,
 
-      const totalAmount =
-        subtotal +
-        vatAmount -
-        discountAmount;
+            due_date:
+              invoiceForm.due_date || null,
 
-      const payload: InvoiceInsert = {
-        client_id: invoiceForm.client_id,
-        case_id:
-          invoiceForm.case_id || null,
+            status:
+              calculatedStatus,
 
-        invoice_number:
-          invoiceForm.invoice_number.trim(),
+            currency:
+              invoiceForm.currency || 'AED',
 
-        issue_date:
-          invoiceForm.issue_date,
+            subtotal,
+            vat_rate:
+              vatRate,
+            vat_amount:
+              vatAmount,
+            discount_amount:
+              discountAmount,
 
-        due_date:
-          invoiceForm.due_date || null,
+            total_amount:
+              totalAmount,
 
-        status:
-          invoiceForm.status,
+            paid_amount:
+              existingPaidAmount,
 
-        currency:
-          invoiceForm.currency || 'AED',
+            balance_amount:
+              balanceAmount,
 
-        subtotal,
-        vat_rate: vatRate,
-        vat_amount: vatAmount,
-        discount_amount: discountAmount,
+            description:
+              invoiceForm.description.trim() ||
+              null,
 
-        total_amount: totalAmount,
-        paid_amount: 0,
-        balance_amount: totalAmount,
+            notes:
+              invoiceForm.notes.trim() ||
+              null,
 
-        description:
-          invoiceForm.description.trim() ||
-          null,
+            amount:
+              totalAmount,
+          },
+        );
+      } else {
+        const payload: InvoiceInsert = {
+          client_id:
+            invoiceForm.client_id,
 
-        notes:
-          invoiceForm.notes.trim() ||
-          null,
+          case_id:
+            invoiceForm.case_id || null,
 
-        created_by: null,
+          invoice_number:
+            invoiceForm.invoice_number.trim(),
 
-        amount: totalAmount,
-      };
+          issue_date:
+            invoiceForm.issue_date,
 
-      await createInvoice(payload);
+          due_date:
+            invoiceForm.due_date || null,
+
+          status:
+            invoiceForm.status,
+
+          currency:
+            invoiceForm.currency || 'AED',
+
+          subtotal,
+          vat_rate:
+            vatRate,
+          vat_amount:
+            vatAmount,
+          discount_amount:
+            discountAmount,
+
+          total_amount:
+            totalAmount,
+
+          paid_amount:
+            0,
+
+          balance_amount:
+            totalAmount,
+
+          description:
+            invoiceForm.description.trim() ||
+            null,
+
+          notes:
+            invoiceForm.notes.trim() ||
+            null,
+
+          created_by:
+            null,
+
+          amount:
+            totalAmount,
+        };
+
+        await createInvoice(payload);
+      }
 
       setInvoiceModalOpen(false);
+      setEditingInvoice(null);
       setInvoiceForm(emptyInvoiceForm);
       setPage(1);
 
@@ -457,7 +602,9 @@ export function Payments() {
       setError(
         saveError instanceof Error
           ? saveError.message
-          : 'Unable to create invoice.',
+          : editingInvoice
+            ? 'Unable to update invoice.'
+            : 'Unable to create invoice.',
       );
     } finally {
       setFormLoading(false);
@@ -1049,20 +1196,61 @@ export function Payments() {
                     </td>
 
                     <td>
-                      <button
-                        type="button"
-                        className="finance-delete-button"
-                        onClick={() =>
-                          void handleDeleteInvoice(
-                            invoice,
-                          )
-                        }
-                        disabled={
-                          actionId === invoice.id
-                        }
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <div className="finance-row-actions">
+                        <button
+                          type="button"
+                          className="finance-action-button"
+                          onClick={() =>
+                            setViewingInvoice(invoice)
+                          }
+                        >
+                          View
+                        </button>
+
+                        <button
+                          type="button"
+                          className="finance-action-button"
+                          onClick={() => {
+                            setEditingInvoice(invoice);
+
+                            setInvoiceForm({
+                              client_id: invoice.client_id,
+                              case_id: invoice.case_id ?? '',
+                              invoice_number: invoice.invoice_number,
+                              issue_date: invoice.issue_date,
+                              due_date: invoice.due_date ?? '',
+                              status: invoice.status,
+                              currency: invoice.currency,
+                              subtotal: String(invoice.subtotal ?? 0),
+                              vat_rate: String(invoice.vat_rate ?? 0),
+                              discount_amount: String(
+                                invoice.discount_amount ?? 0,
+                              ),
+                              description: invoice.description ?? '',
+                              notes: invoice.notes ?? '',
+                            });
+
+                            setInvoiceModalOpen(true);
+                          }}
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          className="finance-delete-button"
+                          onClick={() =>
+                            void handleDeleteInvoice(
+                              invoice,
+                            )
+                          }
+                          disabled={
+                            actionId === invoice.id
+                          }
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -1214,9 +1402,11 @@ export function Payments() {
           <button
             type="button"
             className="finance-modal-backdrop"
-            onClick={() =>
-              setInvoiceModalOpen(false)
-            }
+            onClick={() => {
+              setInvoiceModalOpen(false);
+              setEditingInvoice(null);
+              setInvoiceForm(emptyInvoiceForm);
+            }}
           />
 
           <section className="finance-modal">
@@ -1225,14 +1415,20 @@ export function Payments() {
                 <p className="page-eyebrow">
                   Billing
                 </p>
-                <h3>New Invoice</h3>
+                <h3>
+                  {editingInvoice
+                    ? 'Edit Invoice'
+                    : 'New Invoice'}
+                </h3>
               </div>
 
               <button
                 type="button"
-                onClick={() =>
-                  setInvoiceModalOpen(false)
-                }
+                onClick={() => {
+                  setInvoiceModalOpen(false);
+                  setEditingInvoice(null);
+                  setInvoiceForm(emptyInvoiceForm);
+                }}
               >
                 ×
               </button>
@@ -1542,9 +1738,11 @@ export function Payments() {
                 <button
                   type="button"
                   className="secondary-action-button"
-                  onClick={() =>
-                    setInvoiceModalOpen(false)
-                  }
+                  onClick={() => {
+                    setInvoiceModalOpen(false);
+                    setEditingInvoice(null);
+                    setInvoiceForm(emptyInvoiceForm);
+                  }}
                 >
                   Cancel
                 </button>
@@ -1556,7 +1754,9 @@ export function Payments() {
                 >
                   {formLoading
                     ? 'Saving…'
-                    : 'Create Invoice'}
+                    : editingInvoice
+                      ? 'Save Changes'
+                      : 'Create Invoice'}
                 </button>
               </footer>
             </form>
