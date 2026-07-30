@@ -13,59 +13,109 @@ import { Cases } from './pages/Cases';
 import { ClientDetails } from './pages/ClientDetails';
 import { Clients } from './pages/Clients';
 import { Dashboard } from './pages/Dashboard';
+import { Documents } from './pages/Documents';
 import { Hearings } from './pages/Hearings';
 import { Login } from './pages/Login';
+import { Payments } from './pages/Payments';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { Staff } from './pages/Staff';
 import { Tasks } from './pages/Tasks';
-import { Documents } from './pages/Documents';
 
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route
+        path="/login"
+        element={<Login />}
+      />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-          <Route path="/" element={<Dashboard />} />
+          <Route
+            path="/"
+            element={<Dashboard />}
+          />
 
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/clients/:id" element={<ClientDetails />} />
+          <Route
+            path="/clients"
+            element={<Clients />}
+          />
 
-          <Route path="/cases" element={<Cases />} />
-          <Route path="/cases/new" element={<CaseFormPage />} />
-          <Route path="/cases/:id/edit" element={<CaseFormPage />} />
-          <Route path="/cases/:id" element={<CaseDetails />} />
+          <Route
+            path="/clients/:id"
+            element={<ClientDetails />}
+          />
 
-          <Route path="/tasks" element={<Tasks />} />
+          <Route
+            path="/cases"
+            element={<Cases />}
+          />
 
-          <Route path="/hearings" element={<Hearings />} />
+          <Route
+            path="/cases/new"
+            element={<CaseFormPage />}
+          />
+
+          <Route
+            path="/cases/:id/edit"
+            element={<CaseFormPage />}
+          />
+
+          <Route
+            path="/cases/:id"
+            element={<CaseDetails />}
+          />
+
+          <Route
+            path="/tasks"
+            element={<Tasks />}
+          />
+
+          <Route
+            path="/hearings"
+            element={<Hearings />}
+          />
 
           <Route
             path="/calendar"
-            element={<PlaceholderPage title="Calendar" />}
+            element={
+              <PlaceholderPage title="Calendar" />
+            }
           />
 
           <Route
-  path="/documents"
-  element={<Documents />}
-/>
+            path="/documents"
+            element={<Documents />}
+          />
 
           <Route
             path="/payments"
-            element={<PlaceholderPage title="Payments" />}
+            element={<Payments />}
           />
 
-          <Route path="/staff" element={<Staff />} />
+          <Route
+            path="/staff"
+            element={<Staff />}
+          />
 
           <Route
             path="/settings"
-            element={<PlaceholderPage title="Settings" />}
+            element={
+              <PlaceholderPage title="Settings" />
+            }
           />
         </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="*"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
     </Routes>
   );
 }
