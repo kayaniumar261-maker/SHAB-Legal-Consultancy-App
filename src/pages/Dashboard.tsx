@@ -313,18 +313,27 @@ export function Dashboard() {
 
       <QuickActions />
 
-      <section className="dashboard-layout">
-        <div className="dashboard-col-left">
+      <section className="dashboard-workspace">
+        <div className="dashboard-work-row dashboard-work-row-primary">
           <RecentCases />
-          <UpcomingHearings />
-          <ActivityFeed />
+
+          <div className="dashboard-side-stack">
+            <TaskWidget />
+            <RevenueChart />
+          </div>
         </div>
 
-        <div className="dashboard-col-right">
-          <TaskWidget />
-          <RevenueChart />
-          <CaseDistribution />
-          <CalendarWidget />
+        <div className="dashboard-work-row dashboard-work-row-secondary">
+          <UpcomingHearings />
+
+          <div className="dashboard-side-stack">
+            <CaseDistribution />
+            <CalendarWidget />
+          </div>
+        </div>
+
+        <div className="dashboard-work-row dashboard-work-row-bottom">
+          <ActivityFeed />
           <Notifications />
         </div>
       </section>

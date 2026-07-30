@@ -605,3 +605,962 @@
     font-size: 9px;
   }
 }
+
+/* =========================================================
+   SHAB EXECUTIVE DASHBOARD V3
+   Compact professional workspace
+   ========================================================= */
+
+.dashboard-page {
+  display: grid;
+  width: 100%;
+  gap: 12px;
+}
+
+/* ---------------------------------------------------------
+   HEADER
+   --------------------------------------------------------- */
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 2px 0 4px;
+}
+
+.dashboard-header h2 {
+  margin: 2px 0 5px;
+  font-size: clamp(1.35rem, 1.8vw, 1.7rem);
+  line-height: 1.15;
+}
+
+.dashboard-header .page-eyebrow {
+  font-size: 0.62rem;
+  letter-spacing: 0.11em;
+}
+
+.dashboard-header .page-intro {
+  max-width: 620px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-updated-time {
+  font-size: 0.68rem;
+}
+
+.dashboard-refresh-button {
+  min-height: 30px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+}
+
+/* ---------------------------------------------------------
+   KPI GRID
+   --------------------------------------------------------- */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.kpi-grid .kpi-card,
+.kpi-grid .dashboard-kpi-card,
+.kpi-grid article {
+  min-height: 94px !important;
+  padding: 11px 12px !important;
+  gap: 8px !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 3px 12px rgba(15, 23, 42, 0.035) !important;
+}
+
+.kpi-grid .kpi-card:hover,
+.kpi-grid .dashboard-kpi-card:hover,
+.kpi-grid article:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 7px 18px rgba(15, 23, 42, 0.055) !important;
+}
+
+/* Smaller KPI icons */
+
+.kpi-grid svg {
+  width: 16px;
+  height: 16px;
+}
+
+.kpi-grid .kpi-icon,
+.kpi-grid .dashboard-kpi-icon {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  border-radius: 9px !important;
+}
+
+/* KPI numbers */
+
+.kpi-grid h3,
+.kpi-grid .kpi-value,
+.kpi-grid .dashboard-kpi-value {
+  font-size: 1.15rem !important;
+  line-height: 1.1 !important;
+}
+
+.kpi-grid .kpi-label,
+.kpi-grid .dashboard-kpi-label {
+  font-size: 0.67rem !important;
+}
+
+.kpi-grid .kpi-subtitle,
+.kpi-grid .dashboard-kpi-subtitle {
+  font-size: 0.62rem !important;
+  line-height: 1.3 !important;
+}
+
+/* Live / Pending badges */
+
+.kpi-grid .kpi-trend,
+.kpi-grid .dashboard-kpi-trend {
+  padding: 3px 6px !important;
+  font-size: 0.54rem !important;
+}
+
+/* ---------------------------------------------------------
+   QUICK ACTIONS
+   --------------------------------------------------------- */
+
+.dashboard-page .quick-actions-panel {
+  padding: 12px !important;
+  border-radius: 13px !important;
+}
+
+.quick-actions-panel .panel-heading-row {
+  padding: 0 2px 9px !important;
+}
+
+.dashboard-page .quick-actions-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.dashboard-page .quick-action-button {
+  display: flex;
+  min-height: 52px !important;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 9px !important;
+  border-radius: 10px !important;
+}
+
+.dashboard-page .quick-action-icon {
+  display: grid;
+  width: 29px !important;
+  height: 29px !important;
+  min-width: 29px !important;
+  place-items: center;
+  border-radius: 8px !important;
+}
+
+.dashboard-page .quick-action-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.dashboard-page .quick-action-content {
+  min-width: 0;
+}
+
+.dashboard-page .quick-action-content span {
+  font-size: 0.69rem !important;
+  line-height: 1.15;
+}
+
+.dashboard-page .quick-action-content small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.57rem !important;
+  line-height: 1.2;
+}
+
+/* ---------------------------------------------------------
+   MAIN LAYOUT
+   --------------------------------------------------------- */
+
+.dashboard-layout {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.48fr)
+    minmax(275px, 0.72fr);
+  align-items: start;
+  gap: 10px;
+}
+
+.dashboard-col-left,
+.dashboard-col-right {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 10px;
+}
+
+/* ---------------------------------------------------------
+   ALL WIDGETS
+   --------------------------------------------------------- */
+
+.dashboard-panel {
+  min-height: 0 !important;
+}
+
+.dashboard-col-left > section,
+.dashboard-col-left > article,
+.dashboard-col-right > section,
+.dashboard-col-right > article {
+  min-height: 0 !important;
+  overflow: hidden;
+  border-radius: 12px !important;
+  box-shadow:
+    0 4px 14px rgba(15, 23, 42, 0.035) !important;
+}
+
+/* ---------------------------------------------------------
+   WIDGET HEADERS
+   --------------------------------------------------------- */
+
+.dashboard-page .panel-heading-row,
+.dashboard-page .recent-cases-header {
+  min-height: 0 !important;
+  padding: 11px 12px 7px !important;
+  gap: 8px;
+}
+
+.dashboard-page .panel-heading-row h3,
+.dashboard-page .recent-cases-header h3 {
+  margin: 1px 0 0 !important;
+  font-size: 0.8rem !important;
+  line-height: 1.25;
+}
+
+.dashboard-page .panel-heading-row p,
+.dashboard-page .recent-cases-header p {
+  margin: 2px 0 0 !important;
+  font-size: 0.62rem !important;
+  line-height: 1.32 !important;
+}
+
+.dashboard-page .section-tag,
+.dashboard-page .recent-eyebrow {
+  font-size: 0.53rem !important;
+  letter-spacing: 0.1em;
+}
+
+.recent-header-icon {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.recent-header-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* ---------------------------------------------------------
+   EMPTY / LOADING STATES
+   --------------------------------------------------------- */
+
+.dashboard-page .dashboard-widget-state,
+.dashboard-page .hearing-empty-state,
+.dashboard-page .recent-cases-loading,
+.dashboard-page .case-distribution-state {
+  display: flex;
+  min-height: 48px !important;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 12px !important;
+  font-size: 0.66rem !important;
+}
+
+.dashboard-page .dashboard-widget-state svg,
+.dashboard-page .hearing-empty-state svg,
+.dashboard-page .case-distribution-state svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Kill giant empty widget heights */
+
+.recent-cases-panel,
+.upcoming-hearings-panel,
+.activity-feed-panel,
+.task-widget-panel,
+.case-distribution-panel,
+.calendar-widget-panel,
+.notifications-panel {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+/* ---------------------------------------------------------
+   RECENT CASES
+   --------------------------------------------------------- */
+
+.recent-case-list {
+  display: grid;
+  gap: 6px;
+  padding: 0 10px 10px !important;
+}
+
+.recent-case-card {
+  padding: 9px !important;
+  border-radius: 9px !important;
+}
+
+.recent-top {
+  gap: 7px !important;
+}
+
+.case-icon {
+  width: 27px !important;
+  height: 27px !important;
+}
+
+.case-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.case-title strong {
+  font-size: 0.7rem !important;
+}
+
+.case-title span {
+  font-size: 0.59rem !important;
+}
+
+.case-status {
+  padding: 3px 6px !important;
+  font-size: 0.52rem !important;
+}
+
+.recent-info-grid {
+  gap: 6px !important;
+  margin-top: 7px !important;
+}
+
+.recent-info-grid > div {
+  gap: 5px !important;
+}
+
+.recent-info-grid svg {
+  width: 12px;
+  height: 12px;
+}
+
+.recent-info-grid small {
+  font-size: 0.52rem !important;
+}
+
+.recent-info-grid strong {
+  font-size: 0.61rem !important;
+}
+
+.recent-footer {
+  margin-top: 7px !important;
+  padding-top: 6px !important;
+  font-size: 0.58rem !important;
+}
+
+/* ---------------------------------------------------------
+   TASKS
+   --------------------------------------------------------- */
+
+.task-count-badge {
+  min-width: 22px !important;
+  height: 22px !important;
+  font-size: 0.61rem !important;
+}
+
+.task-dashboard-list {
+  padding: 0 10px 10px !important;
+}
+
+.task-dashboard-item {
+  padding: 8px 9px !important;
+}
+
+.task-dashboard-main strong {
+  font-size: 0.68rem !important;
+}
+
+.task-dashboard-meta {
+  font-size: 0.56rem !important;
+}
+
+.task-complete-button {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+/* ---------------------------------------------------------
+   HEARINGS
+   --------------------------------------------------------- */
+
+.hearing-dashboard-list {
+  padding: 0 10px 10px !important;
+}
+
+.hearing-dashboard-item {
+  gap: 8px !important;
+  padding: 8px !important;
+}
+
+.hearing-date-box {
+  min-width: 56px !important;
+  padding: 7px !important;
+}
+
+.hearing-date-box strong {
+  font-size: 0.64rem !important;
+}
+
+.hearing-date-box span {
+  font-size: 0.53rem !important;
+}
+
+.hearing-dashboard-title strong {
+  font-size: 0.67rem !important;
+}
+
+.hearing-client,
+.hearing-meta-row {
+  font-size: 0.56rem !important;
+}
+
+.hearing-status-pill {
+  padding: 3px 6px !important;
+  font-size: 0.52rem !important;
+}
+
+/* ---------------------------------------------------------
+   REVENUE
+   --------------------------------------------------------- */
+
+.revenue-chart-panel {
+  min-height: 0 !important;
+}
+
+.revenue-bars {
+  display: flex;
+  min-height: 120px !important;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 8px 10px 11px !important;
+}
+
+.revenue-bar-item {
+  min-width: 0;
+  font-size: 0.55rem !important;
+}
+
+.revenue-bar {
+  max-height: 90px !important;
+  min-height: 2px;
+  border-radius: 4px 4px 2px 2px !important;
+}
+
+.revenue-bar-item span {
+  font-size: 0.53rem !important;
+}
+
+.revenue-bar-item strong {
+  font-size: 0.54rem !important;
+}
+
+/* ---------------------------------------------------------
+   CASE DISTRIBUTION
+   --------------------------------------------------------- */
+
+.case-distribution-total strong {
+  font-size: 0.76rem !important;
+}
+
+.case-distribution-total span {
+  font-size: 0.5rem !important;
+}
+
+.case-distribution-list {
+  padding: 0 10px 10px !important;
+}
+
+.case-distribution-row {
+  gap: 4px !important;
+}
+
+.case-distribution-row-top {
+  font-size: 0.6rem !important;
+}
+
+/* ---------------------------------------------------------
+   CALENDAR
+   --------------------------------------------------------- */
+
+.calendar-grid {
+  gap: 3px !important;
+  padding: 7px 10px 10px !important;
+}
+
+.calendar-day-label {
+  min-height: 23px !important;
+  font-size: 0.56rem !important;
+}
+
+.calendar-day {
+  min-height: 25px !important;
+  height: 25px !important;
+  padding: 0 !important;
+  font-size: 0.59rem !important;
+  border-radius: 7px !important;
+}
+
+/* ---------------------------------------------------------
+   ACTIVITY
+   --------------------------------------------------------- */
+
+.activity-dashboard-list {
+  padding: 0 10px 10px !important;
+}
+
+.activity-dashboard-item {
+  gap: 7px !important;
+  padding: 8px !important;
+}
+
+.activity-icon {
+  width: 26px !important;
+  height: 26px !important;
+}
+
+.activity-dashboard-content strong {
+  font-size: 0.65rem !important;
+}
+
+.activity-dashboard-content p,
+.activity-dashboard-item time {
+  font-size: 0.55rem !important;
+}
+
+/* ---------------------------------------------------------
+   NOTIFICATIONS
+   --------------------------------------------------------- */
+
+.notification-dashboard-list {
+  padding: 0 10px 10px !important;
+}
+
+.notification-dashboard-item {
+  padding: 8px !important;
+}
+
+.notification-dashboard-content strong {
+  font-size: 0.65rem !important;
+}
+
+.notification-dashboard-content p {
+  font-size: 0.56rem !important;
+}
+
+.notification-count {
+  min-height: 21px !important;
+  padding: 3px 6px !important;
+  font-size: 0.56rem !important;
+}
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
+
+@media (max-width: 1250px) {
+  .dashboard-page .quick-actions-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1050px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-grid {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .kpi-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-page .quick-actions-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* SHAB REVENUE WIDGET V2 */
+
+.revenue-chart-panel {
+  min-height: 0 !important;
+}
+
+.revenue-total-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 7px;
+  border: 1px solid #eee7d5;
+  border-radius: 8px;
+  background: #fbf8ef;
+  color: #8d6d1f;
+}
+
+.revenue-total-badge svg {
+  flex: 0 0 auto;
+}
+
+.revenue-total-badge > div {
+  display: grid;
+  gap: 1px;
+}
+
+.revenue-total-badge small {
+  color: #8b7352;
+  font-size: 0.45rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.revenue-total-badge strong {
+  color: #111827;
+  font-size: 0.63rem;
+  line-height: 1.1;
+}
+
+.revenue-chart-body {
+  padding: 3px 10px 10px;
+}
+
+.dashboard-page .revenue-bars {
+  display: grid !important;
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr));
+  min-height: 112px !important;
+  align-items: end;
+  gap: 5px !important;
+  padding: 0 !important;
+}
+
+.dashboard-page .revenue-bar-item {
+  display: grid;
+  min-width: 0;
+  justify-items: center;
+  gap: 4px;
+}
+
+.revenue-bar-value {
+  width: 100%;
+  overflow: hidden;
+  color: #475569;
+  font-size: 0.48rem;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.revenue-bar-track {
+  display: flex;
+  width: 100%;
+  height: 86px;
+  align-items: flex-end;
+  justify-content: center;
+  border-bottom: 1px solid #e8ebef;
+}
+
+.dashboard-page .revenue-bar {
+  width: min(22px, 55%);
+  min-height: 3px;
+  border-radius: 5px 5px 2px 2px;
+  background: #e7e8eb;
+  transition:
+    height 220ms ease,
+    transform 150ms ease;
+}
+
+.dashboard-page .revenue-bar.has-value {
+  background:
+    linear-gradient(
+      180deg,
+      #d6b24c,
+      #b68d28
+    );
+  box-shadow:
+    0 3px 8px
+    rgba(182, 141, 40, 0.16);
+}
+
+.dashboard-page .revenue-bar.has-value:hover {
+  transform: translateY(-2px);
+}
+
+.dashboard-page .revenue-bar-item > span {
+  color: #64748b;
+  font-size: 0.51rem !important;
+  font-weight: 700;
+}
+
+.revenue-empty-state {
+  justify-content: center;
+  color: #64748b;
+}
+
+
+/* SHAB DASHBOARD STRUCTURE V4 */
+
+.dashboard-workspace {
+  display: grid;
+  gap: 10px;
+}
+
+.dashboard-work-row {
+  display: grid;
+  min-width: 0;
+  align-items: start;
+  gap: 10px;
+}
+
+.dashboard-work-row-primary,
+.dashboard-work-row-secondary,
+.dashboard-work-row-bottom {
+  grid-template-columns:
+    minmax(0, 1.55fr)
+    minmax(280px, 0.75fr);
+}
+
+.dashboard-side-stack {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 10px;
+}
+
+.dashboard-workspace .dashboard-panel {
+  height: auto !important;
+  min-height: 0 !important;
+  align-self: start;
+}
+
+.dashboard-workspace .recent-cases-panel,
+.dashboard-workspace .upcoming-hearings-panel,
+.dashboard-workspace .activity-feed-panel {
+  min-height: 105px !important;
+}
+
+.dashboard-workspace .task-widget-panel,
+.dashboard-workspace .case-distribution-panel,
+.dashboard-workspace .notifications-panel {
+  min-height: 88px !important;
+}
+
+.dashboard-workspace .recent-cases-loading,
+.dashboard-workspace .dashboard-widget-state,
+.dashboard-workspace .hearing-empty-state,
+.dashboard-workspace .case-distribution-state {
+  min-height: 40px !important;
+  padding: 8px 12px 10px !important;
+}
+
+.dashboard-workspace .revenue-chart-panel {
+  width: 100%;
+  min-height: 170px !important;
+}
+
+.dashboard-workspace .revenue-chart-body {
+  width: 100%;
+  padding: 4px 10px 10px;
+}
+
+.dashboard-workspace .revenue-bars {
+  display: grid !important;
+  width: 100%;
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr)) !important;
+  align-items: end !important;
+  gap: 4px !important;
+}
+
+.dashboard-workspace .revenue-bar-item {
+  display: grid !important;
+  min-width: 0;
+  justify-items: center;
+  align-content: end;
+  gap: 3px;
+}
+
+.dashboard-workspace .revenue-bar-track {
+  display: flex;
+  width: 100%;
+  height: 72px;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.dashboard-workspace .revenue-bar-value {
+  min-height: 12px;
+  font-size: 0.45rem !important;
+  text-align: center;
+}
+
+.dashboard-workspace .revenue-bar-item > span {
+  font-size: 0.48rem !important;
+}
+
+.dashboard-workspace .calendar-grid {
+  grid-template-columns:
+    repeat(7, minmax(0, 1fr));
+}
+
+.dashboard-work-row-bottom .activity-feed-panel,
+.dashboard-work-row-bottom .notifications-panel {
+  min-height: 100px !important;
+}
+
+@media (min-width: 1250px) {
+  .dashboard-work-row-primary,
+  .dashboard-work-row-secondary,
+  .dashboard-work-row-bottom {
+    grid-template-columns:
+      minmax(0, 1.65fr)
+      minmax(300px, 0.7fr);
+  }
+}
+
+@media (max-width: 1050px) {
+  .dashboard-work-row-primary,
+  .dashboard-work-row-secondary,
+  .dashboard-work-row-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-side-stack {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-side-stack {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* SHAB LIVE CALENDAR V2 */
+
+.calendar-month-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.calendar-month-controls strong {
+  min-width: 72px;
+  color: #475569;
+  font-size: 0.55rem;
+  text-align: center;
+}
+
+.calendar-month-controls button {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.calendar-month-controls button:hover {
+  border-color: #d4b45d;
+  color: #9a7825;
+}
+
+.calendar-day-empty {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.calendar-day {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.calendar-day.today {
+  border: 1px solid #cfaa43;
+  background: #fffaf0;
+  color: #8b691d;
+  font-weight: 800;
+}
+
+.calendar-day.highlighted {
+  background: #f6edcf;
+  color: #856516;
+  font-weight: 800;
+}
+
+.calendar-day.highlighted.today {
+  background: #d0aa3e;
+  color: #ffffff;
+}
+
+.calendar-day small {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  display: grid;
+  min-width: 11px;
+  height: 11px;
+  place-items: center;
+  border-radius: 999px;
+  background: #9a7825;
+  color: #ffffff;
+  font-size: 0.39rem;
+  line-height: 1;
+}
+
+.calendar-widget-footer {
+  padding: 0 10px 9px;
+  color: #64748b;
+  font-size: 0.54rem;
+}
+

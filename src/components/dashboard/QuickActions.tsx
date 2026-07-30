@@ -1,66 +1,107 @@
+import {
+  CalendarPlus,
+  ClipboardPlus,
+  FilePlus2,
+  ReceiptText,
+  Scale,
+  UserPlus,
+} from 'lucide-react';
+
+import {
+  useNavigate,
+} from 'react-router-dom';
+
 import './QuickActions.css';
 
 const actions = [
   {
     title: 'New Client',
-    icon: '👤',
+    icon: UserPlus,
     description: 'Register a new client',
+    path: '/clients',
   },
   {
     title: 'New Case',
-    icon: '⚖️',
+    icon: Scale,
     description: 'Open a legal matter',
+    path: '/cases',
   },
   {
     title: 'Schedule Hearing',
-    icon: '📅',
+    icon: CalendarPlus,
     description: 'Create hearing schedule',
+    path: '/hearings',
   },
   {
     title: 'Upload Document',
-    icon: '📄',
+    icon: FilePlus2,
     description: 'Store legal documents',
+    path: '/documents',
   },
   {
     title: 'Create Invoice',
-    icon: '💳',
+    icon: ReceiptText,
     description: 'Generate client invoice',
+    path: '/payments',
   },
   {
     title: 'Add Task',
-    icon: '✅',
+    icon: ClipboardPlus,
     description: 'Assign a new task',
+    path: '/tasks',
   },
 ];
 
 export function QuickActions() {
+  const navigate =
+    useNavigate();
+
   return (
     <section className="dashboard-panel quick-actions-panel">
       <div className="panel-heading-row">
         <div>
-          <span className="section-tag">PRODUCTIVITY</span>
+          <span className="section-tag">
+            PRODUCTIVITY
+          </span>
+
           <h3>Quick Actions</h3>
-          <p>Launch the most common workflow steps instantly.</p>
+
+          <p>
+            Launch common workflow steps instantly.
+          </p>
         </div>
       </div>
 
       <div className="quick-actions-grid">
-        {actions.map((action) => (
-          <button
-            key={action.title}
-            type="button"
-            className="quick-action-button"
-          >
-            <div className="quick-action-icon">
-              {action.icon}
-            </div>
+        {actions.map((action) => {
+          const Icon =
+            action.icon;
 
-            <div className="quick-action-content">
-              <span>{action.title}</span>
-              <small>{action.description}</small>
-            </div>
-          </button>
-        ))}
+          return (
+            <button
+              key={action.title}
+              type="button"
+              className="quick-action-button"
+              onClick={() => {
+                navigate(action.path);
+              }}
+            >
+              <div className="quick-action-icon">
+                <Icon size={18} />
+              </div>
+
+              <div className="quick-action-content">
+                <span>
+                  {action.title}
+                </span>
+
+                <small>
+                  {action.description}
+                </small>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </section>
   );
