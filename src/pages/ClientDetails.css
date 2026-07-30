@@ -816,3 +816,98 @@
     flex-basis: 100%;
   }
 }
+
+
+/* SHAB CLIENT PROFILE STATS V2 */
+
+.client-profile-summary-grid {
+  grid-template-columns:
+    repeat(6, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.client-profile-stat {
+  min-height: 108px;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 13px;
+}
+
+.client-profile-stat-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 9px;
+}
+
+.client-profile-stat-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.client-profile-stat > div:last-child {
+  min-width: 0;
+}
+
+.client-profile-stat span {
+  font-size: 0.67rem;
+  line-height: 1.2;
+}
+
+.client-profile-stat strong {
+  margin-top: 4px;
+  overflow: visible;
+  color: #0f172a;
+  font-size: clamp(0.9rem, 1.15vw, 1.08rem);
+  line-height: 1.15;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.client-profile-stat small {
+  margin-top: 5px;
+  font-size: 0.6rem;
+  line-height: 1.25;
+}
+
+/* Let finance values breathe slightly more */
+
+.client-profile-stat:nth-child(4),
+.client-profile-stat:nth-child(5),
+.client-profile-stat:nth-child(6) {
+  padding-left: 13px;
+  padding-right: 13px;
+}
+
+.client-profile-stat:nth-child(4) strong,
+.client-profile-stat:nth-child(5) strong,
+.client-profile-stat:nth-child(6) strong {
+  font-size: clamp(0.82rem, 1vw, 0.98rem);
+}
+
+/* Responsive layout */
+
+@media (max-width: 1280px) {
+  .client-profile-summary-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .client-profile-stat strong {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .client-profile-summary-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 500px) {
+  .client-profile-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

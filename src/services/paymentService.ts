@@ -26,12 +26,14 @@ export async function getPayments(
     page?: number;
     pageSize?: number;
     status?: string;
+    clientId?: string;
   } = {}
 ): Promise<{ data: Payment[]; count: number }> {
   const {
     page = 1,
     pageSize = 12,
     status,
+    clientId,
   } = options;
 
   const from = (page - 1) * pageSize;
@@ -43,6 +45,10 @@ export async function getPayments(
 
   if (status) {
     query = query.eq('status', status);
+  }
+
+  if (clientId) {
+    query = query.eq('client_id', clientId);
   }
 
   const result = await query

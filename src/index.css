@@ -177,9 +177,8 @@ a {
 }
 
 .top-header {
-  position: sticky;
-  top: 0;
-  z-index: 30;
+  position: relative;
+  z-index: 10;
   display: flex;
   min-height: 74px;
   align-items: center;
@@ -992,5 +991,39 @@ a {
 
   .summary-card {
     flex-direction: column;
+  }
+}
+
+/* SHAB APP SHELL FIX V1 */
+
+.app-content {
+  position: relative;
+  min-width: 0;
+  min-height: 100vh;
+  background: #f8f9fb;
+}
+
+.top-header {
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+  background: #ffffff;
+  backdrop-filter: none;
+}
+
+.page-content {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+@media (min-width: 960px) {
+  .app-content {
+    width: calc(100% - 260px);
+  }
+
+  .top-header,
+  .page-content {
+    width: 100%;
   }
 }

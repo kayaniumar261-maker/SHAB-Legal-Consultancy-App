@@ -28,6 +28,7 @@ function handleError<T>(result: {
 export async function getInvoices(
   options: {
     status?: string;
+    clientId?: string;
     page?: number;
     pageSize?: number;
   } = {},
@@ -39,6 +40,7 @@ export async function getInvoices(
     page = 1,
     pageSize = 12,
     status,
+    clientId,
   } = options;
 
   const from =
@@ -58,6 +60,14 @@ export async function getInvoices(
       query.eq(
         'status',
         status,
+      );
+  }
+
+  if (clientId) {
+    query =
+      query.eq(
+        'client_id',
+        clientId,
       );
   }
 
