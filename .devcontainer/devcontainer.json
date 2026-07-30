@@ -1,16 +1,11 @@
-cat > .devcontainer/devcontainer.json <<'EOF'
 {
   "name": "SHAB Legal Consultancy App",
-
   "forwardPorts": [5173],
-
   "portsAttributes": {
     "5173": {
       "label": "SHAB Legal App",
       "onAutoForward": "notify"
     }
   },
-
   "postAttachCommand": "bash scripts/codespace-start.sh"
 }
-EOF
