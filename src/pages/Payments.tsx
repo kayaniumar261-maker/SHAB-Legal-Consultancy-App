@@ -23,6 +23,7 @@ import {
   createInvoice,
   deleteInvoice,
   getInvoices,
+  updateInvoice,
 } from '../services/invoiceService';
 
 import {
@@ -472,9 +473,7 @@ export function Payments() {
       invoiceMap[paymentForm.invoice_id];
 
     if (!invoice) {
-      setError(
-        'Please select an invoice.',
-      );
+      setError('Please select an invoice.');
       return;
     }
 
@@ -484,6 +483,24 @@ export function Payments() {
     if (amount <= 0) {
       setError(
         'Payment amount must be greater than zero.',
+      );
+      return;
+    }
+
+    const currentPaid =
+      Number(invoice.paid_amount ?? 0);
+
+    const totalAmount =
+      Number(invoice.total_amount ?? 0);
+
+    const currentBalance =
+      Number(invoice.balance_amount ?? 0);
+
+    if (paymentForm.status === 'completed' && amount > currentBalance) {
+      setError(
+        `Payment cannot exceed the outstanding balance of ${formatCurrency(
+          currentBalance,
+        )}.`,
       );
       return;
     }
@@ -535,6 +552,40 @@ export function Payments() {
       };
 
       await createPayment(payload);
+
+      if (paymentForm.status === 'completed') {
+        const newPaidAmount =
+          currentPaid + amount;
+
+        const newBalanceAmount =
+          Math.max(
+            0,
+            totalAmount - newPaidAmount,
+          );
+
+        let newStatus: InvoiceStatus =
+          'issued';
+
+        if (newPaidAmount >= totalAmount) {
+          newStatus = 'paid';
+        } else if (newPaidAmount > 0) {
+          newStatus = 'partially_paid';
+        }
+
+        await updateInvoice(
+          invoice.id,
+          {
+            paid_amount:
+              newPaidAmount,
+
+            balance_amount:
+              newBalanceAmount,
+
+            status:
+              newStatus,
+          },
+        );
+      }
 
       setPaymentModalOpen(false);
       setPaymentForm(emptyPaymentForm);
