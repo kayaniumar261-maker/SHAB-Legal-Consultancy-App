@@ -1,0 +1,11 @@
+{
+  "name": "SHAB Legal Consultancy App",
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": {
+      "label": "SHAB Legal App",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "postStartCommand": "npm run dev -- --host 0.0.0.0 --port 5173"
+}
