@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:codespace": "bash scripts/codespace-start.sh",
+    "dev:health": "curl -fsS http://127.0.0.1:5173 >/dev/null && echo 'SHAB dev server healthy'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",
