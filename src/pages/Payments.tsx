@@ -1764,6 +1764,199 @@ export function Payments() {
         </div>
       )}
 
+      {viewingInvoice && (
+        <div className="finance-modal-layer">
+          <button
+            type="button"
+            className="finance-modal-backdrop"
+            onClick={() =>
+              setViewingInvoice(null)
+            }
+          />
+
+          <section className="finance-modal finance-view-modal">
+            <header className="finance-modal-header">
+              <div>
+                <p className="page-eyebrow">
+                  Invoice details
+                </p>
+
+                <h3>
+                  Invoice {viewingInvoice.invoice_number}
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setViewingInvoice(null)
+                }
+              >
+                ×
+              </button>
+            </header>
+
+            <div className="finance-view-content">
+              <div className="finance-view-grid">
+                <div className="finance-view-item">
+                  <span>Client</span>
+                  <strong>
+                    {clientMap[
+                      viewingInvoice.client_id
+                    ] ?? 'Unknown client'}
+                  </strong>
+                </div>
+
+                <div className="finance-view-item">
+                  <span>Case</span>
+                  <strong>
+                    {viewingInvoice.case_id
+                      ? caseMap[
+                          viewingInvoice.case_id
+                        ] ?? 'Unknown case'
+                      : '—'}
+                  </strong>
+                </div>
+
+                <div className="finance-view-item">
+                  <span>Status</span>
+
+                  <strong>
+                    <span
+                      className={`finance-status ${viewingInvoice.status}`}
+                    >
+                      {formatLabel(
+                        viewingInvoice.status,
+                      )}
+                    </span>
+                  </strong>
+                </div>
+
+                <div className="finance-view-item">
+                  <span>Currency</span>
+                  <strong>
+                    {viewingInvoice.currency}
+                  </strong>
+                </div>
+
+                <div className="finance-view-item">
+                  <span>Issue Date</span>
+                  <strong>
+                    {formatDate(
+                      viewingInvoice.issue_date,
+                    )}
+                  </strong>
+                </div>
+
+                <div className="finance-view-item">
+                  <span>Due Date</span>
+                  <strong>
+                    {formatDate(
+                      viewingInvoice.due_date,
+                    )}
+                  </strong>
+                </div>
+
+                <div className="finance-view-item">
+                  <span>Subtotal</span>
+                  <strong>
+                    {formatCurrency(
+                      viewingInvoice.subtotal,
+                    )}
+                  </strong>
+                </div>
+
+                <div className="finance-view-item">
+                  <span>VAT Rate</span>
+                  <strong>
+                    {Number(
+                      viewingInvoice.vat_rate ?? 0,
+                    ).toFixed(2)}%
+                  </strong>
+                </div>
+
+                <div className="finance-view-item">
+                  <span>VAT Amount</span>
+                  <strong>
+                    {formatCurrency(
+                      viewingInvoice.vat_amount,
+                    )}
+                  </strong>
+                </div>
+
+                <div className="finance-view-item">
+                  <span>Discount</span>
+                  <strong>
+                    {formatCurrency(
+                      viewingInvoice.discount_amount,
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="finance-view-summary">
+                <div>
+                  <span>Total</span>
+                  <strong>
+                    {formatCurrency(
+                      viewingInvoice.total_amount,
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Paid</span>
+                  <strong>
+                    {formatCurrency(
+                      viewingInvoice.paid_amount,
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Balance</span>
+                  <strong>
+                    {formatCurrency(
+                      viewingInvoice.balance_amount,
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              {viewingInvoice.description && (
+                <div className="finance-view-section">
+                  <span>Description</span>
+                  <p>
+                    {viewingInvoice.description}
+                  </p>
+                </div>
+              )}
+
+              {viewingInvoice.notes && (
+                <div className="finance-view-section">
+                  <span>Notes</span>
+                  <p>
+                    {viewingInvoice.notes}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <footer className="finance-view-actions">
+              <button
+                type="button"
+                className="secondary-action-button"
+                onClick={() =>
+                  setViewingInvoice(null)
+                }
+              >
+                Close
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
+
       {paymentModalOpen && (
         <div className="finance-modal-layer">
           <button
