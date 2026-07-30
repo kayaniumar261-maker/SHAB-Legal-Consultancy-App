@@ -1,9 +1,11 @@
 export type InvoiceStatus =
   | 'draft'
-  | 'sent'
+  | 'issued'
+  | 'partially_paid'
   | 'paid'
   | 'overdue'
-  | 'partial';
+  | 'cancelled'
+  | 'written_off';
 
 export interface Invoice {
   id: string;

@@ -253,12 +253,12 @@
   color: #475569;
 }
 
-.finance-status.sent {
+.finance-status.issued {
   background: #eff6ff;
   color: #1d4ed8;
 }
 
-.finance-status.partial {
+.finance-status.partially_paid {
   background: #fff7ed;
   color: #c2410c;
 }
@@ -273,6 +273,16 @@
 .finance-status.failed {
   background: #fef2f2;
   color: #b91c1c;
+}
+
+.finance-status.cancelled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.finance-status.written_off {
+  background: #f3f4f6;
+  color: #374151;
 }
 
 .finance-status.pending {

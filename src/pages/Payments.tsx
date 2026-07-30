@@ -779,12 +779,21 @@ export function Payments() {
               <option value="draft">
                 Draft
               </option>
-              <option value="sent">
-                Sent
-              </option>
-              <option value="partial">
-                Partial
-              </option>
+              <option value="issued">
+  Issued
+</option>
+
+<option value="partially_paid">
+  Partially Paid
+</option>
+
+<option value="cancelled">
+  Cancelled
+</option>
+
+<option value="written_off">
+  Written Off
+</option>
               <option value="paid">
                 Paid
               </option>
@@ -1225,12 +1234,21 @@ export function Payments() {
                   <option value="draft">
                     Draft
                   </option>
-                  <option value="sent">
-                    Sent
-                  </option>
-                  <option value="partial">
-                    Partial
-                  </option>
+                  <option value="issued">
+  Issued
+</option>
+
+<option value="partially_paid">
+  Partially Paid
+</option>
+
+<option value="cancelled">
+  Cancelled
+</option>
+
+<option value="written_off">
+  Written Off
+</option>
                   <option value="paid">
                     Paid
                   </option>
