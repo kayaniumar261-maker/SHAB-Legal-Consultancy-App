@@ -606,6 +606,19 @@ export function Payments() {
   const handleDeleteInvoice = async (
     invoice: Invoice,
   ) => {
+    const linkedPayments =
+      payments.filter(
+        (payment) =>
+          payment.invoice_id === invoice.id,
+      );
+
+    if (linkedPayments.length > 0) {
+      setError(
+        `Invoice ${invoice.invoice_number} has payment records and cannot be deleted. Delete or reverse its payments first.`,
+      );
+      return;
+    }
+
     const confirmed = window.confirm(
       `Delete invoice ${invoice.invoice_number}?`,
     );
@@ -615,6 +628,7 @@ export function Payments() {
     }
 
     setActionId(invoice.id);
+    setError(null);
 
     try {
       await deleteInvoice(invoice.id);
@@ -641,10 +655,64 @@ export function Payments() {
       return;
     }
 
+    const invoice =
+      invoiceMap[payment.invoice_id];
+
     setActionId(payment.id);
+    setError(null);
 
     try {
       await deletePayment(payment.id);
+
+      if (
+        payment.status === 'completed' &&
+        invoice
+      ) {
+        const totalAmount =
+          Number(invoice.total_amount ?? 0);
+
+        const currentPaid =
+          Number(invoice.paid_amount ?? 0);
+
+        const paymentAmount =
+          Number(payment.amount ?? 0);
+
+        const newPaidAmount =
+          Math.max(
+            0,
+            currentPaid - paymentAmount,
+          );
+
+        const newBalanceAmount =
+          Math.max(
+            0,
+            totalAmount - newPaidAmount,
+          );
+
+        let newStatus: InvoiceStatus =
+          'issued';
+
+        if (newPaidAmount >= totalAmount) {
+          newStatus = 'paid';
+        } else if (newPaidAmount > 0) {
+          newStatus = 'partially_paid';
+        }
+
+        await updateInvoice(
+          invoice.id,
+          {
+            paid_amount:
+              newPaidAmount,
+
+            balance_amount:
+              newBalanceAmount,
+
+            status:
+              newStatus,
+          },
+        );
+      }
+
       await loadFinanceData();
     } catch (deleteError) {
       setError(
