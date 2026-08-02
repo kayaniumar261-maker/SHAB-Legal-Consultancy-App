@@ -407,8 +407,9 @@ async function runHealth() {
 
   const portInUse = await isPortInUse(port);
   if (!portInUse) {
-    log(`Health check passed. Port ${port} is available.`);
-    return;
+    fail(
+      `Health check failed: the app is not running on port ${port}. Run npm run dev.`,
+    );
   }
 
   const processInfo = identifyPortProcess(port);

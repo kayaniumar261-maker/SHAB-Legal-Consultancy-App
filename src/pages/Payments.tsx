@@ -1,8 +1,11 @@
 import {
+  AlertCircle,
   Banknote,
   CalendarDays,
   CircleDollarSign,
   CreditCard,
+  Clock3,
+  AlertTriangle,
   FileText,
   Plus,
   ReceiptText,
@@ -26,8 +29,10 @@ import {
 import {
   createInvoice,
   deleteInvoice,
+  getFinanceSummary,
   getInvoices,
   updateInvoice,
+  type FinanceSummary,
 } from '../services/invoiceService';
 
 import {
@@ -153,6 +158,26 @@ export function Payments() {
 
   const [payments, setPayments] =
     useState<Payment[]>([]);
+
+
+  const [financeSummary, setFinanceSummary] =
+    useState<FinanceSummary>({
+      invoiceCount:0,
+      paidInvoiceCount:0,
+      overdueInvoiceCount:0,
+      totalBilled:0,
+      totalPaid:0,
+      outstanding:0,
+      overdue:0,
+      collectionRate:0,
+      aging:{
+        current:0,
+        days1To30:0,
+        days31To60:0,
+        days61To90:0,
+        daysOver90:0,
+      },
+    });
 
   const [clients, setClients] =
     useState<ClientOption[]>([]);
@@ -282,6 +307,13 @@ export function Payments() {
     setError(null);
 
     try {
+      const finance = await getFinanceSummary({
+        clientId: clientIdParam || undefined,
+        caseId: caseIdParam || undefined,
+      });
+
+      setFinanceSummary(finance);
+
       if (activeTab === 'invoices') {
         const result = await getInvoices({
           status:
@@ -1291,66 +1323,105 @@ export function Payments() {
         </button>
       </section>
 
-      {activeTab === 'invoices' ? (
-        <section className="finance-summary-grid">
+      <section className="finance-summary-grid executive">
+        <FinanceStat
+          icon={<FileText size={20} />}
+          label="Total Billed"
+          value={formatCurrency(
+            financeSummary.totalBilled,
+          )}
+        />
+
+        <FinanceStat
+          icon={<Banknote size={20} />}
+          label="Total Collected"
+          value={formatCurrency(
+            financeSummary.totalPaid,
+          )}
+          tone="success"
+        />
+
+        <FinanceStat
+          icon={<CreditCard size={20} />}
+          label="Outstanding"
+          value={formatCurrency(
+            financeSummary.outstanding,
+          )}
+          tone="warning"
+        />
+
+        <FinanceStat
+          icon={<CircleDollarSign size={20} />}
+          label="Overdue"
+          value={formatCurrency(
+            financeSummary.overdue,
+          )}
+          tone="danger"
+        />
+
+        <FinanceStat
+          icon={<ReceiptText size={20} />}
+          label="Collection Rate"
+          value={`${financeSummary.collectionRate.toFixed(1)}%`}
+          tone={
+            financeSummary.collectionRate >= 80
+              ? 'success'
+              : financeSummary.collectionRate >= 50
+                ? 'warning'
+                : 'danger'
+          }
+        />
+      </section>
+
+
+      <section className="finance-aging-panel">
+
+        <div className="finance-aging-header">
+          <h3>Accounts Receivable Aging</h3>
+          <span>
+            Outstanding invoices grouped by due date
+          </span>
+        </div>
+
+        <div className="finance-aging-grid">
+
           <FinanceStat
-            icon={<FileText size={20} />}
-            label="Invoices"
-            value={invoices.length.toString()}
+            icon={<WalletCards size={18} />}
+            label="Current"
+            value={formatCurrency(financeSummary.aging.current)}
           />
 
           <FinanceStat
-            icon={<CircleDollarSign size={20} />}
-            label="Total Billed"
-            value={formatCurrency(
-              invoiceStats.total,
-            )}
-          />
-
-          <FinanceStat
-            icon={<Banknote size={20} />}
-            label="Paid"
-            value={formatCurrency(
-              invoiceStats.paid,
-            )}
-            tone="success"
-          />
-
-          <FinanceStat
-            icon={<CreditCard size={20} />}
-            label="Outstanding"
-            value={formatCurrency(
-              invoiceStats.outstanding,
-            )}
+            icon={<Clock3 size={18} />}
+            label="1–30 Days"
+            value={formatCurrency(financeSummary.aging.days1To30)}
             tone="warning"
           />
-        </section>
-      ) : (
-        <section className="finance-summary-grid">
+
           <FinanceStat
-            icon={<WalletCards size={20} />}
-            label="Payments"
-            value={payments.length.toString()}
+            icon={<Clock3 size={18} />}
+            label="31–60 Days"
+            value={formatCurrency(financeSummary.aging.days31To60)}
+            tone="warning"
           />
 
           <FinanceStat
-            icon={<CircleDollarSign size={20} />}
-            label="Recorded"
-            value={formatCurrency(
-              paymentStats.total,
-            )}
+            icon={<AlertTriangle size={18} />}
+            label="61–90 Days"
+            value={formatCurrency(financeSummary.aging.days61To90)}
+            tone="danger"
           />
 
           <FinanceStat
-            icon={<Banknote size={20} />}
-            label="Completed"
-            value={formatCurrency(
-              paymentStats.completed,
-            )}
-            tone="success"
+            icon={<AlertCircle size={18} />}
+            label="90+ Days"
+            value={formatCurrency(financeSummary.aging.daysOver90)}
+            tone="danger"
           />
-        </section>
-      )}
+
+        </div>
+
+      </section>
 
       <section className="finance-toolbar">
         <div className="finance-search">
@@ -2590,7 +2661,11 @@ function FinanceStat({
   icon: React.ReactNode;
   label: string;
   value: string;
-  tone?: 'default' | 'success' | 'warning';
+  tone?:
+    | 'default'
+    | 'success'
+    | 'warning'
+    | 'danger';
 }) {
   return (
     <article

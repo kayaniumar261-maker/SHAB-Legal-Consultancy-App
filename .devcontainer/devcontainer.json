@@ -4,8 +4,10 @@
   "portsAttributes": {
     "5173": {
       "label": "SHAB Legal App",
-      "onAutoForward": "notify"
+      "onAutoForward": "openBrowser",
+      "visibility": "private"
     }
   },
-  "postAttachCommand": "node ./scripts/start-dev.mjs --check"
+  "postStartCommand": "bash -lc 'nohup npm run dev > /tmp/shab-vite.log 2>&1 </dev/null &'",
+  "postAttachCommand": "bash -lc 'nohup npm run dev > /tmp/shab-vite.log 2>&1 </dev/null &'"
 }
