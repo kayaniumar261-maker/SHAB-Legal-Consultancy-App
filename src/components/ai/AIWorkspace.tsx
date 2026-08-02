@@ -45,6 +45,10 @@ import {
   buildMatterPrompt,
 } from '../../services/aiPromptBuilder';
 
+import {
+  requestAIResponse,
+} from '../../services/aiService';
+
 import './AIWorkspace.css';
 
 type AIWorkspaceProps = {
@@ -333,30 +337,66 @@ export function AIWorkspace({
     setInput('');
     setLoading(true);
 
-    window.setTimeout(() => {
-      const assistantMessage:
-        AIMessage = {
-          id:
-            `assistant-${messageCounter.current++}`,
-          role: 'assistant',
-          content:
-            buildPreviewResponse(
-              prompt,
-              caseRecord,
-              clientName,
-              matterContext,
-            ),
-          createdAt:
-            new Date().toISOString(),
-        };
+    void (async () => {
+      try {
+        if (!matterContext) {
+          throw new Error(
+            'Matter context is still loading. Please try again.',
+          );
+        }
 
-      setMessages((current) => [
-        ...current,
-        assistantMessage,
-      ]);
+        const structuredPrompt =
+          buildMatterPrompt(
+            matterContext,
+            prompt,
+          );
 
-      setLoading(false);
-    }, 650);
+        const response =
+          await requestAIResponse({
+            prompt: structuredPrompt,
+            matterId: caseRecord.id,
+            action:
+              promptValue
+                ? 'quick_action'
+                : 'custom',
+          });
+
+        const assistantMessage:
+          AIMessage = {
+            id:
+              `assistant-${messageCounter.current++}`,
+            role: 'assistant',
+            content: response.text,
+            createdAt:
+              new Date().toISOString(),
+          };
+
+        setMessages((current) => [
+          ...current,
+          assistantMessage,
+        ]);
+      } catch (error) {
+        const assistantMessage:
+          AIMessage = {
+            id:
+              `assistant-error-${messageCounter.current++}`,
+            role: 'assistant',
+            content:
+              error instanceof Error
+                ? `AI request failed: ${error.message}`
+                : 'AI request failed unexpectedly.',
+            createdAt:
+              new Date().toISOString(),
+          };
+
+        setMessages((current) => [
+          ...current,
+          assistantMessage,
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }
 
   function clearConversation() {
@@ -404,7 +444,7 @@ export function AIWorkspace({
           <Sparkles size={15} />
 
           <span>
-            Preview Mode
+            Secure AI
           </span>
         </div>
       </section>
@@ -738,11 +778,11 @@ export function AIWorkspace({
 
         <div>
           <strong>
-            AI model not connected yet
+            Confidential AI processing
           </strong>
 
           <span>
-            This interface currently generates local preview responses only. No case data is being sent outside the application.
+            Matter context is sent securely through the authenticated SHAB Edge Function. Review every generated draft before use or filing.
           </span>
         </div>
       </section>
