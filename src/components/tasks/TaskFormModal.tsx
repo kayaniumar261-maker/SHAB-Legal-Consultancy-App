@@ -42,6 +42,51 @@ const emptyState: FormState = {
   due_at: '',
 };
 
+function loadSavedTaskDraft(
+  storageKey: string,
+  fallback: FormState,
+): FormState {
+  try {
+    const saved =
+      window.localStorage.getItem(storageKey);
+
+    if (!saved) {
+      return fallback;
+    }
+
+    return {
+      ...fallback,
+      ...(JSON.parse(saved) as Partial<FormState>),
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function saveTaskDraft(
+  storageKey: string,
+  state: FormState,
+): void {
+  try {
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify(state),
+    );
+  } catch {
+    // Local drafts are a convenience only.
+  }
+}
+
+function clearTaskDraft(
+  storageKey: string,
+): void {
+  try {
+    window.localStorage.removeItem(storageKey);
+  } catch {
+    // Nothing to clear.
+  }
+}
+
 export function TaskFormModal({
   open,
   task,
@@ -54,7 +99,23 @@ export function TaskFormModal({
   onSave,
   loading,
 }: TaskFormModalProps) {
-  const [formState, setFormState] = useState<FormState>(emptyState);
+  const draftStorageKey =
+    task?.id
+      ? `shab-task-form-draft-${task.id}`
+      : `shab-task-form-draft-new-${
+          preselectedCaseId ??
+          preselectedClientId ??
+          'general'
+        }`;
+
+  const [formState, setFormState] =
+    useState<FormState>(() =>
+      loadSavedTaskDraft(
+        draftStorageKey,
+        emptyState,
+      ),
+    );
+
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -63,7 +124,7 @@ export function TaskFormModal({
     }
 
     if (task) {
-      setFormState({
+      const fallback = {
         title: task.title,
         description: task.description ?? '',
         client_id: task.client_id ?? '',
@@ -72,7 +133,14 @@ export function TaskFormModal({
         priority: task.priority,
         status: task.status,
         due_at: task.due_at ? task.due_at.split('T')[0] : '',
-      });
+      };
+
+      setFormState(
+        loadSavedTaskDraft(
+          draftStorageKey,
+          fallback,
+        ),
+      );
       return;
     }
 
@@ -105,13 +173,42 @@ export function TaskFormModal({
       }
     }
 
-    setFormState({
+    const fallback = {
       ...emptyState,
       client_id: initialClientId,
       case_id: initialCaseId,
-    });
+    };
+
+    setFormState(
+      loadSavedTaskDraft(
+        draftStorageKey,
+        fallback,
+      ),
+    );
     setError(null);
-  }, [task, open, preselectedClientId, preselectedCaseId, cases]);
+  }, [
+    task,
+    open,
+    preselectedClientId,
+    preselectedCaseId,
+    cases,
+    draftStorageKey,
+  ]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    saveTaskDraft(
+      draftStorageKey,
+      formState,
+    );
+  }, [
+    draftStorageKey,
+    formState,
+    open,
+  ]);
 
   useEffect(() => {
     if (!open) {
@@ -172,6 +269,8 @@ export function TaskFormModal({
 
     try {
       await onSave(task?.id ?? null, payload);
+
+      clearTaskDraft(draftStorageKey);
       onClose();
     } catch (saveError) {
       if (saveError instanceof Error) {
@@ -364,6 +463,10 @@ export function TaskFormModal({
                 {error}
               </div>
             ) : null}
+          </div>
+
+          <div className="task-form-draft-note">
+            Draft is saved locally on this device until the task is successfully saved.
           </div>
 
           <footer className="task-form-actions">
