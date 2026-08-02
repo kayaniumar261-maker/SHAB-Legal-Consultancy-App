@@ -89,10 +89,14 @@ import type {
   CaseWithRelations,
 } from '../types/case';
 
+import {
+  ClientWorkspace,
+} from '../components/clients/ClientWorkspace';
+
 import './ClientDetails.css';
 
 type ClientTab =
-  | 'overview'
+  | 'workspace'
   | 'cases'
   | 'hearings'
   | 'tasks'
@@ -106,7 +110,7 @@ const tabs: Array<{
   id: ClientTab;
   label: string;
 }> = [
-  { id: 'overview', label: 'Overview' },
+  { id: 'workspace', label: 'Workspace' },
   { id: 'cases', label: 'Cases' },
   { id: 'hearings', label: 'Hearings' },
   { id: 'tasks', label: 'Tasks' },
@@ -125,7 +129,7 @@ export function ClientDetails() {
     useState<ClientOverview | null>(null);
 
   const [activeTab, setActiveTab] =
-    useState<ClientTab>('overview');
+    useState<ClientTab>('workspace');
 
   const [loading, setLoading] =
     useState(true);
@@ -470,12 +474,9 @@ export function ClientDetails() {
 
       <section className="client-tab-panel">
         {activeTab ===
-          'overview' && (
-          <OverviewTab
+          'workspace' && (
+          <ClientWorkspace
             client={client}
-            displayAddress={
-              displayAddress
-            }
           />
         )}
 

@@ -32,10 +32,12 @@ import {
 } from '../../services/documentService';
 import { CaseBillingWorkspace } from './CaseBillingWorkspace';
 import { CaseMatterWorkspace } from './CaseMatterWorkspace';
+import { AIWorkspace } from '../ai/AIWorkspace';
 import './CaseTabs.css';
 
 const tabs = [
   'Workspace',
+  'AI Assistant',
   'Hearings',
   'Documents',
   'Tasks',
@@ -257,6 +259,14 @@ export function CaseTabs({
       case 'Workspace':
         return (
           <CaseMatterWorkspace
+            caseRecord={caseRecord}
+            clientName={clientName}
+          />
+        );
+
+      case 'AI Assistant':
+        return (
+          <AIWorkspace
             caseRecord={caseRecord}
             clientName={clientName}
           />

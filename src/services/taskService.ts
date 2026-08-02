@@ -2,6 +2,12 @@ import type { PostgrestError } from '@supabase/supabase-js';
 
 import { supabase } from '../lib/supabase';
 
+import {
+  formatTimelineDate,
+  formatTimelineLabel,
+  logCaseTimelineEvent,
+} from './caseTimelineService';
+
 import type {
   Task,
   TaskInsert,
@@ -594,9 +600,37 @@ export async function createTask(
       result,
     ) as Task;
 
-  return normalizeTask(
-    task,
-  );
+  const normalizedTask =
+    normalizeTask(
+      task,
+    );
+
+  await logCaseTimelineEvent({
+    caseId:
+      normalizedTask.case_id,
+    activityType:
+      'task_created',
+    title:
+      'Task Created',
+    description:
+      [
+        normalizedTask.title,
+        normalizedTask.due_at
+          ? `Due ${formatTimelineDate(
+              normalizedTask.due_at,
+            )}`
+          : null,
+        normalizedTask.priority
+          ? `Priority: ${formatTimelineLabel(
+              normalizedTask.priority,
+            )}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+  });
+
+  return normalizedTask;
 }
 
 /* =========================================================
@@ -607,6 +641,20 @@ export async function updateTask(
   id: string,
   data: TaskUpdate,
 ): Promise<Task> {
+  const previousResult =
+    await supabase
+      .from('tasks')
+      .select(
+        'id, case_id, title, status, priority, due_at, assigned_staff_id',
+      )
+      .eq('id', id)
+      .maybeSingle();
+
+  const previousTask =
+    previousResult.error
+      ? null
+      : previousResult.data;
+
   const payload =
     normalizeTaskPayload(
       data,
@@ -632,9 +680,78 @@ export async function updateTask(
       result,
     ) as Task;
 
-  return normalizeTask(
-    task,
-  );
+  const normalizedTask =
+    normalizeTask(
+      task,
+    );
+
+  const previousStatus =
+    formatTimelineLabel(
+      previousTask?.status,
+    );
+
+  const currentStatus =
+    formatTimelineLabel(
+      normalizedTask.status,
+    );
+
+  const becameCompleted =
+    String(
+      normalizedTask.status ?? '',
+    )
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '_') ===
+      'completed' &&
+    String(
+      previousTask?.status ?? '',
+    )
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '_') !==
+      'completed';
+
+  await logCaseTimelineEvent({
+    caseId:
+      normalizedTask.case_id ??
+      previousTask?.case_id,
+    activityType:
+      becameCompleted
+        ? 'task_completed'
+        : 'task_updated',
+    title:
+      becameCompleted
+        ? 'Task Completed'
+        : 'Task Updated',
+    description:
+      becameCompleted
+        ? normalizedTask.title
+        : [
+            normalizedTask.title,
+            previousTask?.status !==
+              normalizedTask.status
+              ? `Status: ${previousStatus} → ${currentStatus}`
+              : null,
+            previousTask?.priority !==
+              normalizedTask.priority
+              ? `Priority: ${formatTimelineLabel(
+                  previousTask?.priority,
+                )} → ${formatTimelineLabel(
+                  normalizedTask.priority,
+                )}`
+              : null,
+            previousTask?.due_at !==
+              normalizedTask.due_at
+              ? `Due: ${formatTimelineDate(
+                  normalizedTask.due_at,
+                )}`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(' · '),
+  });
+
+  return normalizedTask;
 }
 
 /* =========================================================
@@ -644,6 +761,20 @@ export async function updateTask(
 export async function deleteTask(
   id: string,
 ): Promise<void> {
+  const existingResult =
+    await supabase
+      .from('tasks')
+      .select(
+        'id, case_id, title, status',
+      )
+      .eq('id', id)
+      .maybeSingle();
+
+  const existingTask =
+    existingResult.error
+      ? null
+      : existingResult.data;
+
   const result =
     await supabase
       .from('tasks')
@@ -660,6 +791,18 @@ export async function deleteTask(
       result.error.message,
     );
   }
+
+  await logCaseTimelineEvent({
+    caseId:
+      existingTask?.case_id,
+    activityType:
+      'task_deleted',
+    title:
+      'Task Deleted',
+    description:
+      existingTask?.title ??
+      'A linked task was deleted.',
+  });
 }
 
 /* =========================================================

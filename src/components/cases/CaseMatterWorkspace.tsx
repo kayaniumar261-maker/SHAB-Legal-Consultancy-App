@@ -66,6 +66,10 @@ import type {
   DocumentWithRelations,
 } from '../../types/document';
 
+import {
+  CaseHealthPanel,
+} from './CaseHealthPanel';
+
 import './CaseMatterWorkspace.css';
 
 type CaseMatterWorkspaceProps = {
@@ -502,6 +506,40 @@ export function CaseMatterWorkspace({
           />
         </div>
       </section>
+
+      <CaseHealthPanel
+        progress={progress}
+        recoveryRate={recoveryRate}
+        openTasks={openTasks.length}
+        overdueTasks={overdueTasks.length}
+        hasUpcomingHearing={Boolean(nextHearing)}
+        nextHearingAt={
+          nextHearing?.hearing_at ?? null
+        }
+        timelineCount={timeline.length}
+        urgent={Boolean(
+          caseRecord.requires_urgent_action ||
+          normalizeValue(
+            caseRecord.priority,
+          ) === 'urgent'
+        )}
+        highRisk={
+          [
+            'high',
+            'critical',
+          ].includes(
+            normalizeValue(
+              caseRecord.risk_level,
+            ),
+          )
+        }
+        outstandingBalance={Number(
+          caseRecord.outstanding_balance ?? 0,
+        )}
+        nextActionOverdue={isPast(
+          caseRecord.next_action_at,
+        )}
+      />
 
       <section className="matter-workspace-primary-grid">
         <article className="matter-workspace-card matter-progress-card">

@@ -1,0 +1,384 @@
+.case-health-panel {
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  border: 1px solid #dbe4ee;
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.025),
+      rgba(255, 255, 255, 0)
+    ),
+    #ffffff;
+  box-shadow:
+    0 8px 24px rgba(15, 23, 42, 0.045);
+}
+
+.case-health-panel::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: #16a34a;
+  content: '';
+}
+
+.case-health-panel.healthy::before {
+  background: #2563eb;
+}
+
+.case-health-panel.attention::before {
+  background: #d97706;
+}
+
+.case-health-panel.critical::before {
+  background: #dc2626;
+}
+
+.case-health-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.case-health-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.case-health-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.case-health-panel.healthy
+  .case-health-icon {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.case-health-panel.attention
+  .case-health-icon {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.case-health-panel.critical
+  .case-health-icon {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.case-health-heading > div > span {
+  color: #64748b;
+  font-size: 0.6rem;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.case-health-heading h3 {
+  margin: 3px 0 0;
+  color: #0f172a;
+  font-size: 0.96rem;
+}
+
+.case-health-status {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #047857;
+  font-size: 0.61rem;
+  font-weight: 850;
+}
+
+.case-health-status.healthy {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.case-health-status.attention {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.case-health-status.critical {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+.case-health-overview {
+  display: grid;
+  grid-template-columns:
+    112px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.case-health-score {
+  --health-score: 0deg;
+
+  display: grid;
+  width: 108px;
+  height: 108px;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      #16a34a var(--health-score),
+      #e8edf3 0deg
+    );
+}
+
+.case-health-score.healthy {
+  background:
+    conic-gradient(
+      #2563eb var(--health-score),
+      #e8edf3 0deg
+    );
+}
+
+.case-health-score.attention {
+  background:
+    conic-gradient(
+      #d97706 var(--health-score),
+      #e8edf3 0deg
+    );
+}
+
+.case-health-score.critical {
+  background:
+    conic-gradient(
+      #dc2626 var(--health-score),
+      #e8edf3 0deg
+    );
+}
+
+.case-health-score > div {
+  display: grid;
+  width: 82px;
+  height: 82px;
+  place-items: center;
+  align-content: center;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.case-health-score strong {
+  color: #0f172a;
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.case-health-score span {
+  margin-top: 3px;
+  color: #94a3b8;
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+.case-health-summary > strong {
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.case-health-summary p {
+  max-width: 560px;
+  margin: 6px 0 11px;
+  color: #64748b;
+  font-size: 0.69rem;
+  line-height: 1.5;
+}
+
+.case-health-progress-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef2f7;
+}
+
+.case-health-progress-value {
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      #9a7825,
+      #d4b45d
+    );
+  transition: width 0.3s ease;
+}
+
+.case-health-factors {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.case-health-factor {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 10px;
+  border-radius: 11px;
+  background: #f8fafc;
+}
+
+.case-health-factor > span {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 9px;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.case-health-factor.warning > span {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.case-health-factor small {
+  display: block;
+  color: #64748b;
+  font-size: 0.54rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.case-health-factor strong {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 0.65rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.case-health-actions {
+  margin-top: 16px;
+  padding: 13px;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  background: #fffaf5;
+}
+
+.case-health-actions-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #c2410c;
+}
+
+.case-health-actions-heading strong {
+  font-size: 0.69rem;
+}
+
+.case-health-actions > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.case-health-actions > div:last-child span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #7c2d12;
+  font-size: 0.59rem;
+  font-weight: 750;
+}
+
+.case-health-clear {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  background: #f5fff8;
+  color: #047857;
+}
+
+.case-health-clear strong,
+.case-health-clear span {
+  display: block;
+}
+
+.case-health-clear strong {
+  font-size: 0.68rem;
+}
+
+.case-health-clear span {
+  margin-top: 3px;
+  color: #4b7460;
+  font-size: 0.59rem;
+}
+
+.case-health-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 15px;
+  padding-top: 13px;
+  border-top: 1px solid #edf1f5;
+}
+
+.case-health-footer > div {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 0.61rem;
+  font-weight: 750;
+}
+
+@media (max-width: 900px) {
+  .case-health-factors {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .case-health-overview {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .case-health-summary {
+    width: 100%;
+  }
+
+  .case-health-factors {
+    grid-template-columns: 1fr;
+  }
+
+  .case-health-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

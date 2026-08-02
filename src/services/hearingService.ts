@@ -2,6 +2,13 @@ import type { PostgrestError } from '@supabase/supabase-js';
 
 import { supabase } from '../lib/supabase';
 
+import {
+  logCaseTimelineEvent,
+  formatTimelineDate,
+  formatTimelineLabel,
+} from './caseTimelineService';
+
+
 import type {
   Hearing,
   HearingInsert,
@@ -557,6 +564,23 @@ export async function createHearing(
     hearing.case_id,
   );
 
+  await logCaseTimelineEvent({
+    caseId: hearing.case_id,
+    activityType: 'hearing_created',
+    title: 'Hearing Scheduled',
+    description: [
+      hearing.title,
+      hearing.hearing_at
+        ? formatTimelineDate(
+            hearing.hearing_at,
+          )
+        : null,
+      hearing.court ?? null,
+    ]
+      .filter(Boolean)
+      .join(' · '),
+  });
+
   return hearing;
 }
 
@@ -631,7 +655,49 @@ export async function updateHearing(
     hearing.case_id,
   );
 
+  await logCaseTimelineEvent({
+    caseId: hearing.case_id,
+    activityType: 'hearing_created',
+    title: 'Hearing Scheduled',
+    description: [
+      hearing.title,
+      hearing.hearing_at
+        ? formatTimelineDate(
+            hearing.hearing_at,
+          )
+        : null,
+      hearing.court ?? null,
+    ]
+      .filter(Boolean)
+      .join(' · '),
+  });
+
+    await logCaseTimelineEvent({
+    caseId: hearing.case_id,
+    activityType:
+      String(hearing.status)
+        .toLowerCase() === 'completed'
+        ? 'hearing_completed'
+        : 'hearing_updated',
+    title:
+      String(hearing.status)
+        .toLowerCase() === 'completed'
+        ? 'Hearing Completed'
+        : 'Hearing Updated',
+    description: [
+      hearing.title,
+      hearing.status
+        ? formatTimelineLabel(
+            hearing.status,
+          )
+        : null,
+    ]
+      .filter(Boolean)
+      .join(' · '),
+  });
+
   return hearing;
+
 }
 
 
@@ -678,6 +744,14 @@ export async function deleteHearing(
   await syncCaseHearingDates(
     caseId,
   );
+
+  await logCaseTimelineEvent({
+    caseId,
+    activityType: 'hearing_deleted',
+    title: 'Hearing Removed',
+    description:
+      'A hearing was removed from this matter.',
+  });
 }
 
 
