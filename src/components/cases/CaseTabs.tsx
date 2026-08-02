@@ -5,6 +5,10 @@ import {
   ExternalLink,
   Gavel,
   MapPin,
+  FileText,
+  LockKeyhole,
+  Download,
+  ShieldCheck,
 } from 'lucide-react';
 
 import {
@@ -14,12 +18,19 @@ import {
 import type { Case } from '../../types/case';
 import type { Hearing } from '../../types/hearing';
 import type { Task } from '../../types/task';
+import type { DocumentWithRelations } from '../../types/document';
 import { getHearingsByCase } from '../../services/hearingService';
 import {
   getTasksByCase,
   getStaffOptions,
   type StaffOption,
 } from '../../services/taskService';
+import {
+  getDocumentsByCase,
+  openDocument,
+  downloadDocument,
+} from '../../services/documentService';
+import { CaseBillingWorkspace } from './CaseBillingWorkspace';
 import './CaseTabs.css';
 
 const tabs = [
@@ -50,6 +61,11 @@ export function CaseTabs({
   const [loadingTasks, setLoadingTasks] = useState(false);
   const [tasksError, setTasksError] = useState<string | null>(null);
   const [taskStaff, setTaskStaff] = useState<Record<string, string>>({});
+  const [caseDocuments, setCaseDocuments] = useState<DocumentWithRelations[]>([]);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [documentsError, setDocumentsError] = useState<string | null>(null);
+  const [documentActionId, setDocumentActionId] = useState<string | null>(null);
+  const [documentActionError, setDocumentActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeTab !== 'Hearings') {
@@ -144,6 +160,52 @@ export function CaseTabs({
     }
 
     void loadCaseTasks();
+
+    return () => {
+      active = false;
+    };
+  }, [activeTab, caseRecord.id]);
+
+  useEffect(() => {
+    if (activeTab !== 'Documents') {
+      return;
+    }
+
+    let active = true;
+
+    async function loadCaseDocuments() {
+      try {
+        setLoadingDocuments(true);
+        setDocumentsError(null);
+
+        const rows = await getDocumentsByCase(
+          caseRecord.id,
+        );
+
+        if (!active) {
+          return;
+        }
+
+        setCaseDocuments(rows);
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+
+        setCaseDocuments([]);
+        setDocumentsError(
+          error instanceof Error
+            ? error.message
+            : 'Unable to load case documents.',
+        );
+      } finally {
+        if (active) {
+          setLoadingDocuments(false);
+        }
+      }
+    }
+
+    void loadCaseDocuments();
 
     return () => {
       active = false;
@@ -471,13 +533,208 @@ export function CaseTabs({
 
       case 'Documents':
         return (
-          <div className="case-empty-state">
-            <strong>Documents</strong>
-            <p>
-              Upload legal documents, pleadings, and evidence files for this case in the documents module.
-            </p>
-          </div>
-        );
+            <div className="case-documents-workspace">
+              <div className="case-documents-header">
+                <div>
+                  <span className="case-hearings-eyebrow">
+                    Documents workspace
+                  </span>
+                  <h3>Case documents</h3>
+                  <p>
+                    Manage files attached to this case, preview metadata, and open or download documents securely.
+                  </p>
+                </div>
+
+                <div className="case-hearings-actions">
+                  <Link
+                    className="secondary-action-button"
+                    to={`/documents?caseId=${caseRecord.id}`}
+                  >
+                    View All
+                  </Link>
+
+                  <Link
+                    className="primary-action-button"
+                    to={`/documents?caseId=${caseRecord.id}&upload=1`}
+                  >
+                    Upload Document
+                  </Link>
+                </div>
+              </div>
+
+              <section className="case-documents-summary">
+                <div>
+                  <span>Total documents</span>
+                  <strong>{caseDocuments.length}</strong>
+                </div>
+                <div>
+                  <span>Confidential</span>
+                  <strong>
+                    {caseDocuments.filter(
+                      (document) => document.is_confidential,
+                    ).length}
+                  </strong>
+                </div>
+                <div>
+                  <span>Standard</span>
+                  <strong>
+                    {caseDocuments.filter(
+                      (document) => !document.is_confidential,
+                    ).length}
+                  </strong>
+                </div>
+                <div>
+                  <span>Latest upload</span>
+                  <strong>
+                    {caseDocuments.length > 0
+                      ? formatDateTime(
+                          caseDocuments[0].created_at,
+                        )
+                      : 'No uploads yet'}
+                  </strong>
+                </div>
+              </section>
+
+              {documentActionError && (
+                <div className="case-empty-state case-hearing-error">
+                  <strong>Document action failed</strong>
+                  <p>{documentActionError}</p>
+                </div>
+              )}
+
+              {loadingDocuments ? (
+                <div className="case-empty-state">
+                  <strong>Loading documents…</strong>
+                </div>
+              ) : documentsError ? (
+                <div className="case-empty-state case-hearing-error">
+                  <strong>Unable to load documents</strong>
+                  <p>{documentsError}</p>
+                </div>
+              ) : caseDocuments.length === 0 ? (
+                <div className="case-empty-state">
+                  <strong>No documents found</strong>
+                  <p>
+                    Documents uploaded for this case will appear here. Use the upload workflow to add evidence, filings, and related materials.
+                  </p>
+                </div>
+              ) : (
+                <div className="case-documents-table-wrap">
+                  <table className="case-documents-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Size</th>
+                        <th>Uploaded</th>
+                        <th>Version</th>
+                        <th>Privacy</th>
+                        <th>Uploaded by</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {caseDocuments.map((document) => {
+                        const actionLoading =
+                          documentActionId === document.id;
+
+                        return (
+                          <tr key={document.id}>
+                            <td>{document.name}</td>
+                            <td>{document.document_type || document.mime_type || 'File'}</td>
+                            <td>
+                              {document.description
+                                ? document.description.slice(0, 80)
+                                : 'No description'}
+                            </td>
+                            <td>{formatFileSize(document.size_bytes)}</td>
+                            <td>{formatDateTime(document.created_at)}</td>
+                            <td>{document.version}</td>
+                            <td>
+                              <span
+                                className={`case-document-privacy-badge ${
+                                  document.is_confidential
+                                    ? 'confidential'
+                                    : 'standard'
+                                }`}
+                              >
+                                {document.is_confidential
+                                  ? 'Confidential'
+                                  : 'Standard'}
+                              </span>
+                            </td>
+                            <td>
+                              {document.uploaded_by_staff?.full_name ?? document.uploaded_by ?? 'Unknown'}
+                            </td>
+                            <td>
+                              <div className="case-document-actions">
+                                <Link
+                                  to={`/documents?caseId=${caseRecord.id}&documentId=${document.id}`}
+                                  className="case-document-action"
+                                >
+                                  <ExternalLink size={14} />
+                                </Link>
+
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    setDocumentActionId(document.id);
+                                    setDocumentActionError(null);
+
+                                    try {
+                                      await openDocument(document);
+                                    } catch (error) {
+                                      setDocumentActionError(
+                                        error instanceof Error
+                                          ? error.message
+                                          : 'Unable to open document.',
+                                      );
+                                    } finally {
+                                      setDocumentActionId(null);
+                                    }
+                                  }}
+                                  disabled={actionLoading}
+                                  title="Open"
+                                >
+                                  <ExternalLink size={14} />
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    setDocumentActionId(document.id);
+                                    setDocumentActionError(null);
+
+                                    try {
+                                      await downloadDocument(document);
+                                    } catch (error) {
+                                      setDocumentActionError(
+                                        error instanceof Error
+                                          ? error.message
+                                          : 'Unable to download document.',
+                                      );
+                                    } finally {
+                                      setDocumentActionId(null);
+                                    }
+                                  }}
+                                  disabled={actionLoading}
+                                  title="Download"
+                                >
+                                  <Download size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
 
       case 'Tasks':
         return (
@@ -644,12 +901,9 @@ export function CaseTabs({
 
       case 'Billing':
         return (
-          <div className="case-empty-state">
-            <strong>Billing</strong>
-            <p>
-              Billing and invoice details will appear here once billing is connected to the case.
-            </p>
-          </div>
+          <CaseBillingWorkspace
+            caseId={caseRecord.id}
+          />
         );
 
       case 'Timeline':
@@ -681,6 +935,11 @@ export function CaseTabs({
     loadingHearings,
     hearingError,
     nextUpcomingHearing,
+    caseDocuments,
+    loadingDocuments,
+    documentsError,
+    documentActionError,
+    documentActionId,
   ]);
 
   return (
@@ -750,6 +1009,26 @@ function formatDateTime(
       minute: '2-digit',
     },
   ).format(date);
+}
+
+function formatFileSize(
+  value?: number | null,
+): string {
+  const bytes = Number(value ?? 0);
+
+  if (!bytes) {
+    return '—';
+  }
+
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function formatDay(

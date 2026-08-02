@@ -60,6 +60,145 @@
   gap: 4px;
 }
 
+.case-documents-workspace {
+  display: grid;
+  gap: 18px;
+}
+
+.case-documents-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.case-documents-header h3 {
+  margin: 0;
+}
+
+.case-documents-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.case-documents-summary div {
+  display: grid;
+  gap: 6px;
+}
+
+.case-documents-summary span {
+  color: #64748b;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.case-documents-summary strong {
+  color: #111827;
+  font-size: 1rem;
+}
+
+.case-documents-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: white;
+}
+
+.case-documents-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.case-documents-table th,
+.case-documents-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef2f7;
+  text-align: left;
+  vertical-align: top;
+}
+
+.case-documents-table th {
+  background: #faf9f6;
+  color: #6b7280;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.case-documents-table td {
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+.case-document-privacy-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.case-document-privacy-badge.confidential {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.case-document-privacy-badge.standard {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.case-document-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.case-document-actions button,
+.case-document-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: white;
+  color: #475569;
+  cursor: pointer;
+}
+
+.case-document-actions button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+@media (max-width: 960px) {
+  .case-documents-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .case-documents-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
 .case-summary-row span {
   color: #6b7280;
   font-size: 0.82rem;

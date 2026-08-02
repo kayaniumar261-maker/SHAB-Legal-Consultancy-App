@@ -16,10 +16,14 @@ import {
   useMemo,
   useState,
 } from 'react';
+import {
+  useSearchParams,
+} from 'react-router-dom';
 
 import {
   deleteDocument,
   downloadDocument,
+  getDocumentById,
   getDocuments,
   openDocument,
   uploadDocument,
@@ -37,6 +41,7 @@ import type {
   DocumentUploadInput,
 } from '../types/document';
 
+import { DocumentDetailsModal } from '../components/documents/DocumentDetailsModal';
 import './Documents.css';
 
 const PAGE_SIZE = 15;
@@ -78,11 +83,23 @@ export function Documents() {
   const [search, setSearch] =
     useState('');
 
+  const [searchParams, setSearchParams] =
+    useSearchParams();
+
   const [clientFilter, setClientFilter] =
     useState<string | 'all'>('all');
 
   const [caseFilter, setCaseFilter] =
     useState<string | 'all'>('all');
+
+  const [documentDetailsOpen, setDocumentDetailsOpen] =
+    useState(false);
+
+  const [selectedDocument, setSelectedDocument] =
+    useState<DocumentWithRelations | null>(null);
+
+  const [detailsLoading, setDetailsLoading] =
+    useState(false);
 
   const [confidentialFilter, setConfidentialFilter] =
     useState<'all' | 'confidential' | 'standard'>('all');
@@ -107,6 +124,36 @@ export function Documents() {
 
   const [actionDocumentId, setActionDocumentId] =
     useState<string | null>(null);
+
+  const [detailsError, setDetailsError] =
+    useState<string | null>(null);
+
+  const openDocumentDetails = useCallback(
+    async (documentId: string) => {
+      setDetailsLoading(true);
+      setDetailsError(null);
+
+      try {
+        const document = await getDocumentById(documentId);
+
+        if (!document) {
+          throw new Error('Document not found.');
+        }
+
+        setSelectedDocument(document);
+        setDocumentDetailsOpen(true);
+      } catch (detailsFetchError) {
+        setDetailsError(
+          detailsFetchError instanceof Error
+            ? detailsFetchError.message
+            : 'Unable to load document details.',
+        );
+      } finally {
+        setDetailsLoading(false);
+      }
+    },
+    [],
+  );
 
   const fetchDocuments = useCallback(async () => {
     setLoading(true);
@@ -159,6 +206,45 @@ export function Documents() {
 
         setClients(clientOptions);
         setCases(caseOptions);
+
+        const caseId = searchParams.get('caseId');
+        const clientId = searchParams.get('clientId');
+        const upload = searchParams.get('upload');
+        const documentId = searchParams.get('documentId');
+
+        if (clientId) {
+          setClientFilter(clientId);
+        }
+
+        if (caseId) {
+          setCaseFilter(caseId);
+        }
+
+        if (upload === '1') {
+          let resolvedClientId = clientId;
+
+          if (!resolvedClientId && caseId) {
+            const matched = caseOptions.find(
+              (caseItem) => caseItem.id === caseId,
+            );
+            resolvedClientId = matched?.client_id ?? null;
+          }
+
+          setUploadForm((current) => ({
+            ...current,
+            client_id: resolvedClientId ?? current.client_id,
+            case_id: caseId ?? current.case_id,
+          }));
+
+          setUploadOpen(true);
+          const nextParams = new URLSearchParams(searchParams);
+          nextParams.delete('upload');
+          setSearchParams(nextParams, { replace: true });
+        }
+
+        if (documentId) {
+          void openDocumentDetails(documentId);
+        }
       } catch (optionsError) {
         setError(
           optionsError instanceof Error
@@ -169,7 +255,7 @@ export function Documents() {
     }
 
     void loadOptions();
-  }, []);
+  }, [searchParams, setSearchParams, openDocumentDetails]);
 
   const filteredUploadCases = useMemo(() => {
     if (!uploadForm.client_id) {
@@ -296,22 +382,29 @@ export function Documents() {
     }
   };
 
-  const handleOpen = async (
+  const handleShowDetails = (
     document: DocumentWithRelations,
   ) => {
-    setActionDocumentId(document.id);
-    setError(null);
+    setSelectedDocument(document);
+    setDocumentDetailsOpen(true);
+    setDetailsError(null);
+  };
+
+  const handleOpenFile = async () => {
+    if (!selectedDocument) {
+      return;
+    }
+
+    setDetailsError(null);
 
     try {
-      await openDocument(document);
+      await openDocument(selectedDocument);
     } catch (actionError) {
-      setError(
+      setDetailsError(
         actionError instanceof Error
           ? actionError.message
           : 'Unable to open document.',
       );
-    } finally {
-      setActionDocumentId(null);
     }
   };
 
@@ -332,6 +425,16 @@ export function Documents() {
     } finally {
       setActionDocumentId(null);
     }
+  };
+
+  const closeDetails = () => {
+    if (detailsLoading) {
+      return;
+    }
+
+    setDocumentDetailsOpen(false);
+    setSelectedDocument(null);
+    setDetailsError(null);
   };
 
   const handleDelete = async (
@@ -403,6 +506,38 @@ export function Documents() {
           Upload Document
         </button>
       </section>
+
+      {(clientFilter !== 'all' || caseFilter !== 'all') && (
+        <section className="documents-context-banner">
+          <div>
+            <strong>
+              {caseFilter !== 'all'
+                ? 'Documents for case'
+                : 'Documents for client'}
+              <span>
+                {caseFilter !== 'all'
+                  ? cases.find((caseItem) => caseItem.id === caseFilter)
+                      ?.case_number ?? caseFilter
+                  : clients.find((client) => client.id === clientFilter)
+                      ?.full_name ?? clientFilter}
+              </span>
+            </strong>
+          </div>
+
+          <button
+            type="button"
+            className="secondary-action-button"
+            onClick={() => {
+              setClientFilter('all');
+              setCaseFilter('all');
+              setPage(1);
+              setSearchParams({}, { replace: true });
+            }}
+          >
+            Clear context
+          </button>
+        </section>
+      )}
 
       <section className="documents-summary-grid">
         <article className="document-summary-card">
@@ -685,12 +820,12 @@ export function Documents() {
                         <button
                           type="button"
                           onClick={() =>
-                            void handleOpen(
+                            handleShowDetails(
                               document,
                             )
                           }
                           disabled={actionLoading}
-                          title="Open document"
+                          title="View details"
                         >
                           <Eye size={16} />
                         </button>
@@ -990,6 +1125,44 @@ export function Documents() {
           </section>
         </div>
       )}
+
+      <DocumentDetailsModal
+        open={documentDetailsOpen}
+        document={selectedDocument}
+        loading={detailsLoading}
+        error={detailsError}
+        onClose={closeDetails}
+        onOpenFile={handleOpenFile}
+        onDownload={async () => {
+          if (!selectedDocument) {
+            return;
+          }
+          await downloadDocument(selectedDocument);
+        }}
+        onDelete={async () => {
+          if (!selectedDocument) {
+            return;
+          }
+          const confirmed = window.confirm(
+            `Delete "${selectedDocument.name}"? This will remove both the database record and the stored file.`,
+          );
+          if (!confirmed) {
+            return;
+          }
+
+          try {
+            await deleteDocument(selectedDocument);
+            closeDetails();
+            await fetchDocuments();
+          } catch (deleteError) {
+            setDetailsError(
+              deleteError instanceof Error
+                ? deleteError.message
+                : 'Unable to delete document.',
+            );
+          }
+        }}
+      />
     </div>
   );
 }

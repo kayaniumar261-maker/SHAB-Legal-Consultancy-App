@@ -20,6 +20,10 @@ import {
 } from 'react';
 
 import {
+  useSearchParams,
+} from 'react-router-dom';
+
+import {
   createInvoice,
   deleteInvoice,
   getInvoices,
@@ -114,8 +118,35 @@ const emptyPaymentForm: PaymentFormState = {
 };
 
 export function Payments() {
+  const [
+    searchParams,
+    setSearchParams,
+  ] = useSearchParams();
+
+  const clientIdParam =
+    searchParams.get('clientId') ?? '';
+
+  const caseIdParam =
+    searchParams.get('caseId') ?? '';
+
+  const tabParam =
+    searchParams.get('tab');
+
+  const createInvoiceParam =
+    searchParams.get('createInvoice') === '1';
+
+  const createPaymentParam =
+    searchParams.get('createPayment') === '1';
+
+  const invoiceIdParam =
+    searchParams.get('invoiceId') ?? '';
+
   const [activeTab, setActiveTab] =
-    useState<FinanceTab>('invoices');
+    useState<FinanceTab>(
+      tabParam === 'payments'
+        ? 'payments'
+        : 'invoices',
+    );
 
   const [invoices, setInvoices] =
     useState<Invoice[]>([]);
@@ -257,6 +288,15 @@ export function Payments() {
             invoiceStatus === 'all'
               ? undefined
               : invoiceStatus,
+
+          clientId:
+            clientIdParam ||
+            undefined,
+
+          caseId:
+            caseIdParam ||
+            undefined,
+
           page,
           pageSize: PAGE_SIZE,
         });
@@ -278,6 +318,15 @@ export function Payments() {
             paymentStatus === 'all'
               ? undefined
               : paymentStatus,
+
+          clientId:
+            clientIdParam ||
+            undefined,
+
+          caseId:
+            caseIdParam ||
+            undefined,
+
           page,
           pageSize: PAGE_SIZE,
         });
@@ -309,6 +358,8 @@ export function Payments() {
     paymentStatus,
     page,
     search,
+    clientIdParam,
+    caseIdParam,
   ]);
 
   useEffect(() => {
@@ -318,6 +369,299 @@ export function Payments() {
   useEffect(() => {
     void loadFinanceData();
   }, [loadFinanceData]);
+
+
+  useEffect(() => {
+    if (
+      tabParam === 'payments' &&
+      activeTab !== 'payments'
+    ) {
+      setActiveTab('payments');
+      setPage(1);
+    }
+
+    if (
+      tabParam === 'invoices' &&
+      activeTab !== 'invoices'
+    ) {
+      setActiveTab('invoices');
+      setPage(1);
+    }
+  }, [
+    tabParam,
+    activeTab,
+  ]);
+
+  useEffect(() => {
+    if (
+      !clientIdParam &&
+      !caseIdParam
+    ) {
+      return;
+    }
+
+    let resolvedClientId =
+      clientIdParam;
+
+    if (
+      caseIdParam &&
+      !resolvedClientId
+    ) {
+      const selectedCase =
+        cases.find(
+          (caseItem) =>
+            caseItem.id ===
+            caseIdParam,
+        );
+
+      resolvedClientId =
+        selectedCase?.client_id ??
+        '';
+    }
+
+    setInvoiceForm(
+      (current) => ({
+        ...current,
+
+        client_id:
+          resolvedClientId ||
+          current.client_id,
+
+        case_id:
+          caseIdParam ||
+          current.case_id,
+      }),
+    );
+  }, [
+    clientIdParam,
+    caseIdParam,
+    cases,
+  ]);
+
+  useEffect(() => {
+    if (!createInvoiceParam) {
+      return;
+    }
+
+    setEditingInvoice(null);
+    setActiveTab('invoices');
+    setPage(1);
+
+    let resolvedClientId =
+      clientIdParam;
+
+    if (
+      caseIdParam &&
+      !resolvedClientId
+    ) {
+      const selectedCase =
+        cases.find(
+          (caseItem) =>
+            caseItem.id ===
+            caseIdParam,
+        );
+
+      resolvedClientId =
+        selectedCase?.client_id ??
+        '';
+    }
+
+    setInvoiceForm({
+      ...emptyInvoiceForm,
+
+      client_id:
+        resolvedClientId,
+
+      case_id:
+        caseIdParam,
+    });
+
+    setInvoiceModalOpen(true);
+
+    const nextParams =
+      new URLSearchParams(
+        searchParams,
+      );
+
+    nextParams.delete(
+      'createInvoice',
+    );
+
+    setSearchParams(
+      nextParams,
+      {
+        replace: true,
+      },
+    );
+  }, [
+    createInvoiceParam,
+    clientIdParam,
+    caseIdParam,
+    cases,
+    searchParams,
+    setSearchParams,
+  ]);
+
+  useEffect(() => {
+    if (!createPaymentParam) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function preparePayment() {
+      try {
+        let resolvedClientId =
+          clientIdParam;
+
+        if (
+          caseIdParam &&
+          !resolvedClientId
+        ) {
+          const selectedCase =
+            cases.find(
+              (caseItem) =>
+                caseItem.id ===
+                caseIdParam,
+            );
+
+          resolvedClientId =
+            selectedCase?.client_id ??
+            '';
+        }
+
+        const invoiceResult =
+          await getInvoices({
+            clientId:
+              resolvedClientId ||
+              undefined,
+
+            caseId:
+              caseIdParam ||
+              undefined,
+
+            page: 1,
+            pageSize: 100,
+          });
+
+        if (cancelled) {
+          return;
+        }
+
+        setInvoices(
+          invoiceResult.data,
+        );
+
+        const selectedInvoice =
+          invoiceIdParam
+            ? invoiceResult.data.find(
+                (invoice) =>
+                  invoice.id ===
+                  invoiceIdParam,
+              )
+            : invoiceResult.data.find(
+                (invoice) =>
+                  Number(
+                    invoice.balance_amount ??
+                      0,
+                  ) > 0,
+              );
+
+        setPaymentForm({
+          ...emptyPaymentForm,
+
+          invoice_id:
+            selectedInvoice?.id ??
+            '',
+
+          currency:
+            selectedInvoice?.currency ??
+            'AED',
+
+          amount:
+            selectedInvoice
+              ? String(
+                  selectedInvoice
+                    .balance_amount ??
+                    '',
+                )
+              : '',
+        });
+
+        setActiveTab('payments');
+        setPage(1);
+        setPaymentModalOpen(true);
+
+        const nextParams =
+          new URLSearchParams(
+            searchParams,
+          );
+
+        nextParams.delete(
+          'createPayment',
+        );
+
+        setSearchParams(
+          nextParams,
+          {
+            replace: true,
+          },
+        );
+      } catch (prepareError) {
+        if (!cancelled) {
+          setError(
+            prepareError instanceof Error
+              ? prepareError.message
+              : 'Unable to prepare payment form.',
+          );
+        }
+      }
+    }
+
+    void preparePayment();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    createPaymentParam,
+    clientIdParam,
+    caseIdParam,
+    invoiceIdParam,
+    cases,
+    searchParams,
+    setSearchParams,
+  ]);
+
+  useEffect(() => {
+    if (
+      !invoiceIdParam ||
+      invoices.length === 0 ||
+      createPaymentParam
+    ) {
+      return;
+    }
+
+    const selectedInvoice =
+      invoices.find(
+        (invoice) =>
+          invoice.id ===
+          invoiceIdParam,
+      );
+
+    if (!selectedInvoice) {
+      return;
+    }
+
+    setActiveTab('invoices');
+    setViewingInvoice(
+      selectedInvoice,
+    );
+  }, [
+    invoiceIdParam,
+    invoices,
+    createPaymentParam,
+  ]);
 
   const invoiceStats = useMemo(() => {
     const total = invoices.reduce(

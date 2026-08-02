@@ -29,6 +29,7 @@ export async function getInvoices(
   options: {
     status?: string;
     clientId?: string;
+    caseId?: string;
     page?: number;
     pageSize?: number;
   } = {},
@@ -41,6 +42,7 @@ export async function getInvoices(
     pageSize = 12,
     status,
     clientId,
+    caseId,
   } = options;
 
   const from =
@@ -68,6 +70,14 @@ export async function getInvoices(
       query.eq(
         'client_id',
         clientId,
+      );
+  }
+
+  if (caseId) {
+    query =
+      query.eq(
+        'case_id',
+        caseId,
       );
   }
 

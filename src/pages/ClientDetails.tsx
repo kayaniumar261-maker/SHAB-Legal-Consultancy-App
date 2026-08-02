@@ -7,6 +7,8 @@ import {
   CircleUserRound,
   Clock3,
   ClipboardList,
+  Download,
+  ExternalLink,
   FileText,
   FolderKanban,
   Gavel,
@@ -24,6 +26,9 @@ import {
   WalletCards,
 } from 'lucide-react';
 
+import type {
+  ReactNode,
+} from 'react';
 import {
   useEffect,
   useMemo,
@@ -51,11 +56,18 @@ import {
 } from '../services/hearingService';
 
 import {
+  getDocumentsByClient,
+  openDocument,
+  downloadDocument,
+} from '../services/documentService';
+
+import {
   getTasksByClient,
   getStaffOptions,
   type StaffOption,
 } from '../services/taskService';
 import type { Task } from '../types/task';
+import type { DocumentWithRelations } from '../types/document';
 
 import {
   getInvoices,
@@ -486,23 +498,13 @@ export function ClientDetails() {
           />
         )}
 
-        {activeTab ===
-          'documents' && (
-          <ModulePlaceholder
-            icon={
-              <FileText size={24} />
-            }
-            title="Client documents"
-            description={`${formatNumber(
-              client.total_documents,
-            )} documents are currently recorded for this client.`}
-            actionLabel="Open Documents Module"
-            actionTo={`/documents?clientId=${client.id}`}
+        {activeTab === 'documents' && (
+          <ClientDocumentsTab
+            clientId={client.id}
           />
         )}
 
-        {activeTab ===
-          'invoices' && (
+        {activeTab === 'invoices' && (
           <ClientInvoicesTab
             clientId={client.id}
           />
@@ -1889,6 +1891,283 @@ function NotesTab({
   );
 }
 
+function ClientDocumentsTab({
+  clientId,
+}: {
+  clientId: string;
+}) {
+  const [documents, setDocuments] = useState<
+    DocumentWithRelations[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionId, setActionId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadDocuments() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const rows = await getDocumentsByClient(
+          clientId,
+        );
+
+        if (active) {
+          setDocuments(rows);
+        }
+      } catch (loadError) {
+        if (active) {
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : 'Unable to load client documents.',
+          );
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadDocuments();
+
+    return () => {
+      active = false;
+    };
+  }, [clientId]);
+
+  return (
+    <article className="client-profile-card">
+      <div className="client-profile-card-heading client-documents-heading">
+        <div>
+          <FileText size={20} />
+
+          <h3>Client documents</h3>
+        </div>
+
+        <div className="client-documents-actions">
+          <Link
+            className="secondary-action-button"
+            to={`/documents?clientId=${clientId}`}
+          >
+            View all
+          </Link>
+
+          <Link
+            className="primary-action-button"
+            to={`/documents?clientId=${clientId}&upload=1`}
+          >
+            Upload document
+          </Link>
+        </div>
+      </div>
+
+      <section className="client-documents-summary">
+        <div>
+          <span>Total documents</span>
+          <strong>{documents.length}</strong>
+        </div>
+
+        <div>
+          <span>Confidential</span>
+          <strong>
+            {documents.filter(
+              (document) =>
+                document.is_confidential,
+            ).length}
+          </strong>
+        </div>
+
+        <div>
+          <span>Standard</span>
+          <strong>
+            {documents.filter(
+              (document) =>
+                !document.is_confidential,
+            ).length}
+          </strong>
+        </div>
+
+        <div>
+          <span>Latest upload</span>
+          <strong>
+            {documents.length > 0
+              ? formatOptionalDateTime(
+                  documents[0]
+                    .created_at,
+                )
+              : 'No uploads yet'}
+          </strong>
+        </div>
+      </section>
+
+      {loading ? (
+        <div className="client-module-placeholder">
+          <FileText size={24} />
+
+          <h3>
+            Loading client documents…
+          </h3>
+        </div>
+      ) : error ? (
+        <div className="client-module-placeholder">
+          <ShieldAlert size={24} />
+
+          <h3>
+            Unable to load documents
+          </h3>
+
+          <p>{error}</p>
+        </div>
+      ) : documents.length === 0 ? (
+        <div className="client-module-placeholder">
+          <FileText size={24} />
+
+          <h3>
+            No documents found
+          </h3>
+
+          <p>
+            This client has no files recorded yet. Upload documents to store case and client evidence centrally.
+          </p>
+
+          <Link
+            className="primary-action-button"
+            to={`/documents?clientId=${clientId}&upload=1`}
+          >
+            Upload document
+          </Link>
+        </div>
+      ) : (
+        <div className="client-documents-table-wrap">
+          <table className="client-cases-table client-documents-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Uploaded</th>
+                <th>Privacy</th>
+                <th>Uploaded by</th>
+                <th />
+              </tr>
+            </thead>
+
+            <tbody>
+              {documents.map((document) => (
+                <tr key={document.id}>
+                  <td>{document.name}</td>
+                  <td>
+                    {document.document_type ||
+                      document.mime_type ||
+                      'File'}
+                  </td>
+                  <td>
+                    {formatOptionalDateTime(
+                      document.created_at,
+                    )}
+                  </td>
+                  <td>
+                    <span
+                      className={`case-document-privacy-badge ${
+                        document.is_confidential
+                          ? 'confidential'
+                          : 'standard'
+                      }`}
+                    >
+                      {document.is_confidential
+                        ? 'Confidential'
+                        : 'Standard'}
+                    </span>
+                  </td>
+                  <td>
+                    {document.uploaded_by_staff
+                      ?.full_name ??
+                      document.uploaded_by ??
+                      'Unknown'}
+                  </td>
+                  <td>
+                    <div className="client-document-actions">
+                      <Link
+                        className="secondary-action-button"
+                        to={`/documents?clientId=${clientId}&documentId=${document.id}`}
+                      >
+                        Details
+                      </Link>
+
+                      <button
+                        type="button"
+                        className="secondary-action-button"
+                        onClick={async () => {
+                          setActionError(null);
+                          setActionId(document.id);
+
+                          try {
+                            await openDocument(document);
+                          } catch (actionError) {
+                            setActionError(
+                              actionError instanceof Error
+                                ? actionError.message
+                                : 'Unable to open document.',
+                            );
+                          } finally {
+                            setActionId(null);
+                          }
+                        }}
+                        disabled={actionId === document.id}
+                      >
+                        Open
+                      </button>
+
+                      <button
+                        type="button"
+                        className="secondary-action-button"
+                        onClick={async () => {
+                          setActionError(null);
+                          setActionId(document.id);
+
+                          try {
+                            await downloadDocument(document);
+                          } catch (actionError) {
+                            setActionError(
+                              actionError instanceof Error
+                                ? actionError.message
+                                : 'Unable to download document.',
+                            );
+                          } finally {
+                            setActionId(null);
+                          }
+                        }}
+                        disabled={actionId === document.id}
+                      >
+                        Download
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="client-module-placeholder">
+          <ShieldAlert size={24} />
+
+          <h3>Unable to complete document action</h3>
+
+          <p>{actionError}</p>
+        </div>
+      )}
+    </article>
+  );
+}
+
 function ModulePlaceholder({
   icon,
   title,
@@ -1896,7 +2175,7 @@ function ModulePlaceholder({
   actionLabel,
   actionTo,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   description: string;
   actionLabel: string;

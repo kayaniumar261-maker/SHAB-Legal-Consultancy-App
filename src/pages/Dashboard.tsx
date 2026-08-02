@@ -22,6 +22,7 @@ import { QuickActions } from '../components/dashboard/QuickActions';
 import { RecentCases } from '../components/dashboard/RecentCases';
 import { UpcomingHearings } from '../components/dashboard/UpcomingHearings';
 import { ActivityFeed } from '../components/dashboard/ActivityFeed';
+import { RecentDocuments } from '../components/dashboard/RecentDocuments';
 import { TaskWidget } from '../components/dashboard/TaskWidget';
 import { RevenueChart } from '../components/dashboard/RevenueChart';
 import { CaseDistribution } from '../components/dashboard/CaseDistribution';
@@ -324,6 +325,7 @@ export function Dashboard() {
           <div className="dashboard-side-stack">
             <TaskWidget />
             <RevenueChart />
+            <RecentDocuments />
           </div>
         </div>
 

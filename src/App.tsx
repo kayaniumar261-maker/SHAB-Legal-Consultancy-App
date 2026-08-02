@@ -13,6 +13,7 @@ import { Cases } from './pages/Cases';
 import { ClientDetails } from './pages/ClientDetails';
 import { Clients } from './pages/Clients';
 import { Dashboard } from './pages/Dashboard';
+import { Calendar } from './pages/Calendar';
 import { Documents } from './pages/Documents';
 import { Hearings } from './pages/Hearings';
 import { Login } from './pages/Login';
@@ -78,9 +79,7 @@ function App() {
 
           <Route
             path="/calendar"
-            element={
-              <PlaceholderPage title="Calendar" />
-            }
+            element={<Calendar />}
           />
 
           <Route

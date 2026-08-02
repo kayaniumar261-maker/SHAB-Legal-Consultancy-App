@@ -14,9 +14,9 @@ import {
 } from 'react-router-dom';
 
 import {
-  getHearingsForMonth,
-  type DashboardHearing,
-} from '../../services/hearingService';
+  getCalendarEventsForMonth,
+  type CalendarEvent,
+} from '../../services/calendarService';
 
 const weekDays = [
   'Sun',
@@ -29,31 +29,37 @@ const weekDays = [
 ];
 
 function sameDay(
-  a: Date,
-  b: Date,
+  left: Date,
+  right: Date,
 ): boolean {
   return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
+    left.getFullYear() ===
+      right.getFullYear() &&
+    left.getMonth() ===
+      right.getMonth() &&
+    left.getDate() ===
+      right.getDate()
   );
 }
 
 export function CalendarWidget() {
   const navigate = useNavigate();
-  const [visibleMonth, setVisibleMonth] =
-    useState(() => {
-      const now = new Date();
 
-      return new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        1,
-      );
-    });
+  const [
+    visibleMonth,
+    setVisibleMonth,
+  ] = useState(() => {
+    const now = new Date();
 
-  const [hearings, setHearings] =
-    useState<DashboardHearing[]>([]);
+    return new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1,
+    );
+  });
+
+  const [events, setEvents] =
+    useState<CalendarEvent[]>([]);
 
   const [loading, setLoading] =
     useState(true);
@@ -70,13 +76,13 @@ export function CalendarWidget() {
         setError(null);
 
         const result =
-          await getHearingsForMonth(
+          await getCalendarEventsForMonth(
             visibleMonth.getFullYear(),
             visibleMonth.getMonth(),
           );
 
         if (active) {
-          setHearings(result);
+          setEvents(result);
         }
       } catch (loadError) {
         if (active) {
@@ -143,66 +149,108 @@ export function CalendarWidget() {
     }
 
     for (
-      let date = 1;
-      date <= totalDays;
-      date += 1
+      let day = 1;
+      day <= totalDays;
+      day += 1
     ) {
-      cells.push(date);
+      cells.push(day);
     }
 
     return cells;
   }, [visibleMonth]);
 
-  const hearingDates = useMemo(() => {
-    return hearings.reduce<
-      Record<number, number>
+  const eventsByDay = useMemo(() => {
+    return events.reduce<
+      Record<number, CalendarEvent[]>
     >(
-      (map, hearing) => {
-        const hearingDate =
+      (map, event) => {
+        const eventDate =
           new Date(
-            hearing.hearing_at,
+            event.startsAt,
           );
 
         if (
-          !Number.isNaN(
-            hearingDate.getTime(),
+          Number.isNaN(
+            eventDate.getTime(),
           )
         ) {
-          const day =
-            hearingDate.getDate();
-
-          map[day] =
-            (map[day] ?? 0) + 1;
+          return map;
         }
+
+        const day =
+          eventDate.getDate();
+
+        if (!map[day]) {
+          map[day] = [];
+        }
+
+        map[day].push(event);
 
         return map;
       },
       {},
     );
-  }, [hearings]);
+  }, [events]);
 
-  const today =
-    new Date();
+  const eventSummary =
+    useMemo(() => {
+      const hearings =
+        events.filter(
+          (event) =>
+            event.type ===
+            'hearing',
+        ).length;
+
+      const tasks =
+        events.filter(
+          (event) =>
+            event.type ===
+            'task',
+        ).length;
+
+      const deadlines =
+        events.filter(
+          (event) =>
+            event.type ===
+              'limitation' ||
+            event.type ===
+              'case_action' ||
+            event.type ===
+              'follow_up' ||
+            event.type ===
+              'invoice',
+        ).length;
+
+      return {
+        hearings,
+        tasks,
+        deadlines,
+      };
+    }, [events]);
+
+  const today = new Date();
 
   return (
     <section className="dashboard-panel calendar-widget-panel">
       <div className="panel-heading-row">
         <div>
           <span className="section-tag">
-            COURT CALENDAR
+            FIRM CALENDAR
           </span>
 
-          <h3>Calendar</h3>
+          <h3>
+            Calendar
+          </h3>
 
           <p>
-            Hearing activity by month.
+            Hearings, tasks and deadlines.
           </p>
         </div>
 
         <div className="calendar-month-controls">
           <button
             type="button"
-            onClick={() => {
+            onClick={() =>
               setVisibleMonth(
                 (current) =>
                   new Date(
@@ -210,8 +258,8 @@ export function CalendarWidget() {
                     current.getMonth() - 1,
                     1,
                   ),
-              );
-            }}
+              )
+            }
             aria-label="Previous month"
           >
             <ChevronLeft size={14} />
@@ -223,7 +271,7 @@ export function CalendarWidget() {
 
           <button
             type="button"
-            onClick={() => {
+            onClick={() =>
               setVisibleMonth(
                 (current) =>
                   new Date(
@@ -231,8 +279,8 @@ export function CalendarWidget() {
                     current.getMonth() + 1,
                     1,
                   ),
-              );
-            }}
+              )
+            }
             aria-label="Next month"
           >
             <ChevronRight size={14} />
@@ -263,8 +311,11 @@ export function CalendarWidget() {
             )}
 
             {days.map(
-              (date, index) => {
-                if (date === null) {
+              (
+                day,
+                index,
+              ) => {
+                if (day === null) {
                   return (
                     <div
                       key={`empty-${index}`}
@@ -277,7 +328,7 @@ export function CalendarWidget() {
                   new Date(
                     visibleMonth.getFullYear(),
                     visibleMonth.getMonth(),
-                    date,
+                    day,
                   );
 
                 const isToday =
@@ -286,16 +337,16 @@ export function CalendarWidget() {
                     today,
                   );
 
-                const hearingCount =
-                  hearingDates[date] ??
-                  0;
+                const dayEvents =
+                  eventsByDay[day] ??
+                  [];
 
                 const className = [
                   'calendar-day',
                   isToday
                     ? 'today'
                     : '',
-                  hearingCount > 0
+                  dayEvents.length > 0
                     ? 'highlighted'
                     : '',
                 ]
@@ -304,19 +355,10 @@ export function CalendarWidget() {
 
                 return (
                   <button
-                    key={date}
+                    key={day}
                     type="button"
                     className={className}
-                    disabled={
-                      hearingCount === 0
-                    }
                     onClick={() => {
-                      if (
-                        hearingCount === 0
-                      ) {
-                        return;
-                      }
-
                       const year =
                         cellDate.getFullYear();
 
@@ -329,7 +371,7 @@ export function CalendarWidget() {
                           '0',
                         );
 
-                      const day =
+                      const date =
                         String(
                           cellDate.getDate(),
                         ).padStart(
@@ -338,26 +380,29 @@ export function CalendarWidget() {
                         );
 
                       navigate(
-                        `/hearings?date=${year}-${month}-${day}`,
+                        `/calendar?date=${year}-${month}-${date}`,
                       );
                     }}
                     title={
-                      hearingCount > 0
-                        ? `${hearingCount} hearing${
-                            hearingCount === 1
+                      dayEvents.length > 0
+                        ? `${dayEvents.length} event${
+                            dayEvents.length === 1
                               ? ''
                               : 's'
-                          } — open`
-                        : undefined
+                          } — open calendar`
+                        : 'Open calendar'
                     }
                   >
                     <span>
-                      {date}
+                      {day}
                     </span>
 
-                    {hearingCount > 0 && (
+                    {dayEvents.length >
+                      0 && (
                       <small>
-                        {hearingCount}
+                        {
+                          dayEvents.length
+                        }
                       </small>
                     )}
                   </button>
@@ -368,13 +413,15 @@ export function CalendarWidget() {
 
           <div className="calendar-widget-footer">
             <span>
-              {hearings.length === 0
-                ? 'No hearings this month'
-                : `${hearings.length} hearing${
-                    hearings.length === 1
-                      ? ''
-                      : 's'
-                  } this month`}
+              {events.length === 0
+                ? 'No events this month'
+                : `${events.length} total events`}
+            </span>
+
+            <span>
+              {eventSummary.hearings} hearings ·{' '}
+              {eventSummary.tasks} tasks ·{' '}
+              {eventSummary.deadlines} deadlines
             </span>
           </div>
         </>

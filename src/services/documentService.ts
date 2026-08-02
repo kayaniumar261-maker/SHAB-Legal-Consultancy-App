@@ -203,36 +203,53 @@ export async function getDocumentById(
   );
 }
 
-export async function getDocumentsByCase(
-  caseId: string,
-): Promise<Document[]> {
+export async function getRecentDocuments(
+  limit = 5,
+): Promise<DocumentWithRelations[]> {
   const result = await supabase
     .from('documents')
-    .select('*')
+    .select(documentRelationsSelect)
+    .order('created_at', {
+      ascending: false,
+    })
+    .limit(limit);
+
+  return handleError(
+    result as SupabaseResult<DocumentWithRelations[]>,
+    'Unable to load recent documents.',
+  );
+}
+
+export async function getDocumentsByCase(
+  caseId: string,
+): Promise<DocumentWithRelations[]> {
+  const result = await supabase
+    .from('documents')
+    .select(documentRelationsSelect)
     .eq('case_id', caseId)
     .order('created_at', {
       ascending: false,
     });
 
   return handleError(
-    result as SupabaseResult<Document[]>,
+    result as SupabaseResult<DocumentWithRelations[]>,
     'Unable to load case documents.',
   );
 }
 
 export async function getDocumentsByClient(
   clientId: string,
-): Promise<Document[]> {
+): Promise<DocumentWithRelations[]> {
   const result = await supabase
     .from('documents')
-    .select('*')
+    .select(documentRelationsSelect)
     .eq('client_id', clientId)
     .order('created_at', {
       ascending: false,
     });
 
   return handleError(
-    result as SupabaseResult<Document[]>,
+    result as SupabaseResult<DocumentWithRelations[]>,
     'Unable to load client documents.',
   );
 }
@@ -427,22 +444,29 @@ export async function downloadDocument(
     'storage_bucket' | 'storage_path' | 'name'
   >,
 ): Promise<void> {
-  const result = await supabase.storage
-    .from(document.storage_bucket)
-    .download(document.storage_path);
+  const signedUrl = await createDocumentSignedUrl(
+    document,
+    300,
+  );
 
-  if (result.error) {
-    throw new Error(result.error.message);
+  const response = await fetch(signedUrl, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      'Unable to download document.',
+    );
   }
 
-  const url =
-    URL.createObjectURL(result.data);
-
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
   const anchor =
     window.document.createElement('a');
 
   anchor.href = url;
   anchor.download = document.name;
+  anchor.style.display = 'none';
 
   window.document.body.appendChild(anchor);
   anchor.click();

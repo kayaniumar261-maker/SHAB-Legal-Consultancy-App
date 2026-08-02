@@ -1,0 +1,328 @@
+.case-billing-workspace {
+  display: grid;
+  gap: 18px;
+}
+
+.case-billing-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.case-billing-header h3 {
+  margin: 4px 0 5px;
+  color: #0f172a;
+  font-size: 1.15rem;
+}
+
+.case-billing-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.case-billing-eyebrow {
+  color: #9a7825;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.case-billing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.case-billing-actions a {
+  text-decoration: none;
+}
+
+.case-billing-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.case-billing-stat {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid #e5e7eb;
+  border-radius: 15px;
+  background: #ffffff;
+}
+
+.case-billing-stat.success {
+  border-color: #bbf7d0;
+  background: #f6fff9;
+}
+
+.case-billing-stat.warning {
+  border-color: #fde68a;
+  background: #fffdf5;
+}
+
+.case-billing-stat.danger {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.case-billing-stat-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border-radius: 11px;
+  background: #f8fafc;
+  color: #9a7825;
+}
+
+.case-billing-stat.success
+.case-billing-stat-icon {
+  background: #dcfce7;
+  color: #047857;
+}
+
+.case-billing-stat.warning
+.case-billing-stat-icon {
+  background: #fef3c7;
+  color: #a16207;
+}
+
+.case-billing-stat.danger
+.case-billing-stat-icon {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.case-billing-stat > div:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.case-billing-stat span {
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.case-billing-stat strong {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.case-billing-section {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.case-billing-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 18px;
+  border-bottom: 1px solid #eef2f7;
+  background: #fbfcfd;
+}
+
+.case-billing-section-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.case-billing-section-heading h4 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.case-billing-section-heading span {
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.case-billing-table-wrap {
+  overflow-x: auto;
+}
+
+.case-billing-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.case-billing-table th,
+.case-billing-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #eef2f7;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.case-billing-table th {
+  color: #64748b;
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.case-billing-table td {
+  color: #334155;
+  font-size: 0.76rem;
+}
+
+.case-billing-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.case-billing-table td:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.case-billing-table td small {
+  max-width: 260px;
+  overflow: hidden;
+  color: #94a3b8;
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.case-billing-status {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.61rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.case-billing-status.paid,
+.case-billing-status.completed {
+  background: #dcfce7;
+  color: #047857;
+}
+
+.case-billing-status.issued,
+.case-billing-status.pending,
+.case-billing-status.partially-paid {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.case-billing-status.overdue,
+.case-billing-status.failed {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.case-billing-status.cancelled,
+.case-billing-status.written-off {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.case-billing-open {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #475569;
+}
+
+.case-billing-open:hover {
+  border-color: #c9a84c;
+  color: #9a7825;
+}
+
+.case-billing-empty,
+.case-billing-state {
+  display: flex;
+  min-height: 210px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 26px;
+  color: #64748b;
+  text-align: center;
+}
+
+.case-billing-empty.compact {
+  min-height: 160px;
+}
+
+.case-billing-empty strong,
+.case-billing-state strong {
+  margin-top: 10px;
+  color: #0f172a;
+}
+
+.case-billing-empty p {
+  margin: 6px 0 14px;
+}
+
+.case-billing-state span {
+  margin-top: 5px;
+  font-size: 0.78rem;
+}
+
+.case-billing-state.error {
+  border: 1px solid #fecaca;
+  border-radius: 18px;
+  background: #fff7f7;
+  color: #b91c1c;
+}
+
+@media (max-width: 1050px) {
+  .case-billing-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .case-billing-header {
+    flex-direction: column;
+  }
+
+  .case-billing-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .case-billing-actions a {
+    flex: 1;
+  }
+
+  .case-billing-summary {
+    grid-template-columns: 1fr;
+  }
+}
