@@ -4,6 +4,7 @@ import {
   CheckSquare,
   CreditCard,
   FileText,
+  FileUp,
   FolderOpen,
   Gavel,
   LayoutDashboard,
@@ -58,6 +59,11 @@ const navigationItems = [
     label: 'Documents',
     path: '/documents',
     icon: FolderOpen,
+  },
+  {
+    label: 'Import Centre',
+    path: '/imports',
+    icon: FileUp,
   },
   {
     label: 'Payments',
