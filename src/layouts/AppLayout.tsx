@@ -13,7 +13,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   NavLink,
   Outlet,
@@ -90,6 +90,31 @@ export function AppLayout() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
+  const [isOnline, setIsOnline] =
+    useState(
+      typeof navigator === 'undefined'
+        ? true
+        : navigator.onLine,
+    );
+
+  useEffect(() => {
+    function handleOnline() {
+      setIsOnline(true);
+    }
+
+    function handleOffline() {
+      setIsOnline(false);
+    }
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
@@ -152,6 +177,22 @@ export function AppLayout() {
           <GlobalSearch />
 
           <NotificationCenter />
+
+          <div
+            className={
+              isOnline
+                ? 'connection-status online'
+                : 'connection-status offline'
+            }
+            title={
+              isOnline
+                ? 'Connected to live SHAB services'
+                : 'Offline: live Supabase data may not load or save'
+            }
+          >
+            <span />
+            {isOnline ? 'Online' : 'Offline'}
+          </div>
 
           <div className="header-profile">
             <div className="profile-avatar">
