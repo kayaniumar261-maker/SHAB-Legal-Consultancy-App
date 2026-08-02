@@ -11,7 +11,6 @@ import {
 
 import {
   useEffect,
-  useMemo,
   useState,
 } from 'react';
 
@@ -20,7 +19,9 @@ import {
 } from 'react-router-dom';
 
 import {
+  getFinanceSummary,
   getInvoices,
+  type FinanceSummary,
 } from '../../services/invoiceService';
 
 import {
@@ -50,6 +51,25 @@ export function CaseBillingWorkspace({
   const [payments, setPayments] =
     useState<Payment[]>([]);
 
+  const [summary, setSummary] =
+    useState<FinanceSummary>({
+      invoiceCount: 0,
+      paidInvoiceCount: 0,
+      overdueInvoiceCount: 0,
+      totalBilled: 0,
+      totalPaid: 0,
+      outstanding: 0,
+      overdue: 0,
+      collectionRate: 0,
+      aging: {
+        current: 0,
+        days1To30: 0,
+        days31To60: 0,
+        days61To90: 0,
+        daysOver90: 0,
+      },
+    });
+
   const [loading, setLoading] =
     useState(true);
 
@@ -67,6 +87,7 @@ export function CaseBillingWorkspace({
         const [
           invoiceResult,
           paymentResult,
+          financeSummary,
         ] = await Promise.all([
           getInvoices({
             caseId,
@@ -78,6 +99,10 @@ export function CaseBillingWorkspace({
             caseId,
             page: 1,
             pageSize: 100,
+          }),
+
+          getFinanceSummary({
+            caseId,
           }),
         ]);
 
@@ -91,6 +116,10 @@ export function CaseBillingWorkspace({
 
         setPayments(
           paymentResult.data,
+        );
+
+        setSummary(
+          financeSummary,
         );
       } catch (loadError) {
         if (!active) {
@@ -115,76 +144,6 @@ export function CaseBillingWorkspace({
       active = false;
     };
   }, [caseId]);
-
-  const summary = useMemo(() => {
-    const totalBilled =
-      invoices.reduce(
-        (total, invoice) =>
-          total +
-          Number(
-            invoice.total_amount ??
-              0,
-          ),
-        0,
-      );
-
-    const totalPaid =
-      invoices.reduce(
-        (total, invoice) =>
-          total +
-          Number(
-            invoice.paid_amount ??
-              0,
-          ),
-        0,
-      );
-
-    const outstanding =
-      invoices.reduce(
-        (total, invoice) =>
-          total +
-          Number(
-            invoice.balance_amount ??
-              0,
-          ),
-        0,
-      );
-
-    const overdue =
-      invoices
-        .filter(
-          (invoice) =>
-            invoice.status ===
-              'overdue' ||
-            (
-              invoice.due_date &&
-              new Date(
-                invoice.due_date,
-              ).getTime() <
-                Date.now() &&
-              Number(
-                invoice.balance_amount ??
-                  0,
-              ) > 0
-            ),
-        )
-        .reduce(
-          (total, invoice) =>
-            total +
-            Number(
-              invoice.balance_amount ??
-                0,
-            ),
-          0,
-        );
-
-    return {
-      totalBilled,
-      totalPaid,
-      outstanding,
-      overdue,
-    };
-  }, [invoices]);
 
   if (loading) {
     return (
@@ -295,6 +254,57 @@ export function CaseBillingWorkspace({
           )}
           tone="danger"
         />
+      </section>
+
+
+      <section className="case-billing-aging">
+
+        <div className="case-billing-aging-header">
+          <h4>Accounts Receivable Aging</h4>
+
+          <span>
+            Collection Rate {summary.collectionRate.toFixed(1)}%
+          </span>
+        </div>
+
+        <div className="case-billing-aging-grid">
+
+          <BillingStat
+            icon={<WalletCards size={18} />}
+            label="Current"
+            value={formatCurrency(summary.aging.current)}
+          />
+
+          <BillingStat
+            icon={<AlertCircle size={18} />}
+            label="1–30 Days"
+            value={formatCurrency(summary.aging.days1To30)}
+            tone="warning"
+          />
+
+          <BillingStat
+            icon={<AlertCircle size={18} />}
+            label="31–60 Days"
+            value={formatCurrency(summary.aging.days31To60)}
+            tone="warning"
+          />
+
+          <BillingStat
+            icon={<AlertCircle size={18} />}
+            label="61–90 Days"
+            value={formatCurrency(summary.aging.days61To90)}
+            tone="danger"
+          />
+
+          <BillingStat
+            icon={<BadgeDollarSign size={18} />}
+            label="90+ Days"
+            value={formatCurrency(summary.aging.daysOver90)}
+            tone="danger"
+          />
+
+        </div>
+
       </section>
 
       <section className="case-billing-section">

@@ -326,3 +326,40 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+.case-billing-aging{
+  border:1px solid #e5e7eb;
+  border-radius:18px;
+  background:#fff;
+  padding:18px;
+}
+
+.case-billing-aging-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+}
+
+.case-billing-aging-header h4{
+  margin:0;
+}
+
+.case-billing-aging-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:12px;
+}
+
+@media(max-width:1100px){
+.case-billing-aging-grid{
+grid-template-columns:repeat(2,minmax(0,1fr));
+}
+}
+
+@media(max-width:640px){
+.case-billing-aging-grid{
+grid-template-columns:1fr;
+}
+}
