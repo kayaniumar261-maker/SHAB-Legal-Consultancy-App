@@ -36,8 +36,12 @@ export type TaskUpdate = Partial<TaskInsert>;
 export type TaskFilterOptions = {
   search?: string;
   status?: TaskStatus | 'all';
+  statusIn?: TaskStatus[];
   priority?: TaskPriority | 'all';
   assignedStaffId?: string | 'all';
+  clientId?: string;
+  caseId?: string;
+  taskId?: string;
   dueAfter?: string;
   dueBefore?: string;
   page?: number;

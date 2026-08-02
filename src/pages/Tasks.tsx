@@ -10,9 +10,11 @@ import {
   Search,
   Trash2,
 } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import {
   getTasks,
+  getTaskById,
   getTaskDashboardStats,
   getClientOptions,
   getCaseOptions,
@@ -27,7 +29,12 @@ import {
   type StaffOption,
   type TaskDashboardStats,
 } from '../services/taskService';
-import type { Task, TaskPriority, TaskStatus } from '../types/task';
+import type {
+  Task,
+  TaskPriority,
+  TaskStatus,
+  TaskFilterOptions,
+} from '../types/task';
 import { TaskFormModal } from '../components/tasks/TaskFormModal';
 import { DeleteTaskModal } from '../components/tasks/DeleteTaskModal';
 import './Tasks.css';
@@ -73,6 +80,15 @@ export function Tasks() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const clientIdParam = searchParams.get('clientId') ?? '';
+  const caseIdParam = searchParams.get('caseId') ?? '';
+  const taskIdParam = searchParams.get('taskId') ?? '';
+  const createParam = searchParams.get('create') === '1';
+  const dateParam = searchParams.get('date') ?? '';
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] =
     useState<TaskStatus | 'all'>('all');
@@ -97,6 +113,34 @@ export function Tasks() {
     setError(null);
 
     try {
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const endOfToday = new Date(startOfToday);
+      endOfToday.setDate(endOfToday.getDate() + 1);
+
+      const taskFilters: TaskFilterOptions = {
+        search,
+        status: statusFilter,
+        statusIn:
+          dateParam === 'today'
+            ? ['Pending', 'In Progress']
+            : undefined,
+        priority: priorityFilter,
+        assignedStaffId: assignedStaffFilter,
+        clientId: clientIdParam || undefined,
+        caseId: caseIdParam || undefined,
+        page,
+        pageSize: PAGE_SIZE,
+        dueAfter:
+          dateParam === 'today'
+            ? startOfToday.toISOString()
+            : undefined,
+        dueBefore:
+          dateParam === 'today'
+            ? endOfToday.toISOString()
+            : undefined,
+      };
+
       const [
         tasksResult,
         statsResult,
@@ -104,15 +148,8 @@ export function Tasks() {
         caseOpts,
         staffOpts,
       ] = await Promise.all([
-        getTasks({
-          search,
-          status: statusFilter,
-          priority: priorityFilter,
-          assignedStaffId: assignedStaffFilter,
-          page,
-          pageSize: PAGE_SIZE,
-        }),
-        getTaskDashboardStats(),
+        getTasks(taskFilters),
+        getTaskDashboardStats(taskFilters),
         getClientOptions(),
         getCaseOptions(),
         getStaffOptions(),
@@ -173,6 +210,9 @@ export function Tasks() {
     priorityFilter,
     assignedStaffFilter,
     page,
+    caseIdParam,
+    clientIdParam,
+    dateParam,
   ]);
 
   useEffect(() => {
@@ -290,6 +330,42 @@ export function Tasks() {
     setIsFormOpen(true);
   };
 
+  useEffect(() => {
+    let active = true;
+
+    async function openFromUrl() {
+      if (createParam) {
+        setActiveTask(null);
+        setIsFormOpen(true);
+      }
+
+      if (taskIdParam) {
+        try {
+          const task = await getTaskById(taskIdParam);
+
+          if (active && task) {
+            setActiveTask(task);
+            setIsFormOpen(true);
+          }
+        } catch {
+          // ignore; task fetch errors handled in normal data load
+        }
+      }
+
+      if (createParam) {
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete('create');
+        setSearchParams(nextParams, { replace: true });
+      }
+    }
+
+    void openFromUrl();
+
+    return () => {
+      active = false;
+    };
+  }, [createParam, taskIdParam, searchParams, setSearchParams]);
+
   const openEditTask = (task: Task) => {
     setActiveTask(task);
     setIsFormOpen(true);
@@ -319,8 +395,18 @@ export function Tasks() {
     assignedStaffFilter !== 'all';
 
   const filteredLabel = useMemo(() => {
+    if (dateParam === 'today') {
+      return 'Tasks due today';
+    }
+
+    if (caseIdParam || clientIdParam) {
+      return caseIdParam
+        ? 'Tasks for selected matter'
+        : 'Tasks for selected client';
+    }
+
     return hasActiveFilters ? 'Filtered tasks' : 'All tasks';
-  }, [hasActiveFilters]);
+  }, [hasActiveFilters, caseIdParam, clientIdParam, dateParam]);
 
   return (
     <div className="tasks-page page-container">
@@ -398,6 +484,31 @@ export function Tasks() {
           </div>
         </article>
       </section>
+
+      {caseIdParam || clientIdParam ? (
+        <section className="tasks-context-banner">
+          <div>
+            <strong>
+              {caseIdParam
+                ? 'Showing tasks for selected matter'
+                : 'Showing tasks for selected client'}
+            </strong>
+            <span>
+              {caseIdParam
+                ? 'Filtered to the current case context in the tasks workspace.'
+                : 'Filtered to the current client context in the tasks workspace.'}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="tasks-clear-filters"
+            onClick={() => navigate('/tasks')}
+          >
+            Clear Context
+          </button>
+        </section>
+      ) : null}
 
       <section className="tasks-toolbar">
         <div className="tasks-search">
@@ -570,16 +681,23 @@ export function Tasks() {
                     </td>
 
                     <td>
-                      {task.client_id
-                        ? clients[task.client_id] ?? 'Unknown client'
-                        : '—'}
+                      {task.client_id ? (
+                        <Link to={`/clients/${task.client_id}`}>
+                          {clients[task.client_id] ?? 'Unknown client'}
+                        </Link>
+                      ) : (
+                        '—'
+                      )}
                     </td>
 
                     <td>
-                      {task.case_id
-                        ? cases[task.case_id] ??
-                          `Case ${task.case_id.slice(0, 8)}`
-                        : '—'}
+                      {task.case_id ? (
+                        <Link to={`/cases/${task.case_id}`}>
+                          {cases[task.case_id] ?? `Case ${task.case_id.slice(0, 8)}`}
+                        </Link>
+                      ) : (
+                        '—'
+                      )}
                     </td>
 
                     <td>
@@ -717,6 +835,8 @@ export function Tasks() {
         clients={clientOptions}
         cases={caseOptions}
         staff={staffOptions}
+        preselectedClientId={clientIdParam || undefined}
+        preselectedCaseId={caseIdParam || undefined}
         onClose={closeForm}
         onSave={handleSave}
         loading={formLoading}

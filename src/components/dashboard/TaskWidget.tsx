@@ -5,17 +5,18 @@ import {
 } from 'lucide-react';
 
 import {
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
-
+  Link,
+} from 'react-router-dom';
 import {
   completeTask,
   getTasksForToday,
 } from '../../services/taskService';
-
 import type { Task } from '../../types/task';
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 
 function priorityClass(priority: string | null | undefined): string {
   switch (priority?.toLowerCase()) {
@@ -118,8 +119,16 @@ export function TaskWidget() {
           </p>
         </div>
 
-        <div className="task-count-badge">
-          {tasks.length}
+        <div className="task-widget-actions">
+          <Link
+            className="secondary-action-button"
+            to="/tasks?date=today"
+          >
+            View All
+          </Link>
+          <div className="task-count-badge">
+            {tasks.length}
+          </div>
         </div>
       </div>
 
@@ -141,55 +150,65 @@ export function TaskWidget() {
         </div>
       ) : (
         <div className="task-dashboard-list">
-          {tasks.map((task) => (
-            <article
-              key={task.id}
-              className="task-dashboard-item"
-            >
-              <div className="task-dashboard-main">
-                <strong>
-                  {task.title}
-                </strong>
+          {tasks.map((task) => {
+            const taskLink = task.case_id
+              ? `/tasks?caseId=${task.case_id}&taskId=${task.id}`
+              : task.client_id
+              ? `/tasks?clientId=${task.client_id}&taskId=${task.id}`
+              : `/tasks?taskId=${task.id}`;
 
-                <div className="task-dashboard-meta">
-                  <span
-                    className={priorityClass(
-                      task.priority,
-                    )}
-                  >
-                    {task.priority || 'Normal'}
-                  </span>
-
-                  {task.due_at && (
-                    <span>
-                      <Clock3 size={12} />
-                      {formatTime(task.due_at)}
-                    </span>
-                  )}
-
-                  <span>
-                    {task.status}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="task-complete-button"
-                onClick={() => {
-                  void handleComplete(
-                    task.id,
-                  );
-                }}
-                disabled={
-                  updatingTaskId === task.id
-                }
-                title="Mark task completed"
+            return (
+              <article
+                key={task.id}
+                className="task-dashboard-item"
               >
-                <CheckCircle2 size={17} />
-              </button>
-            </article>
-          ))}
+                <div className="task-dashboard-main">
+                  <Link
+                    to={taskLink}
+                    className="task-dashboard-link"
+                  >
+                    <strong>{task.title}</strong>
+                  </Link>
+
+                  <div className="task-dashboard-meta">
+                    <span
+                      className={priorityClass(
+                        task.priority,
+                      )}
+                    >
+                      {task.priority || 'Normal'}
+                    </span>
+
+                    {task.due_at && (
+                      <span>
+                        <Clock3 size={12} />
+                        {formatTime(task.due_at)}
+                      </span>
+                    )}
+
+                    <span>
+                      {task.status}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="task-complete-button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    void handleComplete(task.id);
+                  }}
+                  disabled={
+                    updatingTaskId === task.id
+                  }
+                  title="Mark task completed"
+                >
+                  <CheckCircle2 size={17} />
+                </button>
+              </article>
+            );
+          })}
         </div>
       )}
 

@@ -4,11 +4,14 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node ./scripts/start-dev.mjs --start",
+    "dev:check": "node ./scripts/start-dev.mjs --check",
+    "dev:clean": "node ./scripts/start-dev.mjs --clean",
+    "start": "npm run dev",
+    "healthcheck": "node ./scripts/start-dev.mjs --health",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "dev:codespace": "bash scripts/codespace-start.sh",
-    "dev:health": "curl -fsS http://127.0.0.1:5173 >/dev/null && echo 'SHAB dev server healthy'"
+    "dev:codespace": "node ./scripts/start-dev.mjs --start"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",

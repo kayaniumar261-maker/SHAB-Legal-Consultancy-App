@@ -55,6 +55,8 @@ export async function getHearings(
     pageSize?: number;
     search?: string;
     filters?: HearingFilterOptions;
+    caseId?: string;
+    clientId?: string;
   } = {},
 ): Promise<{
   data: Hearing[];
@@ -65,10 +67,38 @@ export async function getHearings(
     pageSize = 12,
     search = '',
     filters = {},
+    caseId,
+    clientId,
   } = options;
 
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
+
+  let clientCaseIds: string[] | null = null;
+
+  if (clientId) {
+    const caseResult = await supabase
+      .from('cases')
+      .select('id')
+      .eq('client_id', clientId);
+
+    if (caseResult.error) {
+      throw new Error(
+        caseResult.error.message,
+      );
+    }
+
+    clientCaseIds = (
+      caseResult.data ?? []
+    ).map((record) => record.id);
+
+    if (clientCaseIds.length === 0) {
+      return {
+        data: [],
+        count: 0,
+      };
+    }
+  }
 
   let query = supabase
     .from('hearings')
@@ -129,6 +159,23 @@ export async function getHearings(
     query = query.lte(
       'hearing_at',
       filters.endDate,
+    );
+  }
+
+  if (caseId) {
+    query = query.eq(
+      'case_id',
+      caseId,
+    );
+  }
+
+  if (
+    clientCaseIds &&
+    clientCaseIds.length > 0
+  ) {
+    query = query.in(
+      'case_id',
+      clientCaseIds,
     );
   }
 
@@ -406,6 +453,81 @@ export async function getHearingsForMonth(
   }));
 }
 
+
+/* =========================================================
+   CASE HEARING SYNCHRONISATION
+
+   The hearings table is the source of truth for hearing dates.
+   Whenever a hearing changes, recalculate the parent case so
+   Cases, Clients, Dashboard and other modules remain aligned.
+========================================================= */
+
+async function syncCaseHearingDates(caseId: string | null | undefined) {
+  if (!caseId) return;
+
+  const result = await supabase
+    .from('hearings')
+    .select('hearing_at, status')
+    .eq('case_id', caseId)
+    .order('hearing_at', {
+      ascending: true,
+    });
+
+  if (result.error) {
+    throw new Error(result.error.message);
+  }
+
+  const hearings = result.data ?? [];
+
+  const validHearings = hearings.filter((hearing) => {
+    if (!hearing.hearing_at) return false;
+
+    const status = normaliseStatus(hearing.status);
+
+    return status !== 'cancelled';
+  });
+
+  const firstHearing =
+    validHearings.length > 0
+      ? validHearings[0].hearing_at
+      : null;
+
+  const now = Date.now();
+
+  const nextHearing =
+    validHearings.find((hearing) => {
+      const status = normaliseStatus(hearing.status);
+
+      if (
+        status === 'completed' ||
+        status === 'cancelled'
+      ) {
+        return false;
+      }
+
+      const hearingTime = new Date(
+        hearing.hearing_at,
+      ).getTime();
+
+      return (
+        !Number.isNaN(hearingTime) &&
+        hearingTime >= now
+      );
+    })?.hearing_at ?? null;
+
+  const caseResult = await supabase
+    .from('cases')
+    .update({
+      first_hearing_at: firstHearing,
+      next_hearing_at: nextHearing,
+    })
+    .eq('id', caseId);
+
+  if (caseResult.error) {
+    throw new Error(caseResult.error.message);
+  }
+}
+
 /* =========================================================
    CREATE
 ========================================================= */
@@ -427,10 +549,17 @@ export async function createHearing(
     .select()
     .single();
 
-  return handleError(
+  const hearing = handleError(
     result,
   ) as Hearing;
+
+  await syncCaseHearingDates(
+    hearing.case_id,
+  );
+
+  return hearing;
 }
+
 
 /* =========================================================
    UPDATE
@@ -440,15 +569,33 @@ export async function updateHearing(
   id: string,
   data: HearingUpdate,
 ): Promise<Hearing> {
+  /*
+   * Read the old case before updating because the hearing may
+   * be moved from one matter to another.
+   */
+  const existingResult = await supabase
+    .from('hearings')
+    .select('case_id')
+    .eq('id', id)
+    .single();
+
+  if (existingResult.error) {
+    throw new Error(
+      existingResult.error.message,
+    );
+  }
+
+  const previousCaseId =
+    existingResult.data?.case_id ?? null;
+
   const payload = {
     ...data,
 
     ...(data.status
       ? {
-          status:
-            normaliseStatus(
-              data.status,
-            ),
+          status: normaliseStatus(
+            data.status,
+          ),
         }
       : {}),
   };
@@ -463,10 +610,30 @@ export async function updateHearing(
     .select()
     .single();
 
-  return handleError(
+  const hearing = handleError(
     result,
   ) as Hearing;
+
+  /*
+   * Sync the old case as well as the new one. This matters
+   * when an existing hearing is reassigned to another matter.
+   */
+  if (
+    previousCaseId &&
+    previousCaseId !== hearing.case_id
+  ) {
+    await syncCaseHearingDates(
+      previousCaseId,
+    );
+  }
+
+  await syncCaseHearingDates(
+    hearing.case_id,
+  );
+
+  return hearing;
 }
+
 
 /* =========================================================
    DELETE
@@ -475,6 +642,25 @@ export async function updateHearing(
 export async function deleteHearing(
   id: string,
 ): Promise<void> {
+  /*
+   * Capture the parent matter before deletion because the
+   * deleted row will no longer be available afterwards.
+   */
+  const existingResult = await supabase
+    .from('hearings')
+    .select('case_id')
+    .eq('id', id)
+    .single();
+
+  if (existingResult.error) {
+    throw new Error(
+      existingResult.error.message,
+    );
+  }
+
+  const caseId =
+    existingResult.data?.case_id ?? null;
+
   const result = await supabase
     .from('hearings')
     .delete()
@@ -488,7 +674,12 @@ export async function deleteHearing(
       result.error.message,
     );
   }
+
+  await syncCaseHearingDates(
+    caseId,
+  );
 }
+
 
 /* =========================================================
    STATUS ACTIONS
@@ -534,6 +725,7 @@ export async function markHearingCancelled(
 export type HearingCaseOption = {
   id: string;
   case_number: string;
+  client_id: string;
   client_name: string;
 };
 
@@ -545,6 +737,7 @@ export async function getCaseOptions(): Promise<
     .select(`
       id,
       case_number,
+      client_id,
       client:clients (
         full_name
       )
@@ -578,6 +771,9 @@ export async function getCaseOptions(): Promise<
 
     case_number:
       item.case_number,
+
+    client_id:
+      item.client_id,
 
     client_name:
       item.client?.full_name ??

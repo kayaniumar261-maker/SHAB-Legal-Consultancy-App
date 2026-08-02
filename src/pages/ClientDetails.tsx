@@ -6,6 +6,7 @@ import {
   CalendarDays,
   CircleUserRound,
   Clock3,
+  ClipboardList,
   FileText,
   FolderKanban,
   Gavel,
@@ -50,6 +51,13 @@ import {
 } from '../services/hearingService';
 
 import {
+  getTasksByClient,
+  getStaffOptions,
+  type StaffOption,
+} from '../services/taskService';
+import type { Task } from '../types/task';
+
+import {
   getInvoices,
 } from '../services/invoiceService';
 
@@ -75,6 +83,7 @@ type ClientTab =
   | 'overview'
   | 'cases'
   | 'hearings'
+  | 'tasks'
   | 'documents'
   | 'invoices'
   | 'payments'
@@ -88,6 +97,7 @@ const tabs: Array<{
   { id: 'overview', label: 'Overview' },
   { id: 'cases', label: 'Cases' },
   { id: 'hearings', label: 'Hearings' },
+  { id: 'tasks', label: 'Tasks' },
   { id: 'documents', label: 'Documents' },
   { id: 'invoices', label: 'Invoices' },
   { id: 'payments', label: 'Payments' },
@@ -466,6 +476,12 @@ export function ClientDetails() {
         {activeTab ===
           'hearings' && (
           <ClientHearingsTab
+            clientId={client.id}
+          />
+        )}
+
+        {activeTab === 'tasks' && (
+          <ClientTasksTab
             clientId={client.id}
           />
         )}
@@ -1015,6 +1031,184 @@ function ClientHearingsTab({
   );
 }
 
+
+function ClientTasksTab({
+  clientId,
+}: {
+  clientId: string;
+}) {
+  const [tasks, setTasks] =
+    useState<Task[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const [staffMap, setStaffMap] =
+    useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [taskRows, staffOptions] =
+          await Promise.all([
+            getTasksByClient(clientId),
+            getStaffOptions(),
+          ]);
+
+        if (!active) {
+          return;
+        }
+
+        setTasks(taskRows);
+        setStaffMap(
+          staffOptions.reduce(
+            (accumulator, member) => {
+              accumulator[member.id] = member.name;
+              return accumulator;
+            },
+            {} as Record<string, string>,
+          ),
+        );
+      } catch (loadError) {
+        if (!active) {
+          return;
+        }
+
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : 'Unable to load client tasks.',
+        );
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, [clientId]);
+
+  if (loading) {
+    return (
+      <div className="client-module-placeholder">
+        <ClipboardList size={24} />
+        <h3>Loading tasks…</h3>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="client-module-placeholder">
+        <ShieldAlert size={24} />
+        <h3>Unable to load tasks</h3>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  if (tasks.length === 0) {
+    return (
+      <div className="client-module-placeholder">
+        <ClipboardList size={24} />
+
+        <h3>No tasks found</h3>
+
+        <p>
+          This client does not have any tasks yet.
+        </p>
+
+        <Link
+          className="primary-action-button"
+          to={`/tasks?clientId=${clientId}&create=1`}
+        >
+          Add Task
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <article className="client-profile-card">
+      <div className="client-profile-card-heading client-cases-heading">
+        <div>
+          <ClipboardList size={20} />
+          <h3>Client Tasks</h3>
+        </div>
+
+        <Link
+          className="secondary-action-button"
+          to={`/tasks?clientId=${clientId}`}
+        >
+          View in Tasks
+        </Link>
+      </div>
+
+      <div className="client-cases-table-wrap">
+        <table className="client-cases-table">
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Assigned To</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Due Date</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {tasks.map((task) => (
+              <tr key={task.id}>
+                <td>
+                  <strong>{task.title}</strong>
+                </td>
+                <td>
+                  {task.assigned_staff_id
+                    ? staffMap[task.assigned_staff_id] ?? 'Unassigned'
+                    : 'Unassigned'}
+                </td>
+                <td>
+                  <span
+                    className={`case-inline-priority ${normalizeClassName(
+                      task.priority,
+                    )}`}
+                  >
+                    {task.priority}
+                  </span>
+                </td>
+                <td>
+                  <span
+                    className={`case-inline-status ${normalizeClassName(
+                      task.status,
+                    )}`}
+                  >
+                    {task.status}
+                  </span>
+                </td>
+                <td>
+                  {formatOptionalDate(task.due_at)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  );
+}
 
 function ClientInvoicesTab({
   clientId,

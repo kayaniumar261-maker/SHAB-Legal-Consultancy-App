@@ -36,10 +36,10 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 14px;
   min-width: 0;
-  min-height: 118px;
-  padding: 20px;
+  min-height: 96px;
+  padding: 16px;
   overflow: hidden;
 
   border: 1px solid #e5e7eb;
@@ -64,9 +64,9 @@
 
 .task-stat-icon {
   display: grid;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
   place-items: center;
 
   border-radius: 15px;
@@ -120,9 +120,9 @@
 
 .tasks-toolbar {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 
-  padding: 20px;
+  padding: 16px;
 
   border: 1px solid #e5e7eb;
   border-radius: 22px;
@@ -137,9 +137,9 @@
 .tasks-search {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 
-  min-height: 52px;
+  min-height: 46px;
 
   padding: 0 16px;
 
@@ -202,7 +202,7 @@
 .filter-field select {
   width: 100%;
   min-width: 0;
-  min-height: 48px;
+  min-height: 42px;
 
   padding: 0 14px;
 
@@ -333,7 +333,7 @@
 }
 
 .tasks-table th {
-  padding: 16px 14px;
+  padding: 12px 12px;
 
   border-bottom: 1px solid #e5e7eb;
 
@@ -350,7 +350,7 @@
 }
 
 .tasks-table td {
-  padding: 17px 14px;
+  padding: 12px 12px;
 
   border-bottom: 1px solid #f0f1f3;
 
@@ -566,8 +566,8 @@
 .action-button {
   display: inline-grid;
 
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
 
   flex: 0 0 34px;
 

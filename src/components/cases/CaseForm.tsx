@@ -646,10 +646,6 @@ export function CaseForm({
       filing_date:
         optionalDate(formState.filing_date),
       opened_at: optionalDate(formState.opened_at),
-      first_hearing_at:
-        optionalDate(formState.first_hearing_at),
-      next_hearing_at:
-        optionalDate(formState.next_hearing_at),
       next_action_at:
         optionalDate(formState.next_action_at),
       limitation_date:
@@ -713,12 +709,194 @@ export function CaseForm({
     }
   };
 
+  const sectionProgress = useMemo(() => {
+    const hasValue = (value: unknown) =>
+      typeof value === 'string'
+        ? value.trim().length > 0
+        : Boolean(value);
+
+    return {
+      'case-section-matter':
+        hasValue(formState.client_id) &&
+        hasValue(formState.case_type),
+
+      'case-section-court':
+        hasValue(formState.court) ||
+        hasValue(formState.court_case_number) ||
+        hasValue(formState.police_case_number) ||
+        hasValue(formState.prosecution_number) ||
+        hasValue(formState.execution_number),
+
+      'case-section-opponent':
+        hasValue(formState.opponent_name) ||
+        hasValue(formState.opponent_company) ||
+        hasValue(formState.opponent_lawyer),
+
+      'case-section-team':
+        hasValue(formState.assigned_staff_id),
+
+      'case-section-dates':
+        hasValue(formState.filing_date) ||
+        hasValue(formState.opened_at) ||
+        hasValue(formState.first_hearing_at) ||
+        hasValue(formState.next_hearing_at) ||
+        hasValue(formState.next_action_at) ||
+        hasValue(formState.limitation_date),
+
+      'case-section-finance':
+        hasValue(formState.case_value) ||
+        hasValue(formState.claim_amount) ||
+        hasValue(formState.total_billed) ||
+        hasValue(formState.total_paid) ||
+        hasValue(formState.outstanding_balance),
+
+      'case-section-management':
+        hasValue(formState.status) &&
+        hasValue(formState.priority) &&
+        hasValue(formState.risk_level),
+
+      'case-section-details':
+        hasValue(formState.description) ||
+        hasValue(formState.facts_summary) ||
+        hasValue(formState.client_objective) ||
+        hasValue(formState.legal_strategy) ||
+        hasValue(formState.next_actions),
+
+      'case-section-ai':
+        hasValue(formState.ai_summary) ||
+        hasValue(formState.ai_risk_assessment) ||
+        hasValue(formState.ai_recommended_actions),
+    };
+  }, [formState]);
+
+  const completedSectionCount =
+    Object.values(sectionProgress).filter(Boolean).length;
+
+  const requiredMatterMissing =
+    !formState.client_id ||
+    !formState.case_type.trim();
+
+  const requiredTeamMissing =
+    !formState.assigned_staff_id;
+
+  const [openSection, setOpenSection] =
+    useState<string>('case-section-matter');
+
+  const openFormSection = (
+    sectionId: string,
+  ) => {
+    setOpenSection(sectionId);
+
+    requestAnimationFrame(() => {
+      document
+        .getElementById(sectionId)
+        ?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+    });
+  };
+
   return (
     <form
       className="case-form"
       onSubmit={handleSubmit}
     >
+      <div className="case-form-navigation">
+        <div className="case-form-navigation-heading">
+          <div>
+            <strong>Matter Setup</strong>
+            <span>
+              {completedSectionCount} of 9 sections started
+            </span>
+          </div>
+
+          <div className="case-form-navigation-progress">
+            <span
+              style={{
+                width: `${(completedSectionCount / 9) * 100}%`,
+              }}
+            />
+          </div>
+        </div>
+
+        <nav
+          className="case-form-section-nav"
+          aria-label="Matter form sections"
+        >
+          {[
+            ['case-section-matter', 'Matter'],
+            ['case-section-court', 'Court'],
+            ['case-section-opponent', 'Opponent'],
+            ['case-section-team', 'Team'],
+            ['case-section-dates', 'Dates'],
+            ['case-section-finance', 'Finance'],
+            ['case-section-management', 'Management'],
+            ['case-section-details', 'Details'],
+            ['case-section-ai', 'AI'],
+          ].map(([sectionId, label]) => {
+            const completed =
+              sectionProgress[
+                sectionId as keyof typeof sectionProgress
+              ];
+
+            const requiredMissing =
+              (sectionId === 'case-section-matter' &&
+                requiredMatterMissing) ||
+              (sectionId === 'case-section-team' &&
+                requiredTeamMissing);
+
+            return (
+              <button
+                key={sectionId}
+                type="button"
+                className={[
+                  openSection === sectionId
+                    ? 'active'
+                    : '',
+                  completed
+                    ? 'completed'
+                    : '',
+                  requiredMissing
+                    ? 'required-missing'
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={() =>
+                  openFormSection(sectionId)
+                }
+              >
+                <span className="case-form-nav-label">
+                  {label}
+                </span>
+
+                <span
+                  className="case-form-nav-state"
+                  aria-hidden="true"
+                >
+                  {completed
+                    ? '✓'
+                    : requiredMissing
+                      ? '!'
+                      : '○'}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
       <FormSection
+        id="case-section-matter"
+        isOpen={openSection === 'case-section-matter'}
+        onToggle={() =>
+          setOpenSection(
+            openSection === 'case-section-matter'
+              ? ''
+              : 'case-section-matter',
+          )
+        }
         icon={<BriefcaseBusiness size={20} />}
         title="Matter Information"
         description="Core classification and internal references."
@@ -854,6 +1032,15 @@ export function CaseForm({
       </FormSection>
 
       <FormSection
+        id="case-section-court"
+        isOpen={openSection === 'case-section-court'}
+        onToggle={() =>
+          setOpenSection(
+            openSection === 'case-section-court'
+              ? ''
+              : 'case-section-court',
+          )
+        }
         icon={<Gavel size={20} />}
         title="Court & Proceedings"
         description="Court, police, prosecution and execution references."
@@ -934,6 +1121,15 @@ export function CaseForm({
       </FormSection>
 
       <FormSection
+        id="case-section-opponent"
+        isOpen={openSection === 'case-section-opponent'}
+        onToggle={() =>
+          setOpenSection(
+            openSection === 'case-section-opponent'
+              ? ''
+              : 'case-section-opponent',
+          )
+        }
         icon={<Building2 size={20} />}
         title="Opponent Information"
         description="Adverse party and opposing legal representatives."
@@ -1006,6 +1202,15 @@ export function CaseForm({
       </FormSection>
 
       <FormSection
+        id="case-section-team"
+        isOpen={openSection === 'case-section-team'}
+        onToggle={() =>
+          setOpenSection(
+            openSection === 'case-section-team'
+              ? ''
+              : 'case-section-team',
+          )
+        }
         icon={<UsersRound size={20} />}
         title="Legal Team"
         description="Assign the responsible legal professionals."
@@ -1075,9 +1280,18 @@ export function CaseForm({
       </FormSection>
 
       <FormSection
+        id="case-section-dates"
+        isOpen={openSection === 'case-section-dates'}
+        onToggle={() =>
+          setOpenSection(
+            openSection === 'case-section-dates'
+              ? ''
+              : 'case-section-dates',
+          )
+        }
         icon={<CalendarDays size={20} />}
         title="Important Dates"
-        description="Track filing, hearings, limitation and closure dates."
+        description="Track filing, deadlines, limitation, judgment and closure dates. Hearing dates are synchronized from the Hearings module."
       >
         <TextField
           id="filing_date"
@@ -1096,26 +1310,6 @@ export function CaseForm({
           value={formState.opened_at}
           onChange={(value) =>
             setField('opened_at', value)
-          }
-        />
-
-        <TextField
-          id="first_hearing_at"
-          label="First Hearing"
-          type="datetime-local"
-          value={formState.first_hearing_at}
-          onChange={(value) =>
-            setField('first_hearing_at', value)
-          }
-        />
-
-        <TextField
-          id="next_hearing_at"
-          label="Next Hearing"
-          type="datetime-local"
-          value={formState.next_hearing_at}
-          onChange={(value) =>
-            setField('next_hearing_at', value)
           }
         />
 
@@ -1161,6 +1355,15 @@ export function CaseForm({
       </FormSection>
 
       <FormSection
+        id="case-section-finance"
+        isOpen={openSection === 'case-section-finance'}
+        onToggle={() =>
+          setOpenSection(
+            openSection === 'case-section-finance'
+              ? ''
+              : 'case-section-finance',
+          )
+        }
         icon={<CircleDollarSign size={20} />}
         title="Financial Position"
         description="Matter value, recovery, billing and payment tracking."
@@ -1267,6 +1470,15 @@ export function CaseForm({
       </FormSection>
 
       <FormSection
+        id="case-section-management"
+        isOpen={openSection === 'case-section-management'}
+        onToggle={() =>
+          setOpenSection(
+            openSection === 'case-section-management'
+              ? ''
+              : 'case-section-management',
+          )
+        }
         icon={<ShieldCheck size={20} />}
         title="Matter Management"
         description="Status, stage, risk and access controls."
@@ -1416,6 +1628,15 @@ export function CaseForm({
       </FormSection>
 
       <FormSection
+        id="case-section-details"
+        isOpen={openSection === 'case-section-details'}
+        onToggle={() =>
+          setOpenSection(
+            openSection === 'case-section-details'
+              ? ''
+              : 'case-section-details',
+          )
+        }
         icon={<FileText size={20} />}
         title="Matter Details"
         description="Facts, objectives, strategy and internal notes."
@@ -1482,6 +1703,15 @@ export function CaseForm({
       </FormSection>
 
       <FormSection
+        id="case-section-ai"
+        isOpen={openSection === 'case-section-ai'}
+        onToggle={() =>
+          setOpenSection(
+            openSection === 'case-section-ai'
+              ? ''
+              : 'case-section-ai',
+          )
+        }
         icon={<Sparkles size={20} />}
         title="AI Legal Intelligence"
         description="Optional AI-generated summaries and recommendations."
@@ -1542,31 +1772,66 @@ export function CaseForm({
 }
 
 function FormSection({
+  id,
   icon,
   title,
   description,
   children,
+  isOpen,
+  onToggle,
 }: {
+  id: string;
   icon: React.ReactNode;
   title: string;
   description: string;
   children: React.ReactNode;
+  isOpen: boolean;
+  onToggle: () => void;
 }) {
   return (
-    <section className="case-form-section">
-      <header className="case-form-section-header">
-        <div className="case-form-section-icon">
-          {icon}
-        </div>
-        <div>
-          <h3>{title}</h3>
-          <p>{description}</p>
-        </div>
-      </header>
+    <section
+      id={id}
+      className={[
+        'case-form-section',
+        isOpen
+          ? 'is-open'
+          : 'is-collapsed',
+      ].join(' ')}
+    >
+      <button
+        type="button"
+        className="case-form-section-header"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        aria-controls={`${id}-content`}
+      >
+        <div className="case-form-section-heading">
+          <div className="case-form-section-icon">
+            {icon}
+          </div>
 
-      <div className="case-form-grid">
-        {children}
-      </div>
+          <div>
+            <h3>{title}</h3>
+            <p>{description}</p>
+          </div>
+        </div>
+
+        <span
+          className="case-form-section-toggle"
+          aria-hidden="true"
+        >
+          {isOpen ? '−' : '+'}
+        </span>
+      </button>
+
+      {isOpen && (
+        <div
+          id={`${id}-content`}
+          className="case-form-grid"
+        >
+          {children}
+        </div>
+      )}
     </section>
   );
 }

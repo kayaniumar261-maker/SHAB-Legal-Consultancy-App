@@ -41,6 +41,7 @@ type KPI = {
   trend: string;
   trendPositive: boolean;
   icon: typeof Briefcase;
+  to?: string;
 };
 
 const emptyDashboardData: DashboardKPIData = {
@@ -160,6 +161,7 @@ export function Dashboard() {
         trendPositive:
           dashboardData.hearingsToday === 0,
         icon: CalendarDays,
+        to: '/hearings?date=today',
       },
       {
         label: 'Tasks Due Today',
@@ -174,6 +176,7 @@ export function Dashboard() {
         trendPositive:
           dashboardData.tasksDueToday === 0,
         icon: ClipboardList,
+        to: '/tasks?date=today',
       },
       {
         label: 'Outstanding Payments',
@@ -307,6 +310,7 @@ export function Dashboard() {
             subtitle={item.subtitle}
             trend={item.trend}
             trendPositive={item.trendPositive}
+            to={item.to}
           />
         ))}
       </section>

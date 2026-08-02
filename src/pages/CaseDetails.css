@@ -476,3 +476,230 @@
     flex: 1;
   }
 }
+
+
+/* SHAB CASE DETAILS COMPACT UI V2 */
+
+.case-details-page {
+  gap: 15px;
+}
+
+/* Top actions */
+
+.case-details-topbar {
+  gap: 10px;
+}
+
+.case-details-actions {
+  gap: 8px;
+}
+
+.case-details-actions a,
+.case-details-actions button,
+.back-button {
+  min-height: 38px;
+  padding-left: 13px;
+  padding-right: 13px;
+  border-radius: 10px;
+  font-size: 0.76rem;
+}
+
+/* Hero */
+
+.case-details-hero {
+  grid-template-columns:
+    minmax(0, 1fr)
+    240px;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 16px;
+  box-shadow:
+    0 7px 22px rgba(15, 23, 42, 0.04);
+}
+
+.case-details-reference-row {
+  gap: 6px;
+}
+
+.case-details-reference-row > span:first-child {
+  font-size: 0.64rem;
+}
+
+.urgent-matter-chip,
+.vip-matter-chip,
+.archived-matter-chip {
+  gap: 4px;
+  padding: 4px 7px;
+  font-size: 0.5rem;
+}
+
+.case-details-hero h1 {
+  margin: 7px 0 5px;
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
+}
+
+.case-details-subtitle {
+  gap: 6px;
+  font-size: 0.73rem;
+}
+
+.case-details-subtitle a {
+  gap: 5px;
+}
+
+.case-details-subtitle svg {
+  width: 14px;
+  height: 14px;
+}
+
+.case-details-badges {
+  gap: 5px;
+  margin-top: 12px;
+}
+
+.case-details-badge {
+  gap: 4px;
+  padding: 4px 7px;
+  font-size: 0.49rem;
+}
+
+/* Progress */
+
+.case-details-progress-card {
+  padding: 14px;
+  border-radius: 13px;
+}
+
+.case-details-progress-card span {
+  font-size: 0.62rem;
+}
+
+.case-details-progress-card strong {
+  font-size: 1.35rem;
+}
+
+.case-details-progress-track {
+  height: 6px;
+  margin: 10px 0 8px;
+}
+
+.case-details-progress-card small {
+  font-size: 0.64rem;
+}
+
+/* KPIs */
+
+.case-details-kpi-grid {
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.case-details-kpi-card {
+  min-height: 102px;
+  gap: 6px;
+  padding: 13px;
+  border-radius: 13px;
+}
+
+.case-details-kpi-card > div {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+.case-details-kpi-card > div svg {
+  width: 16px;
+  height: 16px;
+}
+
+.case-details-kpi-card span {
+  font-size: 0.57rem;
+}
+
+.case-details-kpi-card strong {
+  overflow: visible;
+  color: #0f172a;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Finance KPI values */
+
+.case-details-kpi-card:nth-child(3) strong,
+.case-details-kpi-card:nth-child(4) strong {
+  font-size: clamp(0.78rem, 1vw, 0.95rem);
+  white-space: nowrap;
+}
+
+/* Overview grid */
+
+.case-details-overview-grid {
+  gap: 12px;
+}
+
+.case-details-overview-card {
+  border-radius: 14px;
+}
+
+.case-details-overview-card > header {
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.case-details-overview-card > header > span {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+
+.case-details-overview-card > header > span svg {
+  width: 15px;
+  height: 15px;
+}
+
+.case-details-overview-card h3 {
+  font-size: 0.82rem;
+}
+
+/* Generic detail rows inside overview cards */
+
+.case-detail-row {
+  padding: 9px 14px;
+}
+
+.case-detail-row span {
+  font-size: 0.62rem;
+}
+
+.case-detail-row strong {
+  font-size: 0.72rem;
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+  .case-details-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .case-details-progress-card {
+    max-width: none;
+  }
+
+  .case-details-kpi-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .case-details-kpi-grid,
+  .case-details-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

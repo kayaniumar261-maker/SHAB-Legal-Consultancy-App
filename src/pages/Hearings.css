@@ -789,3 +789,682 @@
     justify-content: space-between;
   }
 }
+
+/* =========================================================
+   SHAB COMPACT HEARINGS UI V2
+   Visual refinement only — no hearing logic changes
+========================================================= */
+
+.hearings-container {
+  padding: 8px 0 36px;
+  max-width: none;
+}
+
+/* Header */
+
+.hearings-page-header {
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.hearings-page-header h1 {
+  font-size: clamp(24px, 2.4vw, 31px);
+}
+
+.hearings-page-header p {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.hearings-eyebrow,
+.hearings-section-heading > div > span,
+.hearings-workspace-header > div > span {
+  margin-bottom: 4px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.hearings-header-actions {
+  gap: 7px;
+}
+
+.hearings-add-button,
+.hearings-secondary-button,
+.hearings-clear-button {
+  min-height: 36px;
+  padding: 0 13px;
+  border-radius: 9px;
+  font-size: 11px;
+}
+
+
+/* ==============================
+   COMPACT KPI STRIP
+============================== */
+
+.hearings-kpi-grid {
+  gap: 9px;
+  margin-bottom: 14px;
+}
+
+.hearings-kpi-card {
+  min-height: 82px;
+  gap: 10px;
+  padding: 12px 13px;
+  border-radius: 12px;
+  box-shadow:
+    0 4px 14px rgba(18, 24, 33, 0.035);
+}
+
+.hearings-kpi-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 9px;
+}
+
+.hearings-kpi-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.hearings-kpi-card span {
+  font-size: 10px;
+}
+
+.hearings-kpi-card strong {
+  margin: 2px 0 1px;
+  font-size: 21px;
+}
+
+.hearings-kpi-card small {
+  font-size: 9px;
+}
+
+
+/* ==============================
+   TODAY AGENDA
+============================== */
+
+.hearings-agenda-panel {
+  padding: 14px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  box-shadow:
+    0 5px 18px rgba(18, 24, 33, 0.035);
+}
+
+.hearings-section-heading {
+  gap: 12px;
+}
+
+.hearings-section-heading h2,
+.hearings-workspace-header h2 {
+  font-size: 16px;
+}
+
+.hearings-agenda-date,
+.hearings-result-count {
+  font-size: 10px;
+}
+
+.hearings-agenda-list {
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.hearings-agenda-item {
+  min-height: 68px;
+  gap: 9px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.hearings-agenda-time {
+  font-size: 10px;
+}
+
+.hearings-agenda-divider {
+  height: 30px;
+}
+
+.hearings-agenda-content strong {
+  font-size: 11px;
+}
+
+.hearings-agenda-content small {
+  margin-top: 2px;
+  font-size: 9px;
+}
+
+.hearings-agenda-empty {
+  margin-top: 11px;
+  padding: 18px;
+  font-size: 11px;
+}
+
+
+/* ==============================
+   HEARING WORKSPACE
+============================== */
+
+.hearings-workspace {
+  border-radius: 14px;
+  box-shadow:
+    0 5px 18px rgba(18, 24, 33, 0.035);
+}
+
+.hearings-workspace-header {
+  padding: 14px 16px 11px;
+}
+
+.hearings-controls {
+  gap: 10px;
+  padding: 11px 16px;
+}
+
+.hearings-search {
+  width: min(390px, 100%);
+  min-height: 36px;
+  padding: 0 11px;
+  border-radius: 9px;
+}
+
+.hearings-search input {
+  font-size: 11px;
+}
+
+.hearings-filter-select {
+  min-height: 36px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 11px;
+}
+
+
+/* ==============================
+   HEARING RECORD CARDS
+============================== */
+
+.hearings-card-list {
+  gap: 8px;
+}
+
+.hearing-record-card {
+  border-radius: 12px;
+  box-shadow:
+    0 3px 12px rgba(15, 23, 42, 0.025);
+}
+
+.hearing-record-date {
+  padding: 12px;
+}
+
+.hearing-record-main {
+  padding: 12px 14px;
+}
+
+.hearing-record-heading {
+  gap: 8px;
+}
+
+.hearing-record-heading h3 {
+  font-size: 14px;
+}
+
+.hearing-record-tags {
+  gap: 5px;
+}
+
+.hearing-status-badge,
+.hearing-type-tag {
+  padding: 4px 7px;
+  font-size: 8px;
+}
+
+.hearing-record-meta {
+  gap: 7px 14px;
+  margin-top: 8px;
+}
+
+.hearing-record-meta span {
+  font-size: 10px;
+}
+
+.hearing-record-outcome {
+  margin-top: 8px;
+  padding: 8px 10px;
+  font-size: 10px;
+}
+
+.hearing-record-actions {
+  gap: 5px;
+  padding: 10px;
+}
+
+.hearing-record-actions button {
+  width: 31px;
+  height: 31px;
+  border-radius: 8px;
+}
+
+.hearing-record-actions svg {
+  width: 14px;
+  height: 14px;
+}
+
+
+/* ==============================
+   PAGINATION
+============================== */
+
+.hearings-pagination {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.hearings-pagination-info {
+  font-size: 10px;
+}
+
+.hearings-pagination-controls {
+  gap: 5px;
+}
+
+.hearings-pagination-controls button {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 10px;
+}
+
+
+/* ==============================
+   RESPONSIVE
+============================== */
+
+@media (max-width: 1200px) {
+  .hearings-kpi-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .hearings-agenda-list {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .hearings-page-header {
+    flex-direction: column;
+  }
+
+  .hearings-kpi-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .hearings-controls {
+    flex-direction: column;
+  }
+
+  .hearings-search {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .hearings-kpi-grid,
+  .hearings-agenda-list {
+    grid-template-columns: 1fr;
+  }
+
+  .hearings-header-actions {
+    width: 100%;
+  }
+
+  .hearings-header-actions > * {
+    flex: 1;
+  }
+}
+
+
+/* =========================================================
+   SHAB COMPACT HEARINGS UI V2
+   Visual refinement only — no hearing logic changes
+========================================================= */
+
+.hearings-container {
+  padding: 8px 0 36px;
+  max-width: none;
+}
+
+/* Header */
+
+.hearings-page-header {
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.hearings-page-header h1 {
+  font-size: clamp(24px, 2.4vw, 31px);
+}
+
+.hearings-page-header p {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.hearings-eyebrow,
+.hearings-section-heading > div > span,
+.hearings-workspace-header > div > span {
+  margin-bottom: 4px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.hearings-header-actions {
+  gap: 7px;
+}
+
+.hearings-add-button,
+.hearings-secondary-button,
+.hearings-clear-button {
+  min-height: 36px;
+  padding: 0 13px;
+  border-radius: 9px;
+  font-size: 11px;
+}
+
+
+/* ==============================
+   COMPACT KPI STRIP
+============================== */
+
+.hearings-kpi-grid {
+  gap: 9px;
+  margin-bottom: 14px;
+}
+
+.hearings-kpi-card {
+  min-height: 82px;
+  gap: 10px;
+  padding: 12px 13px;
+  border-radius: 12px;
+  box-shadow:
+    0 4px 14px rgba(18, 24, 33, 0.035);
+}
+
+.hearings-kpi-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 9px;
+}
+
+.hearings-kpi-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.hearings-kpi-card span {
+  font-size: 10px;
+}
+
+.hearings-kpi-card strong {
+  margin: 2px 0 1px;
+  font-size: 21px;
+}
+
+.hearings-kpi-card small {
+  font-size: 9px;
+}
+
+
+/* ==============================
+   TODAY AGENDA
+============================== */
+
+.hearings-agenda-panel {
+  padding: 14px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  box-shadow:
+    0 5px 18px rgba(18, 24, 33, 0.035);
+}
+
+.hearings-section-heading {
+  gap: 12px;
+}
+
+.hearings-section-heading h2,
+.hearings-workspace-header h2 {
+  font-size: 16px;
+}
+
+.hearings-agenda-date,
+.hearings-result-count {
+  font-size: 10px;
+}
+
+.hearings-agenda-list {
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.hearings-agenda-item {
+  min-height: 68px;
+  gap: 9px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.hearings-agenda-time {
+  font-size: 10px;
+}
+
+.hearings-agenda-divider {
+  height: 30px;
+}
+
+.hearings-agenda-content strong {
+  font-size: 11px;
+}
+
+.hearings-agenda-content small {
+  margin-top: 2px;
+  font-size: 9px;
+}
+
+.hearings-agenda-empty {
+  margin-top: 11px;
+  padding: 18px;
+  font-size: 11px;
+}
+
+
+/* ==============================
+   HEARING WORKSPACE
+============================== */
+
+.hearings-workspace {
+  border-radius: 14px;
+  box-shadow:
+    0 5px 18px rgba(18, 24, 33, 0.035);
+}
+
+.hearings-workspace-header {
+  padding: 14px 16px 11px;
+}
+
+.hearings-controls {
+  gap: 10px;
+  padding: 11px 16px;
+}
+
+.hearings-search {
+  width: min(390px, 100%);
+  min-height: 36px;
+  padding: 0 11px;
+  border-radius: 9px;
+}
+
+.hearings-search input {
+  font-size: 11px;
+}
+
+.hearings-filter-select {
+  min-height: 36px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 11px;
+}
+
+
+/* ==============================
+   HEARING RECORD CARDS
+============================== */
+
+.hearings-card-list {
+  gap: 8px;
+}
+
+.hearing-record-card {
+  border-radius: 12px;
+  box-shadow:
+    0 3px 12px rgba(15, 23, 42, 0.025);
+}
+
+.hearing-record-date {
+  padding: 12px;
+}
+
+.hearing-record-main {
+  padding: 12px 14px;
+}
+
+.hearing-record-heading {
+  gap: 8px;
+}
+
+.hearing-record-heading h3 {
+  font-size: 14px;
+}
+
+.hearing-record-tags {
+  gap: 5px;
+}
+
+.hearing-status-badge,
+.hearing-type-tag {
+  padding: 4px 7px;
+  font-size: 8px;
+}
+
+.hearing-record-meta {
+  gap: 7px 14px;
+  margin-top: 8px;
+}
+
+.hearing-record-meta span {
+  font-size: 10px;
+}
+
+.hearing-record-outcome {
+  margin-top: 8px;
+  padding: 8px 10px;
+  font-size: 10px;
+}
+
+.hearing-record-actions {
+  gap: 5px;
+  padding: 10px;
+}
+
+.hearing-record-actions button {
+  width: 31px;
+  height: 31px;
+  border-radius: 8px;
+}
+
+.hearing-record-actions svg {
+  width: 14px;
+  height: 14px;
+}
+
+
+/* ==============================
+   PAGINATION
+============================== */
+
+.hearings-pagination {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.hearings-pagination-info {
+  font-size: 10px;
+}
+
+.hearings-pagination-controls {
+  gap: 5px;
+}
+
+.hearings-pagination-controls button {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 10px;
+}
+
+
+/* ==============================
+   RESPONSIVE
+============================== */
+
+@media (max-width: 1200px) {
+  .hearings-kpi-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .hearings-agenda-list {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .hearings-page-header {
+    flex-direction: column;
+  }
+
+  .hearings-kpi-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .hearings-controls {
+    flex-direction: column;
+  }
+
+  .hearings-search {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .hearings-kpi-grid,
+  .hearings-agenda-list {
+    grid-template-columns: 1fr;
+  }
+
+  .hearings-header-actions {
+    width: 100%;
+  }
+
+  .hearings-header-actions > * {
+    flex: 1;
+  }
+}

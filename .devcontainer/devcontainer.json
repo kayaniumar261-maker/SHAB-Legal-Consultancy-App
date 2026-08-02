@@ -7,5 +7,5 @@
       "onAutoForward": "notify"
     }
   },
-  "postAttachCommand": "bash scripts/codespace-start.sh"
+  "postAttachCommand": "node ./scripts/start-dev.mjs --check"
 }

@@ -10,6 +10,10 @@ import {
 } from 'react';
 
 import {
+  useNavigate,
+} from 'react-router-dom';
+
+import {
   getHearingsForMonth,
   type DashboardHearing,
 } from '../../services/hearingService';
@@ -36,6 +40,7 @@ function sameDay(
 }
 
 export function CalendarWidget() {
+  const navigate = useNavigate();
   const [visibleMonth, setVisibleMonth] =
     useState(() => {
       const now = new Date();
@@ -298,16 +303,51 @@ export function CalendarWidget() {
                   .join(' ');
 
                 return (
-                  <div
+                  <button
                     key={date}
+                    type="button"
                     className={className}
+                    disabled={
+                      hearingCount === 0
+                    }
+                    onClick={() => {
+                      if (
+                        hearingCount === 0
+                      ) {
+                        return;
+                      }
+
+                      const year =
+                        cellDate.getFullYear();
+
+                      const month =
+                        String(
+                          cellDate.getMonth() +
+                            1,
+                        ).padStart(
+                          2,
+                          '0',
+                        );
+
+                      const day =
+                        String(
+                          cellDate.getDate(),
+                        ).padStart(
+                          2,
+                          '0',
+                        );
+
+                      navigate(
+                        `/hearings?date=${year}-${month}-${day}`,
+                      );
+                    }}
                     title={
                       hearingCount > 0
                         ? `${hearingCount} hearing${
                             hearingCount === 1
                               ? ''
                               : 's'
-                          }`
+                          } — open`
                         : undefined
                     }
                   >
@@ -320,7 +360,7 @@ export function CalendarWidget() {
                         {hearingCount}
                       </small>
                     )}
-                  </div>
+                  </button>
                 );
               },
             )}

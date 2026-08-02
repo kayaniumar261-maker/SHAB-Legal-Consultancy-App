@@ -10,6 +10,8 @@ export type TaskFormModalProps = {
   clients: ClientOption[];
   cases: CaseOption[];
   staff: StaffOption[];
+  preselectedClientId?: string;
+  preselectedCaseId?: string;
   onClose: () => void;
   onSave: (
     id: string | null,
@@ -46,6 +48,8 @@ export function TaskFormModal({
   clients,
   cases,
   staff,
+  preselectedClientId,
+  preselectedCaseId,
   onClose,
   onSave,
   loading,
@@ -72,9 +76,55 @@ export function TaskFormModal({
       return;
     }
 
-    setFormState(emptyState);
+    let initialClientId = preselectedClientId ?? '';
+    let initialCaseId = preselectedCaseId ?? '';
+
+    if (initialCaseId && !initialClientId) {
+      const matchingCase = cases.find(
+        (caseOption) => caseOption.id === initialCaseId,
+      );
+
+      if (matchingCase?.client_id) {
+        initialClientId = matchingCase.client_id;
+      }
+    }
+
+    if (
+      initialClientId &&
+      initialCaseId
+    ) {
+      const matchingCase = cases.find(
+        (caseOption) => caseOption.id === initialCaseId,
+      );
+
+      if (
+        matchingCase &&
+        matchingCase.client_id !== initialClientId
+      ) {
+        initialClientId = matchingCase.client_id;
+      }
+    }
+
+    setFormState({
+      ...emptyState,
+      client_id: initialClientId,
+      case_id: initialCaseId,
+    });
     setError(null);
-  }, [task, open]);
+  }, [task, open, preselectedClientId, preselectedCaseId, cases]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [open]);
 
   const filteredCases = useMemo(() => {
     if (!formState.client_id) {
@@ -145,9 +195,7 @@ export function TaskFormModal({
         <header className="task-modal-header">
           <div>
             <p className="modal-eyebrow">Task management</p>
-            <h3>
-              {task ? 'Edit Task' : 'Add New Task'}
-            </h3>
+            <h3>{task ? 'Edit Task' : 'Add New Task'}</h3>
             <p className="modal-description">
               Create or update a task and assign it to staff members.
             </p>
@@ -164,157 +212,159 @@ export function TaskFormModal({
         </header>
 
         <form className="task-form" onSubmit={handleSubmit}>
-          <div className="task-form-grid">
-            <div className="task-form-field task-form-field-wide">
-              <span>
-                Task Title<strong aria-hidden="true">*</strong>
-              </span>
-              <input
-                type="text"
-                value={formState.title}
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    title: event.target.value,
-                  }))
-                }
-                placeholder="Task title"
-                autoFocus
-              />
+          <div className="task-modal-body">
+            <div className="task-form-grid">
+              <div className="task-form-field task-form-field-wide">
+                <span>
+                  Task Title<strong aria-hidden="true">*</strong>
+                </span>
+                <input
+                  type="text"
+                  value={formState.title}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      title: event.target.value,
+                    }))
+                  }
+                  placeholder="Task title"
+                  autoFocus
+                />
+              </div>
+
+              <div className="task-form-field task-form-field-wide">
+                <span>Description</span>
+                <textarea
+                  value={formState.description}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      description: event.target.value,
+                    }))
+                  }
+                  placeholder="Task details and notes"
+                />
+              </div>
+
+              <div className="task-form-field">
+                <span>Client</span>
+                <select
+                  value={formState.client_id}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      client_id: event.target.value,
+                      case_id: '',
+                    }))
+                  }
+                >
+                  <option value="">Select client</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.id}>
+                      {client.full_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="task-form-field">
+                <span>Case</span>
+                <select
+                  value={formState.case_id}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      case_id: event.target.value,
+                    }))
+                  }
+                  disabled={!formState.client_id}
+                >
+                  <option value="">Select case</option>
+                  {filteredCases.map((caseOption) => (
+                    <option key={caseOption.id} value={caseOption.id}>
+                      {caseOption.case_number} - {caseOption.case_type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="task-form-field">
+                <span>Assigned To</span>
+                <select
+                  value={formState.assigned_staff_id}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      assigned_staff_id: event.target.value,
+                    }))
+                  }
+                >
+                  <option value="">Unassigned</option>
+                  {staff.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="task-form-field">
+                <span>Priority</span>
+                <select
+                  value={formState.priority}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      priority: event.target.value as TaskPriority,
+                    }))
+                  }
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </div>
+
+              <div className="task-form-field">
+                <span>Status</span>
+                <select
+                  value={formState.status}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      status: event.target.value as TaskStatus,
+                    }))
+                  }
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="On Hold">On Hold</option>
+                </select>
+              </div>
+
+              <div className="task-form-field">
+                <span>Due Date</span>
+                <input
+                  type="date"
+                  value={formState.due_at}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      due_at: event.target.value,
+                    }))
+                  }
+                />
+              </div>
             </div>
 
-            <div className="task-form-field task-form-field-wide">
-              <span>Description</span>
-              <textarea
-                value={formState.description}
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    description: event.target.value,
-                  }))
-                }
-                placeholder="Task details and notes"
-              />
-            </div>
-
-            <div className="task-form-field">
-              <span>Client</span>
-              <select
-                value={formState.client_id}
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    client_id: event.target.value,
-                    case_id: '',
-                  }))
-                }
-              >
-                <option value="">Select client</option>
-                {clients.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.full_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="task-form-field">
-              <span>Case</span>
-              <select
-                value={formState.case_id}
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    case_id: event.target.value,
-                  }))
-                }
-                disabled={!formState.client_id}
-              >
-                <option value="">Select case</option>
-                {filteredCases.map((caseOption) => (
-                  <option key={caseOption.id} value={caseOption.id}>
-                    {caseOption.case_number} - {caseOption.case_type}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="task-form-field">
-              <span>Assigned To</span>
-              <select
-                value={formState.assigned_staff_id}
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    assigned_staff_id: event.target.value,
-                  }))
-                }
-              >
-                <option value="">Unassigned</option>
-                {staff.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="task-form-field">
-              <span>Priority</span>
-              <select
-                value={formState.priority}
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    priority: event.target.value as TaskPriority,
-                  }))
-                }
-              >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-                <option value="Urgent">Urgent</option>
-              </select>
-            </div>
-
-            <div className="task-form-field">
-              <span>Status</span>
-              <select
-                value={formState.status}
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    status: event.target.value as TaskStatus,
-                  }))
-                }
-              >
-                <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-                <option value="On Hold">On Hold</option>
-              </select>
-            </div>
-
-            <div className="task-form-field">
-              <span>Due Date</span>
-              <input
-                type="date"
-                value={formState.due_at}
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    due_at: event.target.value,
-                  }))
-                }
-              />
-            </div>
+            {error ? (
+              <div className="validation-error" role="alert">
+                {error}
+              </div>
+            ) : null}
           </div>
-
-          {error ? (
-            <div className="validation-error" role="alert">
-              {error}
-            </div>
-          ) : null}
 
           <footer className="task-form-actions">
             <button

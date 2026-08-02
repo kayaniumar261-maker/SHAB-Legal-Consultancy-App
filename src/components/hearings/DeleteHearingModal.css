@@ -141,3 +141,35 @@
     width: 100%;
   }
 }
+
+
+/* SHAB HEARING DELETE SHELL FIX V3 */
+
+.delete-hearing-overlay {
+  padding: 16px;
+}
+
+.delete-hearing-modal {
+  width: min(420px, calc(100vw - 32px));
+  max-width: none;
+  padding: 24px 20px;
+  border-radius: 14px;
+}
+
+@media (min-width: 960px) {
+  .delete-hearing-overlay {
+    left: 260px;
+    width: calc(100vw - 260px);
+  }
+
+  .delete-hearing-modal {
+    width: min(420px, calc(100vw - 300px));
+  }
+}
+
+@media (max-width: 959px) {
+  .delete-hearing-overlay {
+    left: 0;
+    width: 100vw;
+  }
+}

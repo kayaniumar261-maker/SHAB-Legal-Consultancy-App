@@ -690,3 +690,336 @@
     flex-direction: column;
   }
 }
+
+
+/* SHAB CASES COMPACT UI V2 */
+
+.cases-page {
+  gap: 15px;
+}
+
+/* Summary */
+
+.cases-summary-grid {
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.cases-summary-card {
+  min-height: 96px;
+  gap: 9px;
+  padding: 13px 14px;
+  border-radius: 13px;
+  box-shadow:
+    0 5px 16px rgba(15, 23, 42, 0.035);
+}
+
+.cases-summary-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 9px;
+}
+
+.cases-summary-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.cases-summary-card span {
+  font-size: 0.66rem;
+  line-height: 1.2;
+}
+
+.cases-summary-card strong {
+  margin-top: 3px;
+  overflow: visible;
+  font-size: 1.05rem;
+  line-height: 1.1;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.cases-summary-card small {
+  margin-top: 4px;
+  font-size: 0.59rem;
+  line-height: 1.2;
+}
+
+.cases-summary-card.financial strong {
+  font-size: clamp(0.82rem, 1vw, 0.98rem);
+}
+
+/* Toolbar */
+
+.cases-toolbar {
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.cases-search {
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.cases-search input {
+  font-size: 0.8rem;
+}
+
+.cases-filters {
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr))
+    auto;
+  gap: 8px;
+}
+
+.filter-field {
+  gap: 5px;
+}
+
+.filter-field label {
+  font-size: 0.66rem;
+}
+
+.filter-field select {
+  min-height: 38px;
+  padding: 7px 9px;
+  border-radius: 9px;
+  font-size: 0.74rem;
+}
+
+.cases-reset-button {
+  min-height: 38px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* Status row */
+
+.cases-status-row {
+  gap: 10px;
+}
+
+.cases-status-row strong {
+  font-size: 0.82rem;
+}
+
+.cases-status-row span {
+  font-size: 0.68rem;
+}
+
+/* Matter cards */
+
+.cases-grid {
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.case-card {
+  gap: 11px;
+  padding: 15px;
+  border-radius: 15px;
+  box-shadow:
+    0 7px 20px rgba(15, 23, 42, 0.04);
+}
+
+.case-card:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.case-card-header {
+  gap: 10px;
+}
+
+.case-card-reference-row {
+  gap: 6px;
+}
+
+.case-matter-number {
+  font-size: 0.63rem;
+}
+
+.case-urgent-indicator {
+  padding: 3px 6px;
+  font-size: 0.5rem;
+}
+
+.case-card h3 {
+  margin: 5px 0 4px;
+  font-size: 0.95rem;
+}
+
+.case-client-link {
+  gap: 5px;
+  font-size: 0.68rem;
+}
+
+.case-client-link svg {
+  width: 13px;
+  height: 13px;
+}
+
+.case-open-button {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 9px;
+}
+
+.case-open-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Badges */
+
+.case-badge-row {
+  gap: 5px;
+}
+
+.case-status-badge,
+.case-priority-badge,
+.case-risk-badge {
+  gap: 3px;
+  padding: 4px 7px;
+  font-size: 0.49rem;
+}
+
+/* Information */
+
+.case-card-information {
+  gap: 8px 12px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.case-card-information span,
+.case-card-footer span,
+.case-progress-block span {
+  font-size: 0.49rem;
+}
+
+.case-card-information strong {
+  font-size: 0.68rem;
+}
+
+/* Deadlines */
+
+.case-deadline-grid {
+  gap: 7px;
+}
+
+.case-deadline {
+  gap: 7px;
+  padding: 9px;
+  border-radius: 10px;
+}
+
+.case-deadline svg {
+  width: 14px;
+  height: 14px;
+}
+
+.case-deadline span {
+  font-size: 0.48rem;
+}
+
+.case-deadline strong {
+  font-size: 0.64rem;
+}
+
+/* Progress */
+
+.case-progress-block {
+  gap: 5px;
+}
+
+.case-progress-block strong {
+  font-size: 0.64rem;
+}
+
+.case-progress-track {
+  height: 5px;
+}
+
+/* Footer */
+
+.case-card-footer {
+  gap: 9px;
+  padding-top: 10px;
+}
+
+.case-card-footer strong {
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.case-card-actions {
+  gap: 6px;
+}
+
+.case-card-actions a {
+  min-height: 32px;
+  padding-left: 9px;
+  padding-right: 9px;
+  border-radius: 8px;
+  font-size: 0.62rem;
+}
+
+/* Empty state */
+
+.cases-empty-state {
+  min-height: 150px;
+  padding: 20px;
+  border-radius: 14px;
+}
+
+.cases-empty-state strong {
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.cases-empty-state p {
+  margin: 5px 0 12px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+/* Responsive */
+
+@media (max-width: 1250px) {
+  .cases-summary-grid {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+  }
+
+  .cases-filters {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 920px) {
+  .cases-summary-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .cases-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .cases-summary-grid,
+  .cases-filters {
+    grid-template-columns: 1fr;
+  }
+}
+

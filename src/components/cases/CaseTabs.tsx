@@ -1,8 +1,25 @@
 import { useMemo, useState, useEffect } from 'react';
 
+import {
+  CalendarPlus,
+  ExternalLink,
+  Gavel,
+  MapPin,
+} from 'lucide-react';
+
+import {
+  Link,
+} from 'react-router-dom';
+
 import type { Case } from '../../types/case';
 import type { Hearing } from '../../types/hearing';
+import type { Task } from '../../types/task';
 import { getHearingsByCase } from '../../services/hearingService';
+import {
+  getTasksByCase,
+  getStaffOptions,
+  type StaffOption,
+} from '../../services/taskService';
 import './CaseTabs.css';
 
 const tabs = [
@@ -27,16 +44,150 @@ export function CaseTabs({
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>('Overview');
   const [hearings, setHearings] = useState<Hearing[]>([]);
   const [loadingHearings, setLoadingHearings] = useState(false);
+  const [hearingError, setHearingError] =
+    useState<string | null>(null);
+  const [caseTasks, setCaseTasks] = useState<Task[]>([]);
+  const [loadingTasks, setLoadingTasks] = useState(false);
+  const [tasksError, setTasksError] = useState<string | null>(null);
+  const [taskStaff, setTaskStaff] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (activeTab === 'Hearings') {
-      setLoadingHearings(true);
-      getHearingsByCase(caseRecord.id)
-        .then((rows) => setHearings(rows))
-        .catch(() => setHearings([]))
-        .finally(() => setLoadingHearings(false));
+    if (activeTab !== 'Hearings') {
+      return;
     }
+
+    let active = true;
+
+    async function loadHearings() {
+      try {
+        setLoadingHearings(true);
+        setHearingError(null);
+
+        const rows =
+          await getHearingsByCase(
+            caseRecord.id,
+          );
+
+        if (active) {
+          setHearings(rows);
+        }
+      } catch (error) {
+        if (active) {
+          setHearings([]);
+          setHearingError(
+            error instanceof Error
+              ? error.message
+              : 'Unable to load hearings.',
+          );
+        }
+      } finally {
+        if (active) {
+          setLoadingHearings(false);
+        }
+      }
+    }
+
+    void loadHearings();
+
+    return () => {
+      active = false;
+    };
   }, [activeTab, caseRecord.id]);
+
+  useEffect(() => {
+    if (activeTab !== 'Tasks') {
+      return;
+    }
+
+    let active = true;
+
+    async function loadCaseTasks() {
+      try {
+        setLoadingTasks(true);
+        setTasksError(null);
+
+        const [tasks, staffOptions] = await Promise.all([
+          getTasksByCase(caseRecord.id),
+          getStaffOptions(),
+        ]);
+
+        if (!active) {
+          return;
+        }
+
+        setCaseTasks(tasks);
+        setTaskStaff(
+          staffOptions.reduce<Record<string, string>>(
+            (accumulator, member) => {
+              accumulator[member.id] = member.name;
+              return accumulator;
+            },
+            {},
+          ),
+        );
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+
+        setCaseTasks([]);
+        setTasksError(
+          error instanceof Error
+            ? error.message
+            : 'Unable to load tasks.',
+        );
+      } finally {
+        if (active) {
+          setLoadingTasks(false);
+        }
+      }
+    }
+
+    void loadCaseTasks();
+
+    return () => {
+      active = false;
+    };
+  }, [activeTab, caseRecord.id]);
+
+  const nextUpcomingHearing =
+    useMemo(() => {
+      const now = Date.now();
+
+      return hearings
+        .filter((hearing) => {
+          const status =
+            normalizeStatus(
+              hearing.status,
+            );
+
+          if (
+            status === 'cancelled' ||
+            status === 'completed'
+          ) {
+            return false;
+          }
+
+          const time =
+            new Date(
+              hearing.hearing_at,
+            ).getTime();
+
+          return (
+            !Number.isNaN(time) &&
+            time >= now
+          );
+        })
+        .sort(
+          (a, b) =>
+            new Date(
+              a.hearing_at,
+            ).getTime() -
+            new Date(
+              b.hearing_at,
+            ).getTime(),
+        )[0] ?? null;
+    }, [hearings]);
 
   const tabContent = useMemo(() => {
     switch (activeTab) {
@@ -111,38 +262,208 @@ export function CaseTabs({
 
       case 'Hearings':
         return (
-          <div>
-            <h3>Hearings</h3>
+          <div className="case-hearings-workspace">
+            <div className="case-hearings-header">
+              <div>
+                <span className="case-hearings-eyebrow">
+                  Court schedule
+                </span>
+
+                <h3>Hearings</h3>
+
+                <p>
+                  Hearing dates are synchronized with the central Hearings module.
+                </p>
+              </div>
+
+              <div className="case-hearings-actions">
+                <Link
+                  className="secondary-action-button"
+                  to={`/hearings?caseId=${caseRecord.id}`}
+                >
+                  <ExternalLink size={15} />
+                  View All
+                </Link>
+
+                <Link
+                  className="primary-action-button"
+                  to={`/hearings?caseId=${caseRecord.id}&schedule=1`}
+                >
+                  <CalendarPlus size={15} />
+                  Schedule Hearing
+                </Link>
+              </div>
+            </div>
+
+            {nextUpcomingHearing && (
+              <div className="case-next-hearing">
+                <div className="case-next-hearing-icon">
+                  <Gavel size={17} />
+                </div>
+
+                <div>
+                  <span>Next Hearing</span>
+
+                  <strong>
+                    {nextUpcomingHearing.title ||
+                      'Court Hearing'}
+                  </strong>
+
+                  <small>
+                    {formatDateTime(
+                      nextUpcomingHearing.hearing_at,
+                    )}
+                    {' · '}
+                    {nextUpcomingHearing.court ||
+                      'Court not set'}
+                  </small>
+                </div>
+              </div>
+            )}
+
             {loadingHearings ? (
-              <div>Loading hearings…</div>
+              <div className="case-empty-state">
+                Loading hearings…
+              </div>
+            ) : hearingError ? (
+              <div className="case-empty-state case-hearing-error">
+                <strong>
+                  Unable to load hearings
+                </strong>
+
+                <p>{hearingError}</p>
+              </div>
             ) : hearings.length === 0 ? (
-              <div className="case-empty-state">No hearings found for this case.</div>
+              <div className="case-empty-state">
+                <Gavel size={22} />
+
+                <strong>
+                  No hearings scheduled
+                </strong>
+
+                <p>
+                  Schedule the first hearing for this matter.
+                </p>
+
+                <Link
+                  className="primary-action-button"
+                  to={`/hearings?caseId=${caseRecord.id}&schedule=1`}
+                >
+                  <CalendarPlus size={15} />
+                  Schedule Hearing
+                </Link>
+              </div>
             ) : (
-              <div className="case-list">
-                {hearings.map((h) => (
-                  <div key={h.id} className="case-list-row">
-                    <div>
-                      <strong>{h.title}</strong>
-                      <br />
-                      <small>
-                        {new Date(h.hearing_at).toLocaleString('en-AE', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </small>
-                    </div>
-                    <div>{h.court}</div>
-                    <div>{h.hearing_type}</div>
-                    <div>
-                      <span className={`hearing-status-badge hearing-status-${h.status.toLowerCase().replace(/\s+/g, '-')}`}>
-                        {h.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+              <div className="case-hearing-list">
+                {hearings.map((hearing) => {
+                  const status =
+                    normalizeStatus(
+                      hearing.status,
+                    );
+
+                  const isNext =
+                    nextUpcomingHearing?.id ===
+                    hearing.id;
+
+                  return (
+                    <article
+                      key={hearing.id}
+                      className={[
+                        'case-hearing-row',
+                        isNext
+                          ? 'is-next'
+                          : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                    >
+                      <div className="case-hearing-date">
+                        <strong>
+                          {formatDay(
+                            hearing.hearing_at,
+                          )}
+                        </strong>
+
+                        <span>
+                          {formatMonth(
+                            hearing.hearing_at,
+                          )}
+                        </span>
+
+                        <small>
+                          {formatTime(
+                            hearing.hearing_at,
+                          )}
+                        </small>
+                      </div>
+
+                      <div className="case-hearing-main">
+                        <div className="case-hearing-title-row">
+                          <div>
+                            <strong>
+                              {hearing.title ||
+                                'Court Hearing'}
+                            </strong>
+
+                            {isNext && (
+                              <span className="case-next-chip">
+                                Next
+                              </span>
+                            )}
+                          </div>
+
+                          <span
+                            className={`hearing-status-badge hearing-status-${status.replace(
+                              /\s+/g,
+                              '-',
+                            )}`}
+                          >
+                            {formatLabel(
+                              hearing.status ||
+                                'Scheduled',
+                            )}
+                          </span>
+                        </div>
+
+                        <div className="case-hearing-meta">
+                          <span>
+                            <Gavel size={13} />
+                            {formatLabel(
+                              hearing.hearing_type ||
+                                'Hearing',
+                            )}
+                          </span>
+
+                          <span>
+                            <MapPin size={13} />
+                            {hearing.court ||
+                              'Court not set'}
+
+                            {hearing.courtroom
+                              ? ` · ${hearing.courtroom}`
+                              : ''}
+                          </span>
+                        </div>
+
+                        {hearing.outcome && (
+                          <p className="case-hearing-outcome">
+                            <strong>
+                              Outcome:
+                            </strong>{' '}
+                            {hearing.outcome}
+                          </p>
+                        )}
+                      </div>
+
+                      <Link
+                        className="case-hearing-open"
+                        to={`/hearings?caseId=${caseRecord.id}`}
+                      >
+                        Open
+                      </Link>
+                    </article>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -160,11 +481,164 @@ export function CaseTabs({
 
       case 'Tasks':
         return (
-          <div className="case-empty-state">
-            <strong>Tasks</strong>
-            <p>
-              Manage tasks related to this case in the tasks module.
-            </p>
+          <div className="case-tasks-workspace">
+            <div className="case-tasks-header">
+              <div>
+                <span className="case-hearings-eyebrow">
+                  Task workspace
+                </span>
+                <h3>Case tasks</h3>
+                <p>
+                  Tasks for this matter are synchronized with the central tasks module.
+                </p>
+              </div>
+
+              <div className="case-hearings-actions">
+                <Link
+                  className="secondary-action-button"
+                  to={`/tasks?caseId=${caseRecord.id}`}
+                >
+                  View All
+                </Link>
+
+                <Link
+                  className="primary-action-button"
+                  to={`/tasks?caseId=${caseRecord.id}&create=1`}
+                >
+                  Add Task
+                </Link>
+              </div>
+            </div>
+
+            <section className="case-tasks-summary">
+              <div>
+                <span>Total tasks</span>
+                <strong>{caseTasks.length}</strong>
+              </div>
+              <div>
+                <span>Outstanding</span>
+                <strong>
+                  {caseTasks.filter(
+                    (task) =>
+                      task.status !== 'Completed',
+                  ).length}
+                </strong>
+              </div>
+              <div>
+                <span>Overdue</span>
+                <strong>
+                  {caseTasks.filter((task) => {
+                    if (task.status === 'Completed') {
+                      return false;
+                    }
+
+                    if (!task.due_at) {
+                      return false;
+                    }
+
+                    return (
+                      new Date(task.due_at).getTime() <
+                      Date.now()
+                    );
+                  }).length}
+                </strong>
+              </div>
+              <div>
+                <span>Completed</span>
+                <strong>
+                  {caseTasks.filter(
+                    (task) =>
+                      task.status === 'Completed',
+                  ).length}
+                </strong>
+              </div>
+            </section>
+
+            {loadingTasks ? (
+              <div className="case-empty-state">
+                <strong>Loading tasks…</strong>
+              </div>
+            ) : tasksError ? (
+              <div className="case-empty-state case-hearing-error">
+                <strong>Unable to load tasks</strong>
+                <p>{tasksError}</p>
+              </div>
+            ) : caseTasks.length === 0 ? (
+              <div className="case-empty-state">
+                <strong>No tasks found</strong>
+                <p>
+                  Create the first task related to this case to track work and deadlines.
+                </p>
+                <Link
+                  className="primary-action-button"
+                  to={`/tasks?caseId=${caseRecord.id}&create=1`}
+                >
+                  Add Task
+                </Link>
+              </div>
+            ) : (
+              <div className="case-task-list">
+                {caseTasks.map((task) => {
+                  const isOverdue =
+                    task.status !== 'Completed' &&
+                    task.due_at &&
+                    new Date(task.due_at).getTime() <
+                      Date.now();
+
+                  return (
+                    <article
+                      key={task.id}
+                      className={`case-task-row ${
+                        isOverdue ? 'is-overdue' : ''
+                      } ${
+                        task.priority === 'Urgent'
+                          ? 'is-urgent'
+                          : ''
+                      } ${
+                        task.status === 'Completed'
+                          ? 'is-completed'
+                          : ''
+                      }`}
+                    >
+                      <div className="case-task-main">
+                        <Link
+                          to={`/tasks?caseId=${caseRecord.id}&taskId=${task.id}`}
+                          className="case-task-title-link"
+                        >
+                          <strong>{task.title}</strong>
+                          <span>
+                            {task.description || 'No description provided.'}
+                          </span>
+                        </Link>
+                      </div>
+
+                      <div className="case-task-meta">
+                        <span className={`status-badge status-${task.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                          {task.status}
+                        </span>
+                        <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
+                          {task.priority}
+                        </span>
+                        <span>
+                          {task.due_at
+                            ? new Intl.DateTimeFormat('en-AE', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                              }).format(new Date(task.due_at))
+                            : 'No due date'}
+                        </span>
+                        <span>
+                          {task.assigned_staff_id
+                            ? taskStaff[task.assigned_staff_id] ?? 'Assigned staff'
+                            : 'Unassigned'}
+                        </span>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
 
@@ -199,7 +673,15 @@ export function CaseTabs({
       default:
         return null;
     }
-  }, [activeTab, caseRecord, clientName, hearings, loadingHearings]);
+  }, [
+    activeTab,
+    caseRecord,
+    clientName,
+    hearings,
+    loadingHearings,
+    hearingError,
+    nextUpcomingHearing,
+  ]);
 
   return (
     <div className="case-tabs">
@@ -223,6 +705,95 @@ export function CaseTabs({
       <div className="case-tabs-panel">{tabContent}</div>
     </div>
   );
+}
+
+function normalizeStatus(
+  value: string | null | undefined,
+): string {
+  return (
+    value
+      ?.trim()
+      .toLowerCase()
+      .replace(/_/g, '-') ??
+    ''
+  );
+}
+
+function formatLabel(
+  value: string,
+): string {
+  return value
+    .replace(/[_-]/g, ' ')
+    .replace(
+      /\b\w/g,
+      (letter) =>
+        letter.toUpperCase(),
+    );
+}
+
+function formatDateTime(
+  value: string,
+): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Unknown date';
+  }
+
+  return new Intl.DateTimeFormat(
+    'en-AE',
+    {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    },
+  ).format(date);
+}
+
+function formatDay(
+  value: string,
+): string {
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime())
+    ? '--'
+    : String(date.getDate()).padStart(
+        2,
+        '0',
+      );
+}
+
+function formatMonth(
+  value: string,
+): string {
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime())
+    ? '---'
+    : new Intl.DateTimeFormat(
+        'en-AE',
+        {
+          month: 'short',
+        },
+      ).format(date);
+}
+
+function formatTime(
+  value: string,
+): string {
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime())
+    ? '--:--'
+    : new Intl.DateTimeFormat(
+        'en-GB',
+        {
+          hour: '2-digit',
+          minute: '2-digit',
+        },
+      ).format(date);
 }
 
 function formatDate(value: string): string {

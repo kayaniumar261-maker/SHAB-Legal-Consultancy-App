@@ -6,6 +6,10 @@ import {
 } from 'react';
 
 import {
+  useSearchParams,
+} from 'react-router-dom';
+
+import {
   Plus,
   Search,
   Edit2,
@@ -26,6 +30,7 @@ import {
 
 import {
   getHearings,
+  getHearingById,
   createHearing,
   updateHearing,
   deleteHearing,
@@ -170,6 +175,64 @@ function isActiveHearing(
 }
 
 export function Hearings() {
+  const [searchParams, setSearchParams] =
+    useSearchParams();
+
+  const contextCaseId =
+    searchParams.get('caseId')?.trim() ||
+    '';
+
+  const contextClientId =
+    searchParams.get('clientId')?.trim() ||
+    '';
+
+  const contextDate =
+    searchParams.get('date')?.trim() ||
+    '';
+
+  const contextHearingId =
+    searchParams.get('hearingId')?.trim() ||
+    '';
+
+  const shouldAutoSchedule =
+    searchParams.get('schedule') === '1';
+
+  const contextDateRange =
+    useMemo(() => {
+      if (!contextDate) {
+        return null;
+      }
+
+      const start =
+        contextDate === 'today'
+          ? startOfToday()
+          : new Date(
+              `${contextDate}T00:00:00`,
+            );
+
+      if (
+        Number.isNaN(start.getTime())
+      ) {
+        return null;
+      }
+
+      const end = new Date(start);
+
+      end.setHours(
+        23,
+        59,
+        59,
+        999,
+      );
+
+      return {
+        start:
+          start.toISOString(),
+        end:
+          end.toISOString(),
+      };
+    }, [contextDate]);
+
   const [
     hearings,
     setHearings,
@@ -278,7 +341,21 @@ export function Hearings() {
                 hearing_type:
                   typeFilter ||
                   undefined,
+
+                startDate:
+                  contextDateRange?.start,
+
+                endDate:
+                  contextDateRange?.end,
               },
+
+              caseId:
+                contextCaseId ||
+                undefined,
+
+              clientId:
+                contextClientId ||
+                undefined,
             });
 
           setHearings(
@@ -311,6 +388,9 @@ export function Hearings() {
         searchQuery,
         statusFilter,
         typeFilter,
+        contextCaseId,
+        contextClientId,
+        contextDateRange,
       ],
     );
 
@@ -361,6 +441,85 @@ export function Hearings() {
   }, [
     loadDashboardHearings,
   ]);
+
+  useEffect(() => {
+    if (
+      !shouldAutoSchedule ||
+      (
+        !contextCaseId &&
+        !contextClientId
+      )
+    ) {
+      return;
+    }
+
+    setSelectedHearing(null);
+    setShowFormModal(true);
+
+    const next =
+      new URLSearchParams(
+        searchParams,
+      );
+
+    next.delete('schedule');
+
+    setSearchParams(
+      next,
+      {
+        replace: true,
+      },
+    );
+  }, [
+    shouldAutoSchedule,
+    contextCaseId,
+    contextClientId,
+    searchParams,
+    setSearchParams,
+  ]);
+
+  useEffect(() => {
+    if (!contextHearingId) {
+      return;
+    }
+
+    let active = true;
+
+    async function openRequestedHearing() {
+      try {
+        const hearing =
+          await getHearingById(
+            contextHearingId,
+          );
+
+        if (
+          active &&
+          hearing
+        ) {
+          setSelectedHearing(
+            hearing,
+          );
+
+          setShowDetailsModal(
+            true,
+          );
+        }
+      } catch (loadError) {
+        if (active) {
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : 'Unable to open hearing.',
+          );
+        }
+      }
+    }
+
+    void openRequestedHearing();
+
+    return () => {
+      active = false;
+    };
+  }, [contextHearingId]);
 
   const refreshAll =
     async () => {
@@ -1649,6 +1808,18 @@ export function Hearings() {
           hearing={
             selectedHearing ||
             undefined
+          }
+          preselectedCaseId={
+            selectedHearing
+              ? undefined
+              : contextCaseId ||
+                undefined
+          }
+          preselectedClientId={
+            selectedHearing
+              ? undefined
+              : contextClientId ||
+                undefined
           }
           onClose={() => {
             setShowFormModal(

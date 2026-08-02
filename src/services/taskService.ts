@@ -192,7 +192,107 @@ export type TaskDashboardStats = {
    DASHBOARD STATS
 ========================================================= */
 
-export async function getTaskDashboardStats(): Promise<TaskDashboardStats> {
+function applyTaskListFilters(
+  query: any,
+  options: TaskFilterOptions,
+) {
+  const {
+    search,
+    status = 'all',
+    statusIn,
+    priority = 'all',
+    assignedStaffId = 'all',
+    clientId,
+    caseId,
+    taskId,
+    dueAfter,
+    dueBefore,
+  } = options;
+
+  if (clientId) {
+    query = query.eq('client_id', clientId);
+  }
+
+  if (caseId) {
+    query = query.eq('case_id', caseId);
+  }
+
+  if (taskId) {
+    query = query.eq('id', taskId);
+  }
+
+  if (Array.isArray(statusIn) && statusIn.length > 0) {
+    const dbStatuses = statusIn
+      .map(normalizeStatusForDatabase)
+      .filter(Boolean);
+
+    if (dbStatuses.length > 0) {
+      query = query.in('status', dbStatuses);
+    }
+  } else if (status !== 'all') {
+    query = query.eq(
+      'status',
+      normalizeStatusForDatabase(status),
+    );
+  }
+
+  if (priority !== 'all') {
+    query = query.eq(
+      'priority',
+      normalizePriorityForDatabase(priority),
+    );
+  }
+
+  if (assignedStaffId !== 'all') {
+    query = query.eq('assigned_staff_id', assignedStaffId);
+  }
+
+  if (dueAfter) {
+    query = query.gte('due_at', dueAfter);
+  }
+
+  if (dueBefore) {
+    query = query.lte('due_at', dueBefore);
+  }
+
+  if (search?.trim()) {
+    const term = `%${search.trim()}%`;
+    query = query.or(
+      `title.ilike.${term},description.ilike.${term}`,
+    );
+  }
+
+  return query;
+}
+
+function applyDashboardContextFilters(
+  query: any,
+  options: TaskFilterOptions,
+) {
+  const {
+    assignedStaffId = 'all',
+    clientId,
+    caseId,
+  } = options;
+
+  if (clientId) {
+    query = query.eq('client_id', clientId);
+  }
+
+  if (caseId) {
+    query = query.eq('case_id', caseId);
+  }
+
+  if (assignedStaffId !== 'all') {
+    query = query.eq('assigned_staff_id', assignedStaffId);
+  }
+
+  return query;
+}
+
+export async function getTaskDashboardStats(
+  options: TaskFilterOptions = {},
+): Promise<TaskDashboardStats> {
   const now = new Date();
 
   const startOfToday =
@@ -222,68 +322,83 @@ export async function getTaskDashboardStats(): Promise<TaskDashboardStats> {
     inProgressResult,
     completedResult,
   ] = await Promise.all([
-    supabase
-      .from('tasks')
-      .select('*', {
-        count: 'exact',
-        head: true,
-      }),
+    applyDashboardContextFilters(
+      supabase
+        .from('tasks')
+        .select('*', {
+          count: 'exact',
+          head: true,
+        }),
+      options,
+    ),
 
-    supabase
-      .from('tasks')
-      .select('*', {
-        count: 'exact',
-        head: true,
-      })
-      .in('status', [
-        'pending',
-        'in_progress',
-      ])
-      .gte(
-        'due_at',
-        startOfToday.toISOString(),
-      )
-      .lt(
-        'due_at',
-        startOfTomorrow.toISOString(),
-      ),
+    applyDashboardContextFilters(
+      supabase
+        .from('tasks')
+        .select('*', {
+          count: 'exact',
+          head: true,
+        })
+        .in('status', [
+          'pending',
+          'in_progress',
+        ])
+        .gte(
+          'due_at',
+          startOfToday.toISOString(),
+        )
+        .lt(
+          'due_at',
+          startOfTomorrow.toISOString(),
+        ),
+      options,
+    ),
 
-    supabase
-      .from('tasks')
-      .select('*', {
-        count: 'exact',
-        head: true,
-      })
-      .in('status', [
-        'pending',
-        'in_progress',
-      ])
-      .lt(
-        'due_at',
-        now.toISOString(),
-      ),
+    applyDashboardContextFilters(
+      supabase
+        .from('tasks')
+        .select('*', {
+          count: 'exact',
+          head: true,
+        })
+        .in('status', [
+          'pending',
+          'in_progress',
+        ])
+        .lt(
+          'due_at',
+          now.toISOString(),
+        ),
+      options,
+    ),
 
-    supabase
-      .from('tasks')
-      .select('*', {
-        count: 'exact',
-        head: true,
-      })
-      .eq(
-        'status',
-        'in_progress',
-      ),
+    applyDashboardContextFilters(
+      supabase
+        .from('tasks')
+        .select('*', {
+          count: 'exact',
+          head: true,
+        })
+        .eq(
+          'status',
+          'in_progress',
+        ),
+      options,
+    ),
 
-    supabase
-      .from('tasks')
-      .select('*', {
-        count: 'exact',
-        head: true,
-      })
-      .eq(
-        'status',
-        'completed',
-      ),
+    applyDashboardContextFilters(
+      supabase
+        .from('tasks')
+        .select('*', {
+          count: 'exact',
+          head: true,
+        })
+        .eq(
+          'status',
+          'completed',
+        ),
+      options,
+    ),
   ]);
 
   return {
@@ -322,139 +437,42 @@ export async function getTasks(
   options: TaskFilterOptions = {},
 ): Promise<TaskListResult> {
   const {
-    search,
-    status = 'all',
-    priority = 'all',
-    assignedStaffId = 'all',
-    dueAfter,
-    dueBefore,
     page = 1,
     pageSize = 12,
   } = options;
 
-  let query = supabase
-    .from('tasks')
-    .select('*', {
-      count: 'exact',
-    })
-    .order(
-      'due_at',
-      {
+  const query = applyTaskListFilters(
+    supabase
+      .from('tasks')
+      .select('*', {
+        count: 'exact',
+      })
+      .order('due_at', {
         ascending: true,
         nullsFirst: false,
-      },
-    )
-    .order(
-      'created_at',
-      {
+      })
+      .order('created_at', {
         ascending: false,
-      },
-    );
+      }),
+    options,
+  );
 
-  if (
-    status !== 'all'
-  ) {
-    query = query.eq(
-      'status',
-      normalizeStatusForDatabase(
-        status,
-      ),
-    );
+  const safePage = Math.max(1, page);
+  const safePageSize = Math.max(1, pageSize);
+  const from = (safePage - 1) * safePageSize;
+  const to = from + safePageSize - 1;
+
+  const result = await query.range(from, to);
+
+  if (result.error) {
+    throw new Error(result.error.message);
   }
 
-  if (
-    priority !== 'all'
-  ) {
-    query = query.eq(
-      'priority',
-      normalizePriorityForDatabase(
-        priority,
-      ),
-    );
-  }
-
-  if (
-    assignedStaffId !== 'all'
-  ) {
-    query = query.eq(
-      'assigned_staff_id',
-      assignedStaffId,
-    );
-  }
-
-  if (dueAfter) {
-    query = query.gte(
-      'due_at',
-      dueAfter,
-    );
-  }
-
-  if (dueBefore) {
-    query = query.lte(
-      'due_at',
-      dueBefore,
-    );
-  }
-
-  if (
-    search?.trim()
-  ) {
-    const term =
-      `%${search.trim()}%`;
-
-    query = query.or(
-      `title.ilike.${term},description.ilike.${term}`,
-    );
-  }
-
-  const safePage =
-    Math.max(
-      1,
-      page,
-    );
-
-  const safePageSize =
-    Math.max(
-      1,
-      pageSize,
-    );
-
-  const from =
-    (safePage - 1) *
-    safePageSize;
-
-  const to =
-    from +
-    safePageSize -
-    1;
-
-  const result =
-    await query.range(
-      from,
-      to,
-    );
-
-  if (
-    result.error
-  ) {
-    throw new Error(
-      result.error.message,
-    );
-  }
-
-  const data =
-    (result.data ??
-      []) as Task[];
+  const data = (result.data ?? []) as Task[];
 
   return {
-    data:
-      data.map(
-        normalizeTask,
-      ),
-
-    count:
-      result.count ??
-      0,
+    data: data.map(normalizeTask),
+    count: result.count ?? 0,
   };
 }
 
@@ -490,6 +508,30 @@ export async function getAllTasks(): Promise<Task[]> {
   return tasks.map(
     normalizeTask,
   );
+}
+
+export async function getTasksByCase(
+  caseId: string,
+): Promise<Task[]> {
+  const result = await getTasks({
+    caseId,
+    page: 1,
+    pageSize: 100,
+  });
+
+  return result.data;
+}
+
+export async function getTasksByClient(
+  clientId: string,
+): Promise<Task[]> {
+  const result = await getTasks({
+    clientId,
+    page: 1,
+    pageSize: 100,
+  });
+
+  return result.data;
 }
 
 /* =========================================================

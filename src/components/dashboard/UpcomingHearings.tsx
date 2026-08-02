@@ -11,6 +11,10 @@ import {
 } from 'react';
 
 import {
+  Link,
+} from 'react-router-dom';
+
+import {
   getUpcomingHearings,
   type DashboardHearing,
 } from '../../services/hearingService';
@@ -110,9 +114,14 @@ export function UpcomingHearings() {
       ) : (
         <div className="hearing-dashboard-list">
           {hearings.map((hearing) => (
-            <article
+            <Link
               key={hearing.id}
               className="hearing-dashboard-item"
+              to={
+                hearing.case_id
+                  ? `/hearings?caseId=${hearing.case_id}&hearingId=${hearing.id}`
+                  : `/hearings?hearingId=${hearing.id}`
+              }
             >
               <div className="hearing-date-box">
                 <strong>
@@ -161,7 +170,7 @@ export function UpcomingHearings() {
               <span className="hearing-status-pill">
                 {hearing.status || 'Scheduled'}
               </span>
-            </article>
+            </Link>
           ))}
         </div>
       )}

@@ -19,6 +19,7 @@ import './HearingFormModal.css';
 type HearingFormModalProps = {
   hearing?: Hearing;
   preselectedCaseId?: string;
+  preselectedClientId?: string;
   onClose: () => void;
   onSave: (data: HearingInsert | HearingUpdate) => Promise<void>;
 };
@@ -26,6 +27,7 @@ type HearingFormModalProps = {
 type CaseOption = {
   id: string;
   case_number: string;
+  client_id?: string;
   client_name: string;
 };
 
@@ -72,6 +74,7 @@ function toIsoDateTime(value: string | null | undefined): string | null {
 export function HearingFormModal({
   hearing,
   preselectedCaseId,
+  preselectedClientId,
   onClose,
   onSave,
 }: HearingFormModalProps) {
@@ -147,6 +150,30 @@ export function HearingFormModal({
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [onClose, saving]);
+
+  const visibleCaseOptions = useMemo(
+    () => {
+      if (
+        hearing ||
+        preselectedCaseId ||
+        !preselectedClientId
+      ) {
+        return caseOptions;
+      }
+
+      return caseOptions.filter(
+        (item) =>
+          item.client_id ===
+          preselectedClientId,
+      );
+    },
+    [
+      caseOptions,
+      hearing,
+      preselectedCaseId,
+      preselectedClientId,
+    ],
+  );
 
   const selectedCase = useMemo(
     () => caseOptions.find((item) => item.id === formData.case_id),

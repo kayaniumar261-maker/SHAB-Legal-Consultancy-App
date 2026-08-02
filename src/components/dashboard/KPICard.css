@@ -161,3 +161,20 @@
       font-size:1.75rem;
   }
 }
+
+.kpi-card-link {
+  display: block;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.kpi-card-link .kpi-card {
+  height: 100%;
+}
+
+.kpi-card-link:focus-visible {
+  border-radius: 18px;
+  outline: 3px solid rgba(201, 168, 76, 0.2);
+  outline-offset: 2px;
+}
