@@ -311,6 +311,51 @@ function toNumberString(
     : String(value);
 }
 
+function loadSavedCaseDraft(
+  storageKey: string,
+  fallback: FormState,
+): FormState {
+  try {
+    const saved =
+      window.localStorage.getItem(storageKey);
+
+    if (!saved) {
+      return fallback;
+    }
+
+    return {
+      ...fallback,
+      ...(JSON.parse(saved) as Partial<FormState>),
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function saveCaseDraft(
+  storageKey: string,
+  state: FormState,
+): void {
+  try {
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify(state),
+    );
+  } catch {
+    // Local drafts are a convenience only.
+  }
+}
+
+function clearCaseDraft(
+  storageKey: string,
+): void {
+  try {
+    window.localStorage.removeItem(storageKey);
+  } catch {
+    // Nothing to clear.
+  }
+}
+
 function buildFormState(
   caseRecord?: Case | null,
 ): FormState {
@@ -452,16 +497,51 @@ export function CaseForm({
   onSubmit,
   submitLabel,
 }: CaseFormProps) {
+  const draftStorageKey =
+    caseRecord?.id
+      ? `shab-case-form-draft-${caseRecord.id}`
+      : 'shab-case-form-draft-new';
+
   const [formState, setFormState] = useState<FormState>(
-    () => buildFormState(caseRecord),
+    () => {
+      const fallback =
+        buildFormState(caseRecord);
+
+      return loadSavedCaseDraft(
+        draftStorageKey,
+        fallback,
+      );
+    },
   );
+
   const [error, setError] = useState<string | null>(
     null,
   );
 
   useEffect(() => {
-    setFormState(buildFormState(caseRecord));
-  }, [caseRecord]);
+    const fallback =
+      buildFormState(caseRecord);
+
+    setFormState(
+      loadSavedCaseDraft(
+        draftStorageKey,
+        fallback,
+      ),
+    );
+  }, [
+    caseRecord,
+    draftStorageKey,
+  ]);
+
+  useEffect(() => {
+    saveCaseDraft(
+      draftStorageKey,
+      formState,
+    );
+  }, [
+    draftStorageKey,
+    formState,
+  ]);
 
   const clientOptions = useMemo(
     () => [
@@ -700,6 +780,8 @@ export function CaseForm({
 
     try {
       await onSubmit(payload);
+
+      clearCaseDraft(draftStorageKey);
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -1756,6 +1838,10 @@ export function CaseForm({
           <span>{error}</span>
         </div>
       ) : null}
+
+      <div className="case-form-draft-note">
+        Draft is saved locally on this device until the matter is successfully saved.
+      </div>
 
       <div className="case-form-actions">
         <button
