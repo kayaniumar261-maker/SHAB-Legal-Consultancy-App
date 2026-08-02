@@ -2479,3 +2479,199 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   COMPACT EXECUTIVE DASHBOARD REFINEMENT
+   ========================================================= */
+
+.dashboard-page {
+  gap: 16px;
+}
+
+.dashboard-header {
+  align-items: center;
+  padding-bottom: 2px;
+}
+
+.dashboard-header h2 {
+  margin: 2px 0 5px;
+  font-size: clamp(1.45rem, 2vw, 1.8rem);
+}
+
+.dashboard-header .page-intro {
+  max-width: 680px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.kpi-grid {
+  gap: 10px;
+}
+
+.kpi-grid .kpi-card,
+.kpi-grid .dashboard-kpi-card,
+.kpi-grid article {
+  min-height: 104px;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.035);
+}
+
+.kpi-grid svg {
+  width: 18px;
+  height: 18px;
+}
+
+.kpi-grid strong,
+.kpi-grid .kpi-value,
+.kpi-grid .dashboard-kpi-value {
+  font-size: clamp(1.18rem, 1.8vw, 1.55rem);
+  line-height: 1.05;
+}
+
+.kpi-grid span,
+.kpi-grid .kpi-label,
+.kpi-grid .dashboard-kpi-label {
+  font-size: 0.74rem;
+}
+
+.kpi-grid p,
+.kpi-grid small,
+.kpi-grid .kpi-subtitle,
+.kpi-grid .dashboard-kpi-subtitle {
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.executive-alerts-panel,
+.dashboard-finance-summary,
+.dashboard-page .dashboard-widget,
+.dashboard-page .widget-card,
+.dashboard-page .dashboard-card {
+  border-radius: 16px;
+}
+
+.executive-alerts-panel,
+.dashboard-finance-summary {
+  padding: 18px;
+}
+
+.executive-alerts-header,
+.dashboard-finance-heading {
+  margin-bottom: 14px;
+}
+
+.executive-alerts-header h3,
+.dashboard-finance-heading h3,
+.dashboard-page .widget-card h3,
+.dashboard-page .dashboard-widget h3 {
+  margin: 2px 0 4px;
+  font-size: 1rem;
+}
+
+.executive-alerts-header p,
+.dashboard-finance-heading p,
+.dashboard-page .widget-card p,
+.dashboard-page .dashboard-widget p {
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.executive-alerts-grid,
+.dashboard-finance-grid {
+  gap: 10px;
+}
+
+.executive-alert-card,
+.dashboard-finance-item {
+  min-height: auto;
+  padding: 13px;
+  border-radius: 14px;
+}
+
+.executive-alert-card strong,
+.dashboard-finance-item strong {
+  font-size: 1rem;
+}
+
+.executive-alert-card p,
+.dashboard-finance-item small {
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.dashboard-page .dashboard-widget,
+.dashboard-page .widget-card,
+.dashboard-page .dashboard-card,
+.dashboard-page .recent-cases,
+.dashboard-page .upcoming-hearings,
+.dashboard-page .activity-feed,
+.dashboard-page .recent-documents,
+.dashboard-page .task-widget,
+.dashboard-page .staff-workload,
+.dashboard-page .revenue-chart,
+.dashboard-page .case-distribution,
+.dashboard-page .calendar-widget,
+.dashboard-page .notifications-widget {
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+}
+
+.dashboard-page .widget-header,
+.dashboard-page .dashboard-widget-header,
+.dashboard-page .section-header {
+  padding: 14px 16px 10px;
+}
+
+.dashboard-page .widget-list > *,
+.dashboard-page .dashboard-list > * {
+  padding-block: 10px;
+}
+
+.dashboard-page .chart-container,
+.dashboard-page .revenue-chart-container,
+.dashboard-page .case-distribution-container {
+  min-height: 220px;
+  padding: 14px 16px 16px;
+}
+
+.dashboard-page .calendar-grid {
+  gap: 3px;
+  padding: 10px 14px 14px;
+}
+
+.dashboard-page .calendar-day {
+  min-height: 32px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+}
+
+.dashboard-page .loading-state,
+.dashboard-page .empty-state,
+.dashboard-page .widget-empty {
+  min-height: 120px;
+  padding: 20px;
+}
+
+@media (max-width: 1180px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-header {
+    align-items: flex-start;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .executive-alerts-grid,
+  .dashboard-finance-grid {
+    grid-template-columns: 1fr;
+  }
+}
