@@ -149,8 +149,21 @@ export function AIWorkspace({
       },
     ]);
 
+  const draftStorageKey =
+    `shab-ai-draft-${caseRecord.id}`;
+
   const [input, setInput] =
-    useState('');
+    useState(() => {
+      try {
+        return (
+          window.localStorage.getItem(
+            draftStorageKey,
+          ) ?? ''
+        );
+      } catch {
+        return '';
+      }
+    });
 
   const [loading, setLoading] =
     useState(false);
@@ -182,6 +195,49 @@ export function AIWorkspace({
 
   const messageCounter =
     useRef(1);
+
+  useEffect(() => {
+    try {
+      const savedDraft =
+        window.localStorage.getItem(
+          draftStorageKey,
+        );
+
+      setInput(savedDraft ?? '');
+    } catch {
+      setInput('');
+    }
+  }, [draftStorageKey]);
+
+  useEffect(() => {
+    try {
+      if (input.trim()) {
+        window.localStorage.setItem(
+          draftStorageKey,
+          input,
+        );
+      } else {
+        window.localStorage.removeItem(
+          draftStorageKey,
+        );
+      }
+    } catch {
+      // Draft persistence is a convenience only.
+    }
+  }, [
+    draftStorageKey,
+    input,
+  ]);
+
+  function clearSavedDraft() {
+    try {
+      window.localStorage.removeItem(
+        draftStorageKey,
+      );
+    } catch {
+      // Nothing to clear.
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -335,6 +391,7 @@ export function AIWorkspace({
     ]);
 
     setInput('');
+    clearSavedDraft();
     setLoading(true);
 
     void (async () => {
@@ -745,7 +802,9 @@ export function AIWorkspace({
 
           <div className="ai-composer-footer">
             <span>
-              Press Enter to send · Shift + Enter for a new line
+              {input.trim()
+                ? 'Draft saved on this device · Press Enter to send'
+                : 'Press Enter to send · Shift + Enter for a new line'}
             </span>
 
             <button
