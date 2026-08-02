@@ -20,6 +20,8 @@ import {
 } from 'react-router-dom';
 
 import { useAuth } from '../hooks/useAuth';
+import { GlobalSearch } from '../components/search/GlobalSearch';
+import { NotificationCenter } from '../components/notifications/NotificationCenter';
 
 const navigationItems = [
   {
@@ -140,6 +142,10 @@ export function AppLayout() {
               Practice Management
             </h1>
           </div>
+
+          <GlobalSearch />
+
+          <NotificationCenter />
 
           <div className="header-profile">
             <div className="profile-avatar">

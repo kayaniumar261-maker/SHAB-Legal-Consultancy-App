@@ -1,3 +1,5 @@
+import { supabase } from '../lib/supabase';
+
 import {
   getCases,
 } from './caseService';
@@ -7,10 +9,12 @@ import {
 } from './clientService';
 
 import {
+  getHearings,
   getHearingsToday,
 } from './hearingService';
 
 import {
+  getTaskDashboardStats,
   getTasksForToday,
 } from './taskService';
 
@@ -23,7 +27,7 @@ import {
 } from './staffService';
 
 import {
-  getOutstandingInvoicesAmount,
+  getFinanceSummary,
 } from './invoiceService';
 
 import {
@@ -37,6 +41,11 @@ export type DashboardKPIData = {
   tasksDueToday: number;
   outstandingPayments: number;
   monthlyRevenue: number;
+  collectionRate: number;
+  overdueInvoices: number;
+  overdueTasks: number;
+  hearingsTomorrow: number;
+  newClientsThisMonth: number;
   documentsUploaded: number;
   activeStaff: number;
 };
@@ -59,6 +68,11 @@ const initialDashboardData: DashboardKPIData = {
   tasksDueToday: 0,
   outstandingPayments: 0,
   monthlyRevenue: 0,
+  collectionRate: 0,
+  overdueInvoices: 0,
+  overdueTasks: 0,
+  hearingsTomorrow: 0,
+  newClientsThisMonth: 0,
   documentsUploaded: 0,
   activeStaff: 0,
 };
@@ -69,6 +83,84 @@ function getErrorMessage(error: unknown): string {
   }
 
   return 'An unknown dashboard error occurred.';
+}
+
+async function countNewClientsThisMonth(
+  now: Date,
+): Promise<number> {
+  const monthStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1,
+  );
+
+  const nextMonthStart = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    1,
+  );
+
+  const result = await supabase
+    .from('clients')
+    .select('id', {
+      count: 'exact',
+      head: true,
+    })
+    .gte(
+      'created_at',
+      monthStart.toISOString(),
+    )
+    .lt(
+      'created_at',
+      nextMonthStart.toISOString(),
+    );
+
+  if (result.error) {
+    throw new Error(result.error.message);
+  }
+
+  return result.count ?? 0;
+}
+
+async function countHearingsTomorrow(
+  now: Date,
+): Promise<number> {
+  const tomorrowStart = new Date(now);
+
+  tomorrowStart.setDate(
+    tomorrowStart.getDate() + 1,
+  );
+
+  tomorrowStart.setHours(
+    0,
+    0,
+    0,
+    0,
+  );
+
+  const tomorrowEnd = new Date(
+    tomorrowStart,
+  );
+
+  tomorrowEnd.setHours(
+    23,
+    59,
+    59,
+    999,
+  );
+
+  const result = await getHearings({
+    page: 1,
+    pageSize: 1,
+    filters: {
+      startDate:
+        tomorrowStart.toISOString(),
+      endDate:
+        tomorrowEnd.toISOString(),
+    },
+  });
+
+  return result.count;
 }
 
 export async function getDashboardSummary(): Promise<DashboardSummary> {
@@ -90,12 +182,18 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
 
     getTasksForToday(),
 
-    getOutstandingInvoicesAmount(),
+    getFinanceSummary(),
 
     getRevenueForMonth(
       now.getFullYear(),
       now.getMonth() + 1,
     ),
+
+    getTaskDashboardStats(),
+
+    countHearingsTomorrow(now),
+
+    countNewClientsThisMonth(now),
 
     countDocuments(),
 
@@ -113,8 +211,11 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     clientsResult,
     hearingsResult,
     tasksResult,
-    outstandingResult,
+    financeResult,
     revenueResult,
+    taskStatsResult,
+    tomorrowHearingsResult,
+    newClientsResult,
     documentsResult,
     staffResult,
   ] = results;
@@ -155,14 +256,24 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     });
   }
 
-  if (outstandingResult.status === 'fulfilled') {
+  if (financeResult.status === 'fulfilled') {
     data.outstandingPayments = Number(
-      outstandingResult.value ?? 0,
+      financeResult.value.outstanding ?? 0,
+    );
+
+    data.collectionRate = Number(
+      financeResult.value.collectionRate ?? 0,
+    );
+
+    data.overdueInvoices = Number(
+      financeResult.value.overdueInvoiceCount ?? 0,
     );
   } else {
     errors.push({
       section: 'outstandingPayments',
-      message: getErrorMessage(outstandingResult.reason),
+      message: getErrorMessage(
+        financeResult.reason,
+      ),
     });
   }
 
@@ -174,6 +285,45 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     errors.push({
       section: 'monthlyRevenue',
       message: getErrorMessage(revenueResult.reason),
+    });
+  }
+
+  if (taskStatsResult.status === 'fulfilled') {
+    data.overdueTasks =
+      taskStatsResult.value.overdue;
+  } else {
+    errors.push({
+      section: 'overdueTasks',
+      message: getErrorMessage(
+        taskStatsResult.reason,
+      ),
+    });
+  }
+
+  if (
+    tomorrowHearingsResult.status ===
+    'fulfilled'
+  ) {
+    data.hearingsTomorrow =
+      tomorrowHearingsResult.value;
+  } else {
+    errors.push({
+      section: 'hearingsTomorrow',
+      message: getErrorMessage(
+        tomorrowHearingsResult.reason,
+      ),
+    });
+  }
+
+  if (newClientsResult.status === 'fulfilled') {
+    data.newClientsThisMonth =
+      newClientsResult.value;
+  } else {
+    errors.push({
+      section: 'newClientsThisMonth',
+      message: getErrorMessage(
+        newClientsResult.reason,
+      ),
     });
   }
 

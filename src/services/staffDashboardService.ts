@@ -85,3 +85,75 @@ export async function getStaffWorkloadSummary(
     documents: getCount(documentsResult),
   };
 }
+
+
+export interface StaffWorkloadRankingItem
+  extends StaffWorkloadSummary {
+  id: string;
+  fullName: string;
+  role: string | null;
+  totalWorkload: number;
+}
+
+export async function getStaffWorkloadRanking(
+  limit = 6,
+): Promise<StaffWorkloadRankingItem[]> {
+  const staffResult = await supabase
+    .from('staff')
+    .select(`
+      id,
+      full_name,
+      role,
+      status
+    `)
+    .eq('status', 'active')
+    .order('full_name', {
+      ascending: true,
+    });
+
+  if (staffResult.error) {
+    throw new Error(
+      staffResult.error.message,
+    );
+  }
+
+  const staffRecords =
+    staffResult.data ?? [];
+
+  const workloadRecords =
+    await Promise.all(
+      staffRecords.map(
+        async (member) => {
+          const workload =
+            await getStaffWorkloadSummary(
+              member.id,
+            );
+
+          return {
+            id: member.id,
+            fullName:
+              member.full_name,
+            role:
+              member.role,
+            ...workload,
+            totalWorkload:
+              workload.cases +
+              workload.tasks +
+              workload.hearings +
+              workload.documents,
+          };
+        },
+      ),
+    );
+
+  return workloadRecords
+    .sort(
+      (first, second) =>
+        second.totalWorkload -
+        first.totalWorkload,
+    )
+    .slice(
+      0,
+      Math.max(1, limit),
+    );
+}

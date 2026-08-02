@@ -31,10 +31,11 @@ import {
   downloadDocument,
 } from '../../services/documentService';
 import { CaseBillingWorkspace } from './CaseBillingWorkspace';
+import { CaseMatterWorkspace } from './CaseMatterWorkspace';
 import './CaseTabs.css';
 
 const tabs = [
-  'Overview',
+  'Workspace',
   'Hearings',
   'Documents',
   'Tasks',
@@ -52,7 +53,7 @@ export function CaseTabs({
   caseRecord,
   clientName,
 }: CaseTabsProps) {
-  const [activeTab, setActiveTab] = useState<typeof tabs[number]>('Overview');
+  const [activeTab, setActiveTab] = useState<typeof tabs[number]>('Workspace');
   const [hearings, setHearings] = useState<Hearing[]>([]);
   const [loadingHearings, setLoadingHearings] = useState(false);
   const [hearingError, setHearingError] =
@@ -253,73 +254,12 @@ export function CaseTabs({
 
   const tabContent = useMemo(() => {
     switch (activeTab) {
-      case 'Overview':
+      case 'Workspace':
         return (
-          <div className="case-tabs-content-grid">
-            <article className="case-summary-card">
-              <h3>Summary</h3>
-              <div className="case-summary-row">
-                <span>Case Number</span>
-                <strong>{caseRecord.case_number}</strong>
-              </div>
-              <div className="case-summary-row">
-                <span>Client</span>
-                <strong>{clientName}</strong>
-              </div>
-              <div className="case-summary-row">
-                <span>Case Type</span>
-                <strong>{caseRecord.case_type}</strong>
-              </div>
-              <div className="case-summary-row">
-                <span>Court</span>
-                <strong>{caseRecord.court}</strong>
-              </div>
-              <div className="case-summary-row">
-                <span>Assigned Staff</span>
-                <strong>{caseRecord.assigned_staff_id ?? 'Unassigned'}</strong>
-              </div>
-              <div className="case-summary-row">
-                <span>Status</span>
-                <strong>{caseRecord.status}</strong>
-              </div>
-              <div className="case-summary-row">
-                <span>Priority</span>
-                <strong>{caseRecord.priority}</strong>
-              </div>
-            </article>
-
-            <article className="case-summary-card">
-              <h3>Dates</h3>
-              <div className="case-summary-row">
-                <span>Filing Date</span>
-                <strong>{formatDate(caseRecord.filing_date)}</strong>
-              </div>
-              <div className="case-summary-row">
-                <span>Next Hearing</span>
-                <strong>
-                  {caseRecord.next_hearing_at
-                    ? formatDate(caseRecord.next_hearing_at)
-                    : 'Not scheduled'}
-                </strong>
-              </div>
-              <div className="case-summary-row">
-                <span>Case Value</span>
-                <strong>
-                  {caseRecord.case_value != null
-                    ? `AED ${caseRecord.case_value.toLocaleString('en-AE', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}`
-                    : 'Not set'}
-                </strong>
-              </div>
-            </article>
-
-            <article className="case-summary-card case-summary-card-wide">
-              <h3>Case details</h3>
-              <p>{caseRecord.description || 'No description provided.'}</p>
-            </article>
-          </div>
+          <CaseMatterWorkspace
+            caseRecord={caseRecord}
+            clientName={clientName}
+          />
         );
 
       case 'Hearings':
@@ -949,6 +889,7 @@ export function CaseTabs({
           <button
             key={tab}
             type="button"
+            data-case-tab={tab}
             className={
               tab === activeTab
                 ? 'case-tab-button case-tab-button-active'

@@ -1,12 +1,17 @@
 import {
+  AlertTriangle,
+  BellRing,
   Briefcase,
   CalendarDays,
+  CircleDollarSign,
   ClipboardList,
   CreditCard,
   FileText,
   FolderOpen,
+  ReceiptText,
   RefreshCw,
   ShieldCheck,
+  UserPlus,
   Users,
 } from 'lucide-react';
 
@@ -17,6 +22,10 @@ import {
   useState,
 } from 'react';
 
+import {
+  Link,
+} from 'react-router-dom';
+
 import { KPICard } from '../components/dashboard/KPICard';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { RecentCases } from '../components/dashboard/RecentCases';
@@ -24,10 +33,13 @@ import { UpcomingHearings } from '../components/dashboard/UpcomingHearings';
 import { ActivityFeed } from '../components/dashboard/ActivityFeed';
 import { RecentDocuments } from '../components/dashboard/RecentDocuments';
 import { TaskWidget } from '../components/dashboard/TaskWidget';
+import { StaffWorkload } from '../components/dashboard/StaffWorkload';
 import { RevenueChart } from '../components/dashboard/RevenueChart';
 import { CaseDistribution } from '../components/dashboard/CaseDistribution';
 import { CalendarWidget } from '../components/dashboard/CalendarWidget';
 import { Notifications } from '../components/dashboard/Notifications';
+
+import './Dashboard.css';
 
 import {
   getDashboardSummary,
@@ -52,6 +64,11 @@ const emptyDashboardData: DashboardKPIData = {
   tasksDueToday: 0,
   outstandingPayments: 0,
   monthlyRevenue: 0,
+  collectionRate: 0,
+  overdueInvoices: 0,
+  overdueTasks: 0,
+  hearingsTomorrow: 0,
+  newClientsThisMonth: 0,
   documentsUploaded: 0,
   activeStaff: 0,
 };
@@ -73,6 +90,77 @@ function formatLoadedTime(value: string | null): string {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(value));
+}
+
+function FinanceSummaryItem({
+  label,
+  value,
+  detail,
+  tone,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  tone: 'success' | 'warning' | 'danger';
+}) {
+  return (
+    <article
+      className={`dashboard-finance-item ${tone}`}
+    >
+      <span>{label}</span>
+
+      <strong>{value}</strong>
+
+      <small>{detail}</small>
+    </article>
+  );
+}
+
+function ExecutiveAlert({
+  label,
+  value,
+  formattedValue,
+  message,
+  clearMessage,
+  to,
+}: {
+  label: string;
+  value: number;
+  formattedValue?: string;
+  message: string;
+  clearMessage: string;
+  to: string;
+}) {
+  const hasAlert = value > 0;
+
+  return (
+    <a
+      className={`executive-alert-card ${
+        hasAlert ? 'warning' : 'clear'
+      }`}
+      href={to}
+    >
+      <div className="executive-alert-icon">
+        {hasAlert ? (
+          <AlertTriangle size={19} />
+        ) : (
+          <ShieldCheck size={19} />
+        )}
+      </div>
+
+      <div>
+        <span>{label}</span>
+
+        <strong>
+          {formattedValue ?? value}
+        </strong>
+
+        <p>
+          {hasAlert ? message : clearMessage}
+        </p>
+      </div>
+    </a>
+  );
 }
 
 export function Dashboard() {
@@ -208,6 +296,62 @@ export function Dashboard() {
         icon: ShieldCheck,
       },
       {
+        label: 'Collection Rate',
+        value: isLoading
+          ? '—'
+          : `${dashboardData.collectionRate.toFixed(0)}%`,
+        subtitle: 'Collected against billed fees',
+        trend:
+          dashboardData.collectionRate >= 80
+            ? 'Healthy'
+            : 'Review',
+        trendPositive:
+          dashboardData.collectionRate >= 80,
+        icon: CircleDollarSign,
+        to: '/payments',
+      },
+      {
+        label: 'Overdue Invoices',
+        value: isLoading
+          ? '—'
+          : String(dashboardData.overdueInvoices),
+        subtitle: 'Invoices requiring follow-up',
+        trend:
+          dashboardData.overdueInvoices > 0
+            ? 'Action'
+            : 'Clear',
+        trendPositive:
+          dashboardData.overdueInvoices === 0,
+        icon: ReceiptText,
+        to: '/payments',
+      },
+      {
+        label: 'New Clients This Month',
+        value: isLoading
+          ? '—'
+          : String(dashboardData.newClientsThisMonth),
+        subtitle: 'New managed relationships',
+        trend: 'Growth',
+        trendPositive: true,
+        icon: UserPlus,
+        to: '/clients',
+      },
+      {
+        label: 'Overdue Tasks',
+        value: isLoading
+          ? '—'
+          : String(dashboardData.overdueTasks),
+        subtitle: 'Tasks past their due date',
+        trend:
+          dashboardData.overdueTasks > 0
+            ? 'Action'
+            : 'Clear',
+        trendPositive:
+          dashboardData.overdueTasks === 0,
+        icon: AlertTriangle,
+        to: '/tasks',
+      },
+      {
         label: 'Documents Uploaded',
         value: isLoading
           ? '—'
@@ -302,7 +446,7 @@ export function Dashboard() {
       )}
 
       <section className="kpi-grid">
-        {kpis.map((item) => (
+        {kpis.slice(0, 8).map((item) => (
           <KPICard
             key={item.label}
             icon={item.icon}
@@ -316,7 +460,183 @@ export function Dashboard() {
         ))}
       </section>
 
+      <section className="executive-alerts-panel">
+        <div className="executive-alerts-header">
+          <div>
+            <span className="page-eyebrow">
+              Management attention
+            </span>
+
+            <h3>Executive Alerts</h3>
+
+            <p>
+              Operational and financial items requiring review.
+            </p>
+          </div>
+
+          <BellRing size={22} />
+        </div>
+
+        <div className="executive-alerts-grid">
+          <ExecutiveAlert
+            label="Overdue invoices"
+            value={dashboardData.overdueInvoices}
+            message="Invoices require collection follow-up."
+            to="/payments"
+            clearMessage="No overdue invoices."
+          />
+
+          <ExecutiveAlert
+            label="Overdue tasks"
+            value={dashboardData.overdueTasks}
+            message="Tasks are currently past their deadlines."
+            to="/tasks"
+            clearMessage="No overdue tasks."
+          />
+
+          <ExecutiveAlert
+            label="Hearings tomorrow"
+            value={dashboardData.hearingsTomorrow}
+            message="Court appearances are scheduled tomorrow."
+            to="/hearings"
+            clearMessage="No hearings scheduled tomorrow."
+          />
+
+          <ExecutiveAlert
+            label="Outstanding receivables"
+            value={dashboardData.outstandingPayments}
+            formattedValue={formatCurrency(
+              dashboardData.outstandingPayments,
+            )}
+            message="Outstanding professional fees remain unpaid."
+            to="/payments"
+            clearMessage="No outstanding receivables."
+          />
+        </div>
+      </section>
+
       <QuickActions />
+
+      <section className="dashboard-finance-summary">
+        <div className="dashboard-finance-heading">
+          <div>
+            <span className="page-eyebrow">
+              Financial command centre
+            </span>
+
+            <h3>Executive Finance Summary</h3>
+
+            <p>
+              Current collections, receivables and invoice
+              performance across the firm.
+            </p>
+          </div>
+
+          <Link
+            className="dashboard-finance-link"
+            to="/payments"
+          >
+            Open Finance
+          </Link>
+        </div>
+
+        <div className="dashboard-finance-grid">
+          <FinanceSummaryItem
+            label="Revenue This Month"
+            value={
+              isLoading
+                ? '—'
+                : formatCurrency(
+                    dashboardData.monthlyRevenue,
+                  )
+            }
+            detail="Completed collections"
+            tone="success"
+          />
+
+          <FinanceSummaryItem
+            label="Outstanding Receivables"
+            value={
+              isLoading
+                ? '—'
+                : formatCurrency(
+                    dashboardData.outstandingPayments,
+                  )
+            }
+            detail="Professional fees still unpaid"
+            tone={
+              dashboardData.outstandingPayments > 0
+                ? 'warning'
+                : 'success'
+            }
+          />
+
+          <FinanceSummaryItem
+            label="Collection Rate"
+            value={
+              isLoading
+                ? '—'
+                : `${dashboardData.collectionRate.toFixed(0)}%`
+            }
+            detail="Collected against total billed"
+            tone={
+              dashboardData.collectionRate >= 80
+                ? 'success'
+                : dashboardData.collectionRate >= 50
+                  ? 'warning'
+                  : 'danger'
+            }
+          />
+
+          <FinanceSummaryItem
+            label="Overdue Invoices"
+            value={
+              isLoading
+                ? '—'
+                : String(
+                    dashboardData.overdueInvoices,
+                  )
+            }
+            detail="Invoices requiring follow-up"
+            tone={
+              dashboardData.overdueInvoices > 0
+                ? 'danger'
+                : 'success'
+            }
+          />
+        </div>
+
+        <div className="dashboard-collection-progress">
+          <div className="dashboard-collection-progress-head">
+            <span>Collection performance</span>
+
+            <strong>
+              {isLoading
+                ? '—'
+                : `${dashboardData.collectionRate.toFixed(0)}%`}
+            </strong>
+          </div>
+
+          <div className="dashboard-collection-track">
+            <div
+              className="dashboard-collection-value"
+              style={{
+                width: `${
+                  isLoading
+                    ? 0
+                    : Math.min(
+                        100,
+                        Math.max(
+                          0,
+                          dashboardData.collectionRate,
+                        ),
+                      )
+                }%`,
+              }}
+            />
+          </div>
+        </div>
+      </section>
 
       <section className="dashboard-workspace">
         <div className="dashboard-work-row dashboard-work-row-primary">
@@ -333,6 +653,7 @@ export function Dashboard() {
           <UpcomingHearings />
 
           <div className="dashboard-side-stack">
+            <StaffWorkload />
             <CaseDistribution />
             <CalendarWidget />
           </div>

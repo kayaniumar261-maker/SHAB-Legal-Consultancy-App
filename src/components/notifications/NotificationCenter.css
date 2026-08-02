@@ -1,0 +1,259 @@
+.notification-center {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.notification-trigger {
+  position: relative;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid #dfe5ec;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+}
+
+.notification-trigger:hover {
+  border-color: #d4b45d;
+  color: #9a7825;
+}
+
+.notification-trigger > span {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0 4px;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 0.54rem;
+  font-weight: 850;
+}
+
+.notification-panel {
+  position: absolute;
+  z-index: 300;
+  top: calc(100% + 11px);
+  right: 0;
+  display: grid;
+  width: min(410px, calc(100vw - 30px));
+  max-height: min(650px, calc(100vh - 90px));
+  overflow: hidden;
+  border: 1px solid #e3e8ef;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.2);
+}
+
+.notification-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 17px;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.notification-header > div:first-child > span {
+  color: #9a7825;
+  font-size: 0.6rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.notification-header h3 {
+  margin: 4px 0 2px;
+  color: #0f172a;
+  font-size: 0.96rem;
+}
+
+.notification-header small {
+  color: #94a3b8;
+  font-size: 0.59rem;
+}
+
+.notification-header > div:last-child {
+  display: flex;
+  gap: 5px;
+}
+
+.notification-header button {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.notification-toolbar {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid #edf1f5;
+  background: #f8fafc;
+}
+
+.notification-toolbar span {
+  color: #64748b;
+  font-size: 0.64rem;
+  font-weight: 750;
+}
+
+.notification-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  color: #8b691d;
+  font-size: 0.62rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.notification-toolbar button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.notification-list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.notification-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 8px;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 72px;
+  padding: 11px 14px;
+  border: 0;
+  border-bottom: 1px solid #edf1f5;
+  background: #ffffff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.notification-item:hover,
+.notification-item.unread {
+  background: #fffdf7;
+}
+
+.notification-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 11px;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.notification-item.danger
+  .notification-icon {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.notification-item.warning
+  .notification-icon {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.notification-item.success
+  .notification-icon {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.notification-copy {
+  min-width: 0;
+}
+
+.notification-copy strong,
+.notification-copy small {
+  display: block;
+}
+
+.notification-copy strong {
+  color: #0f172a;
+  font-size: 0.72rem;
+}
+
+.notification-copy small {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.63rem;
+  line-height: 1.45;
+}
+
+.notification-unread-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d4b45d;
+}
+
+.notification-state {
+  display: flex;
+  min-height: 210px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 28px;
+  color: #64748b;
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.notification-state.error {
+  color: #b91c1c;
+}
+
+.notification-center .spinning {
+  animation:
+    notification-spin
+    0.8s linear infinite;
+}
+
+@keyframes notification-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 620px) {
+  .notification-panel {
+    position: fixed;
+    top: 68px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-height:
+      calc(100vh - 80px);
+  }
+}
