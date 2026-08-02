@@ -86,6 +86,9 @@ export function Documents() {
   const [searchParams, setSearchParams] =
     useSearchParams();
 
+  const staffIdFromUrl =
+    searchParams.get('staffId') ?? 'all';
+
   const [clientFilter, setClientFilter] =
     useState<string | 'all'>('all');
 
@@ -164,6 +167,7 @@ export function Documents() {
         search,
         clientId: clientFilter,
         caseId: caseFilter,
+        staffId: staffIdFromUrl,
         confidential:
           confidentialFilter === 'all'
             ? 'all'
@@ -187,6 +191,7 @@ export function Documents() {
     search,
     clientFilter,
     caseFilter,
+    staffIdFromUrl,
     confidentialFilter,
     page,
   ]);

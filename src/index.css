@@ -1027,3 +1027,38 @@ a {
     width: 100%;
   }
 }
+
+/* =========================================================
+   ROUTE LOADING SCREEN
+========================================================= */
+
+.route-loading-screen {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: #f8fafc;
+  color: #475569;
+}
+
+.route-loading-screen strong {
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.route-loading-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #c9a84c;
+  border-radius: 50%;
+  animation: shab-route-spin 0.8s linear infinite;
+}
+
+@keyframes shab-route-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

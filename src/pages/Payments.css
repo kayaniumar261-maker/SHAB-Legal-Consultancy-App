@@ -998,3 +998,178 @@ grid-template-columns:1fr;
 }
 }
 
+
+/* =========================================================
+   FINANCE DASHBOARD POLISH
+========================================================= */
+
+/* Give executive cards enough room for full currency values */
+.finance-summary-grid.executive {
+  grid-template-columns:
+    repeat(5, minmax(170px, 1fr));
+  gap: 16px;
+}
+
+.finance-stat-card {
+  min-height: 108px;
+  align-items: flex-start;
+  padding: 18px 16px;
+}
+
+.finance-stat-card > div:last-child {
+  width: 100%;
+  overflow: visible;
+}
+
+.finance-stat-card span {
+  line-height: 1.35;
+}
+
+.finance-stat-card strong {
+  margin-top: 6px;
+  overflow: visible;
+  font-size: clamp(17px, 1.35vw, 22px);
+  line-height: 1.2;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Stronger executive hierarchy */
+.finance-summary-grid.executive .finance-stat-card {
+  border-color: #dde3ea;
+  box-shadow:
+    0 2px 5px rgba(15, 23, 42, 0.035),
+    0 12px 30px rgba(15, 23, 42, 0.045);
+}
+
+.finance-summary-grid.executive .finance-stat-icon {
+  width: 46px;
+  height: 46px;
+  flex-basis: 46px;
+}
+
+/* Aging should look secondary and more compact */
+.finance-aging-panel {
+  margin-top: 22px;
+  margin-bottom: 22px;
+  padding: 20px;
+}
+
+.finance-aging-header {
+  gap: 18px;
+}
+
+.finance-aging-header h3 {
+  color: #111827;
+  font-size: 17px;
+}
+
+.finance-aging-grid {
+  grid-template-columns:
+    repeat(5, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.finance-aging-grid .finance-stat-card {
+  min-height: 92px;
+  padding: 15px;
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.finance-aging-grid .finance-stat-icon {
+  width: 38px;
+  height: 38px;
+  flex-basis: 38px;
+}
+
+.finance-aging-grid .finance-stat-card strong {
+  font-size: clamp(15px, 1.15vw, 19px);
+}
+
+/* Cleaner toolbar proportions */
+.finance-toolbar {
+  padding: 15px 18px;
+}
+
+.finance-search {
+  min-height: 44px;
+}
+
+.finance-filter select {
+  min-height: 42px;
+}
+
+/* Improve table readability */
+.finance-table th {
+  background: #f5f3ed;
+  color: #475569;
+  font-size: 11px;
+}
+
+.finance-table td {
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+
+/* More compact and consistent row actions */
+.finance-row-actions {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.finance-action-button,
+.finance-delete-button {
+  min-width: 38px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.finance-delete-button {
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+}
+
+/* Preserve sensible responsive card widths */
+@media (max-width: 1320px) {
+  .finance-summary-grid.executive {
+    grid-template-columns:
+      repeat(3, minmax(180px, 1fr));
+  }
+
+  .finance-aging-grid {
+    grid-template-columns:
+      repeat(3, minmax(170px, 1fr));
+  }
+}
+
+@media (max-width: 850px) {
+  .finance-summary-grid.executive,
+  .finance-aging-grid {
+    grid-template-columns:
+      repeat(2, minmax(160px, 1fr));
+  }
+
+  .finance-aging-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .finance-summary-grid.executive,
+  .finance-aging-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-stat-card strong,
+  .finance-aging-grid .finance-stat-card strong {
+    font-size: 20px;
+  }
+}
+

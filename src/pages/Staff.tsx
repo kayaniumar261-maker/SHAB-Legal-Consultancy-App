@@ -1,3 +1,4 @@
+import './Staff.css';
 import {
   FormEvent,
   useEffect,
@@ -5,10 +6,18 @@ import {
   useState,
 } from 'react';
 import {
+  Link,
+} from 'react-router-dom';
+
+import {
+  BriefcaseBusiness,
   Edit,
+  Gavel,
   Plus,
   Search,
+  ShieldCheck,
   Trash2,
+  UserRoundCheck,
   Users,
   X,
 } from 'lucide-react';
@@ -59,6 +68,35 @@ function isStaffRole(value: string | null): value is StaffRole {
   );
 }
 
+
+function StaffKpi({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+}) {
+  return (
+    <article className="staff-kpi">
+      <div className="staff-kpi-icon">
+        {icon}
+      </div>
+
+      <div>
+        <div className="staff-kpi-label">
+          {label}
+        </div>
+
+        <div className="staff-kpi-value">
+          {value}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function formatRole(role: string | null): string {
   if (!role) {
     return '—';
@@ -88,6 +126,8 @@ function formatStatus(
 export function Staff() {
   const [staff, setStaff] = useState<StaffRecord[]>([]);
   const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] =
@@ -121,31 +161,62 @@ export function Staff() {
     void loadStaff();
   }, []);
 
+
   const filteredStaff = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    if (!query) {
-      return staff;
-    }
-
     return staff.filter((member) => {
-      const searchableValues = [
-        member.full_name,
-        member.email,
-        member.role,
-        formatRole(member.role),
-        member.phone,
-        member.status,
-        formatStatus(member.status),
-      ];
 
-      return searchableValues
-        .filter((value): value is string => Boolean(value))
-        .some((value) =>
-          value.toLowerCase().includes(query),
-        );
+      const matchesSearch =
+        !search ||
+        member.full_name
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
+        member.email
+          ?.toLowerCase()
+          .includes(search.toLowerCase());
+
+      const matchesRole =
+        roleFilter === 'all' ||
+        member.role === roleFilter;
+
+      const matchesStatus =
+        statusFilter === 'all' ||
+        member.status === statusFilter;
+
+      return (
+        matchesSearch &&
+        matchesRole &&
+        matchesStatus
+      );
     });
-  }, [search, staff]);
+  }, [
+    staff,
+    search,
+    roleFilter,
+    statusFilter,
+  ]);
+
+  const staffStats = useMemo(() => {
+    return {
+      total: staff.length,
+      active: staff.filter(
+        (member) =>
+          member.status === 'active',
+      ).length,
+      lawyers: staff.filter(
+        (member) =>
+          member.role === 'lawyer',
+      ).length,
+      consultants: staff.filter(
+        (member) =>
+          member.role ===
+          'legal_consultant',
+      ).length,
+      administrators: staff.filter(
+        (member) =>
+          member.role === 'admin',
+      ).length,
+    };
+  }, [staff]);
 
   const openCreateForm = () => {
     setEditingStaff(null);
@@ -289,7 +360,7 @@ export function Staff() {
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container staff-page">
       <section className="page-heading">
         <div>
           <p className="page-eyebrow">
@@ -314,6 +385,39 @@ export function Staff() {
         </button>
       </section>
 
+
+      <section className="staff-kpis">
+        <StaffKpi
+          icon={<Users size={22} />}
+          label="Total Staff"
+          value={staffStats.total}
+        />
+
+        <StaffKpi
+          icon={<UserRoundCheck size={22} />}
+          label="Active Staff"
+          value={staffStats.active}
+        />
+
+        <StaffKpi
+          icon={<Gavel size={22} />}
+          label="Lawyers"
+          value={staffStats.lawyers}
+        />
+
+        <StaffKpi
+          icon={<BriefcaseBusiness size={22} />}
+          label="Legal Consultants"
+          value={staffStats.consultants}
+        />
+
+        <StaffKpi
+          icon={<ShieldCheck size={22} />}
+          label="Administrators"
+          value={staffStats.administrators}
+        />
+      </section>
+
       <section className="panel">
         <div className="staff-toolbar">
           <div className="staff-search">
@@ -329,6 +433,27 @@ export function Staff() {
               aria-label="Search staff"
             />
           </div>
+
+
+          <select
+            value={roleFilter}
+            onChange={(e)=>setRoleFilter(e.target.value)}
+          >
+            <option value="all">All Roles</option>
+            <option value="lawyer">Lawyers</option>
+            <option value="legal_consultant">Legal Consultants</option>
+            <option value="admin">Administrators</option>
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={(e)=>setStatusFilter(e.target.value)}
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="on_leave">On Leave</option>
+          </select>
 
           <div className="staff-count">
             <Users size={18} />
@@ -380,9 +505,14 @@ export function Staff() {
                 {filteredStaff.map((member) => (
                   <tr key={member.id}>
                     <td>
-                      <strong>
-                        {member.full_name}
-                      </strong>
+                      <Link
+                        className="staff-profile-link"
+                        to={`/staff/${member.id}`}
+                      >
+                        <strong>
+                          {member.full_name}
+                        </strong>
+                      </Link>
                     </td>
 
                     <td>

@@ -61,6 +61,7 @@ export type DocumentFilterOptions = {
   search?: string;
   clientId?: string | 'all';
   caseId?: string | 'all';
+  staffId?: string | 'all';
   documentType?: string | 'all';
   confidential?: boolean | 'all';
   page?: number;

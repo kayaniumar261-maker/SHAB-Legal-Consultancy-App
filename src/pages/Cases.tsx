@@ -140,6 +140,8 @@ export function Cases() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const clientIdFromUrl = searchParams.get('clientId') ?? 'all';
+  const assignedStaffIdFromUrl =
+    searchParams.get('assignedStaffId') ?? 'all';
 
   const [cases, setCases] = useState<CaseWithRelations[]>([]);
   const [clients, setClients] = useState<Record<string, string>>({});
@@ -158,6 +160,9 @@ export function Cases() {
     useState<RiskFilter>('all');
   const [clientFilter, setClientFilter] =
     useState(clientIdFromUrl);
+
+  const [assignedStaffFilter, setAssignedStaffFilter] =
+    useState(assignedStaffIdFromUrl);
   const [sortBy, setSortBy] =
     useState<SortValue>('filing_date');
   const [sortOrder, setSortOrder] =
@@ -167,8 +172,14 @@ export function Cases() {
 
   useEffect(() => {
     setClientFilter(clientIdFromUrl);
+    setAssignedStaffFilter(
+      assignedStaffIdFromUrl,
+    );
     setPage(1);
-  }, [clientIdFromUrl]);
+  }, [
+    clientIdFromUrl,
+    assignedStaffIdFromUrl,
+  ]);
 
   const fetchOptions = useMemo(
     (): import('../types/case').CaseFilterOptions => ({
@@ -186,6 +197,7 @@ export function Cases() {
           ? 'all'
           : (riskFilter as CaseRiskLevel),
       clientId: clientFilter,
+      assignedStaffId: assignedStaffFilter,
       sortBy,
       sortOrder,
       page,
@@ -197,6 +209,7 @@ export function Cases() {
       priorityFilter,
       riskFilter,
       clientFilter,
+      assignedStaffFilter,
       sortBy,
       sortOrder,
       page,

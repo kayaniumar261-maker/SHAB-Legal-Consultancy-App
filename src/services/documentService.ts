@@ -103,6 +103,7 @@ export async function getDocuments(
     search = '',
     clientId = 'all',
     caseId = 'all',
+    staffId = 'all',
     documentType = 'all',
     confidential = 'all',
     page = 1,
@@ -127,6 +128,13 @@ export async function getDocuments(
 
   if (caseId !== 'all') {
     query = query.eq('case_id', caseId);
+  }
+
+  if (staffId !== 'all') {
+    query = query.eq(
+      'uploaded_by_staff_id',
+      staffId,
+    );
   }
 
   if (documentType !== 'all') {

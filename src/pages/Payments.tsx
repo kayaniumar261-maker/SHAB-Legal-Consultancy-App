@@ -1362,7 +1362,7 @@ export function Payments() {
         <FinanceStat
           icon={<ReceiptText size={20} />}
           label="Collection Rate"
-          value={`${financeSummary.collectionRate.toFixed(1)}%`}
+          value={`${financeSummary.collectionRate.toFixed(0)}%`}
           tone={
             financeSummary.collectionRate >= 80
               ? 'success'
