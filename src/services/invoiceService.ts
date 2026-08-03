@@ -425,6 +425,21 @@ export async function updateInvoice(
   ) as Invoice;
 }
 
+export async function cancelInvoice(
+  id: string,
+  reason: string,
+): Promise<Invoice> {
+  const result = await supabase.rpc(
+    'shab_cancel_invoice',
+    {
+      p_invoice_id: id,
+      p_reason: reason,
+    },
+  );
+
+  return handleError(result) as Invoice;
+}
+
 export async function deleteInvoice(
   id: string,
 ): Promise<void> {

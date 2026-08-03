@@ -188,6 +188,26 @@ export function InvoiceDocument({
           </strong>
         </div>
       </section>
+
+      {invoice.cancellation_reason ? (
+        <section className="shab-invoice-cancellation">
+          <span>Invoice Cancelled</span>
+
+          <p>
+            <strong>Reason:</strong>{' '}
+            {invoice.cancellation_reason}
+          </p>
+
+          {invoice.cancelled_at ? (
+            <p>
+              <strong>Cancelled:</strong>{' '}
+              {formatDocumentTimestamp(
+                invoice.cancelled_at,
+              )}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
     </BrandedDocument>
   );
 }
@@ -223,6 +243,24 @@ function formatDocumentDate(
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+  }).format(date);
+}
+
+function formatDocumentTimestamp(
+  value: string,
+): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat('en-AE', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   }).format(date);
 }
 

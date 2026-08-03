@@ -1,5 +1,6 @@
 import {
   AlertCircle,
+  Ban,
   Banknote,
   CalendarDays,
   CircleDollarSign,
@@ -38,6 +39,7 @@ import {
 } from '../components/documents/PaymentReceiptDocument';
 
 import {
+  cancelInvoice,
   createInvoice,
   deleteInvoice,
   getFinanceSummary,
@@ -242,6 +244,16 @@ export function Payments() {
 
   const [editingInvoice, setEditingInvoice] =
     useState<Invoice | null>(null);
+
+  const [
+    cancellingInvoice,
+    setCancellingInvoice,
+  ] = useState<Invoice | null>(null);
+
+  const [
+    cancellationReason,
+    setCancellationReason,
+  ] = useState('');
 
   const [paymentModalOpen, setPaymentModalOpen] =
     useState(false);
@@ -1230,6 +1242,53 @@ export function Payments() {
     }
   };
 
+  const handleCancelInvoice = async (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
+    if (!cancellingInvoice) {
+      return;
+    }
+
+    const reason =
+      cancellationReason.trim();
+
+    if (reason.length < 5) {
+      setError(
+        'Please provide a meaningful cancellation reason.',
+      );
+      return;
+    }
+
+    setFormLoading(true);
+    setError(null);
+
+    try {
+      await cancelInvoice(
+        cancellingInvoice.id,
+        reason,
+      );
+
+      setCancellingInvoice(null);
+      setCancellationReason('');
+      setPage(1);
+
+      await Promise.all([
+        loadFinanceData(),
+        loadOptions(),
+      ]);
+    } catch (cancelError) {
+      setError(
+        cancelError instanceof Error
+          ? cancelError.message
+          : 'Unable to cancel invoice.',
+      );
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
   const handleDeleteInvoice = async (
     invoice: Invoice,
   ) => {
@@ -1726,49 +1785,112 @@ export function Payments() {
                           View
                         </button>
 
-                        <button
-                          type="button"
-                          className="finance-action-button"
-                          onClick={() => {
-                            setEditingInvoice(invoice);
+                        {invoice.status ===
+                        'draft' ? (
+                          <>
+                            <button
+                              type="button"
+                              className="finance-action-button"
+                              onClick={() => {
+                                setEditingInvoice(
+                                  invoice,
+                                );
 
-                            setInvoiceForm({
-                              client_id: invoice.client_id,
-                              case_id: invoice.case_id ?? '',
-                              invoice_number: invoice.invoice_number,
-                              issue_date: invoice.issue_date,
-                              due_date: invoice.due_date ?? '',
-                              status: invoice.status,
-                              currency: invoice.currency,
-                              subtotal: String(invoice.subtotal ?? 0),
-                              vat_rate: String(invoice.vat_rate ?? 0),
-                              discount_amount: String(
-                                invoice.discount_amount ?? 0,
-                              ),
-                              description: invoice.description ?? '',
-                              notes: invoice.notes ?? '',
-                            });
+                                setInvoiceForm({
+                                  client_id:
+                                    invoice.client_id,
+                                  case_id:
+                                    invoice.case_id ??
+                                    '',
+                                  invoice_number:
+                                    invoice.invoice_number,
+                                  issue_date:
+                                    invoice.issue_date,
+                                  due_date:
+                                    invoice.due_date ??
+                                    '',
+                                  status:
+                                    invoice.status,
+                                  currency:
+                                    invoice.currency,
+                                  subtotal:
+                                    String(
+                                      invoice.subtotal ??
+                                        0,
+                                    ),
+                                  vat_rate:
+                                    String(
+                                      invoice.vat_rate ??
+                                        0,
+                                    ),
+                                  discount_amount:
+                                    String(
+                                      invoice
+                                        .discount_amount ??
+                                        0,
+                                    ),
+                                  description:
+                                    invoice.description ??
+                                    '',
+                                  notes:
+                                    invoice.notes ??
+                                    '',
+                                });
 
-                            setInvoiceModalOpen(true);
-                          }}
-                        >
-                          Edit
-                        </button>
+                                setInvoiceModalOpen(
+                                  true,
+                                );
+                              }}
+                            >
+                              Edit
+                            </button>
 
-                        <button
-                          type="button"
-                          className="finance-delete-button"
-                          onClick={() =>
-                            void handleDeleteInvoice(
-                              invoice,
-                            )
-                          }
-                          disabled={
-                            actionId === invoice.id
-                          }
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                            <button
+                              type="button"
+                              className="finance-delete-button"
+                              onClick={() =>
+                                void handleDeleteInvoice(
+                                  invoice,
+                                )
+                              }
+                              disabled={
+                                actionId ===
+                                invoice.id
+                              }
+                              aria-label={`Delete draft invoice ${invoice.invoice_number}`}
+                              title="Delete draft"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        ) : null}
+
+                        {[
+                          'issued',
+                          'overdue',
+                        ].includes(
+                          invoice.status,
+                        ) &&
+                        Number(
+                          invoice.paid_amount ??
+                            0,
+                        ) <= 0 ? (
+                          <button
+                            type="button"
+                            className="finance-cancel-button"
+                            onClick={() => {
+                              setCancellingInvoice(
+                                invoice,
+                              );
+                              setCancellationReason(
+                                '',
+                              );
+                            }}
+                          >
+                            <Ban size={16} />
+                            Cancel
+                          </button>
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -1939,6 +2061,115 @@ export function Payments() {
         </section>
       )}
 
+      {cancellingInvoice && (
+        <div className="finance-modal-layer">
+          <button
+            type="button"
+            className="finance-modal-backdrop"
+            onClick={() => {
+              setCancellingInvoice(null);
+              setCancellationReason('');
+            }}
+          />
+
+          <section className="finance-modal finance-cancel-modal">
+            <header className="finance-modal-header">
+              <div>
+                <p className="page-eyebrow">
+                  Invoice lifecycle
+                </p>
+
+                <h3>
+                  Cancel{' '}
+                  {cancellingInvoice.invoice_number}
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setCancellingInvoice(null);
+                  setCancellationReason('');
+                }}
+              >
+                ×
+              </button>
+            </header>
+
+            <form
+              className="finance-cancel-form"
+              onSubmit={handleCancelInvoice}
+            >
+              <div className="finance-cancel-warning">
+                <Ban size={22} />
+
+                <div>
+                  <strong>
+                    This action finalizes the invoice.
+                  </strong>
+
+                  <p>
+                    The invoice will remain in the
+                    financial history but cannot be
+                    edited, deleted or used for new
+                    payments.
+                  </p>
+                </div>
+              </div>
+
+              <label>
+                <span>Cancellation reason</span>
+
+                <textarea
+                  rows={4}
+                  value={cancellationReason}
+                  onChange={(event) =>
+                    setCancellationReason(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="Explain why this invoice is being cancelled"
+                  required
+                  minLength={5}
+                  autoFocus
+                />
+              </label>
+
+              <footer className="finance-cancel-actions">
+                <button
+                  type="button"
+                  className="secondary-action-button"
+                  onClick={() => {
+                    setCancellingInvoice(null);
+                    setCancellationReason('');
+                  }}
+                  disabled={formLoading}
+                >
+                  Keep Invoice
+                </button>
+
+                <button
+                  type="submit"
+                  className="finance-danger-action"
+                  disabled={
+                    formLoading ||
+                    cancellationReason
+                      .trim()
+                      .length < 5
+                  }
+                >
+                  <Ban size={17} />
+
+                  {formLoading
+                    ? 'Cancelling…'
+                    : 'Cancel Invoice'}
+                </button>
+              </footer>
+            </form>
+          </section>
+        </div>
+      )}
+
       {invoiceModalOpen && (
         <div className="finance-modal-layer">
           <button
@@ -2085,26 +2316,9 @@ export function Payments() {
                   <option value="draft">
                     Draft
                   </option>
+
                   <option value="issued">
-  Issued
-</option>
-
-<option value="partially_paid">
-  Partially Paid
-</option>
-
-<option value="cancelled">
-  Cancelled
-</option>
-
-<option value="written_off">
-  Written Off
-</option>
-                  <option value="paid">
-                    Paid
-                  </option>
-                  <option value="overdue">
-                    Overdue
+                    Issued
                   </option>
                 </select>
               </label>

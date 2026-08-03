@@ -1186,3 +1186,104 @@ grid-template-columns:1fr;
   min-height: 38px;
   padding: 8px 11px;
 }
+
+
+.finance-cancel-button,
+.finance-danger-action {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fff7f7;
+  padding: 8px 11px;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.finance-cancel-button:hover,
+.finance-danger-action:hover:not(:disabled) {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.finance-cancel-modal {
+  width: min(560px, 100%);
+}
+
+.finance-cancel-form {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+
+.finance-cancel-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  background: #fff7ed;
+  padding: 15px;
+  color: #9a3412;
+}
+
+.finance-cancel-warning svg {
+  flex: 0 0 auto;
+}
+
+.finance-cancel-warning strong {
+  display: block;
+  color: #7c2d12;
+}
+
+.finance-cancel-warning p {
+  margin: 5px 0 0;
+  color: #9a3412;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.finance-cancel-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.finance-cancel-form label > span {
+  color: #374151;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.finance-cancel-form textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #dfe3e8;
+  border-radius: 11px;
+  outline: 0;
+  background: #f9fafb;
+  padding: 12px;
+  color: #111827;
+  font: inherit;
+  font-size: 13px;
+}
+
+.finance-cancel-form textarea:focus {
+  border-color: #c9a84c;
+  box-shadow: 0 0 0 3px
+    rgba(201, 168, 76, 0.14);
+}
+
+.finance-cancel-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.finance-danger-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}

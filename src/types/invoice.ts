@@ -35,12 +35,23 @@ export interface Invoice {
   created_at: string;
   updated_at: string;
 
+  issued_at: string | null;
+  cancelled_at: string | null;
+  cancelled_by: string | null;
+  cancellation_reason: string | null;
+
   amount: number;
 }
 
 export type InvoiceInsert = Omit<
   Invoice,
-  'id' | 'created_at' | 'updated_at'
+  | 'id'
+  | 'issued_at'
+  | 'cancelled_at'
+  | 'cancelled_by'
+  | 'cancellation_reason'
+  | 'created_at'
+  | 'updated_at'
 >;
 
 export type InvoiceUpdate = Partial<InvoiceInsert>;
