@@ -300,7 +300,8 @@
   html,
   body {
     width: 210mm !important;
-    min-height: 297mm !important;
+    height: auto !important;
+    min-height: 0 !important;
     margin: 0 !important;
     background: #ffffff !important;
   }
@@ -312,24 +313,42 @@
   body > .shab-document-print-portal {
     display: block !important;
     width: 210mm !important;
-    min-height: 297mm !important;
+    height: auto !important;
+    min-height: 0 !important;
     margin: 0 !important;
     background: #ffffff !important;
   }
 
   .shab-document-print-portal .shab-document-print-root {
-    display: flex !important;
+    display: block !important;
     position: static !important;
     width: 210mm !important;
     max-width: none !important;
-    min-height: 297mm !important;
+    min-height: 0 !important;
+    height: auto !important;
     margin: 0 !important;
     border: 0 !important;
-    padding: 13mm 15mm 11mm !important;
+    padding: 11mm 15mm 9mm !important;
     background: #ffffff !important;
     box-shadow: none !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  .shab-document-print-portal .shab-document-footer {
+    position: fixed !important;
+    right: 15mm !important;
+    bottom: 7mm !important;
+    left: 15mm !important;
+    width: auto !important;
+    margin: 0 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .shab-document-print-portal .shab-document-notes,
+  .shab-document-print-portal .shab-document-payment-note {
+    margin-top: 14px;
   }
 
   .shab-document-print-portal table,
@@ -340,5 +359,86 @@
   .shab-document-print-portal .shab-document-payment-note {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+}
+
+.shab-document-bank-details {
+  margin-top: 24px;
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid var(--shab-gold, #c9a84c);
+  border-radius: 12px;
+  padding: 18px 20px;
+  break-inside: avoid;
+}
+
+.shab-document-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.shab-document-section-heading span {
+  color: #9a7825;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.shab-document-section-heading strong {
+  color: #111827;
+  font-size: 0.88rem;
+}
+
+.shab-document-bank-details dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 24px;
+  margin: 0;
+}
+
+.shab-document-bank-details dl div {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 10px;
+  padding: 5px 0;
+}
+
+.shab-document-bank-details dt {
+  color: #6b7280;
+  font-size: 0.74rem;
+}
+
+.shab-document-bank-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #111827;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.shab-document-bank-details > p {
+  margin: 14px 0 0;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 10px;
+  color: #4b5563;
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+@media print {
+  .shab-document-bank-details {
+    margin-top: 16px;
+    padding: 12px 14px;
+  }
+
+  .shab-document-bank-details dl {
+    gap: 4px 18px;
+  }
+
+  .shab-document-bank-details dl div {
+    padding: 3px 0;
   }
 }

@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react';
 
 import { companyProfile } from '../../constants/companyProfile';
+import type {
+  CompanySettings,
+} from '../../services/companySettingsService';
 import './BrandedDocument.css';
 
 type DocumentMetaItem = {
@@ -16,6 +19,7 @@ type BrandedDocumentProps = {
   meta: DocumentMetaItem[];
   children: ReactNode;
   notes?: string | null;
+  companySettings?: CompanySettings | null;
 };
 
 export function BrandedDocument({
@@ -26,12 +30,69 @@ export function BrandedDocument({
   meta,
   children,
   notes,
+  companySettings,
 }: BrandedDocumentProps) {
+  const legalName =
+    companySettings?.legal_name ||
+    companyProfile.legalName;
+
+  const registeredAddress =
+    companySettings?.registered_address ||
+    companyProfile.registeredAddress;
+
+  const email =
+    companySettings?.email ||
+    companyProfile.email;
+
+  const phone =
+    companySettings?.phone ||
+    companyProfile.phone;
+
+  const taxRegistrationNumber =
+    companySettings?.tax_registration_number ||
+    companyProfile.taxRegistrationNumber;
+
   const contactDetails = [
-    companyProfile.registeredAddress,
-    companyProfile.email,
-    companyProfile.phone,
-  ].filter(Boolean);
+    registeredAddress,
+    email,
+    phone,
+  ].filter(Boolean) as string[];
+
+  const paymentDetails = [
+    {
+      label: 'Beneficiary',
+      value: companySettings?.account_holder_name,
+    },
+    {
+      label: 'Bank',
+      value: companySettings?.bank_name,
+    },
+    {
+      label: 'Account Number',
+      value: companySettings?.account_number,
+    },
+    {
+      label: 'IBAN',
+      value: companySettings?.iban,
+    },
+    {
+      label: 'SWIFT / BIC',
+      value: companySettings?.swift_bic,
+    },
+    {
+      label: 'Routing Code',
+      value: companySettings?.routing_code,
+    },
+    {
+      label: 'Currency',
+      value: companySettings?.account_currency,
+    },
+  ].filter(
+    (item): item is {
+      label: string;
+      value: string;
+    } => Boolean(item.value),
+  );
 
   return (
     <article className="shab-document-print-root">
@@ -39,16 +100,16 @@ export function BrandedDocument({
         <div className="shab-document-brand">
           <img
             src={companyProfile.logoUrl}
-            alt={companyProfile.legalName}
+            alt={legalName}
           />
 
           <div className="shab-document-company">
-            <strong>{companyProfile.legalName}</strong>
+            <strong>{legalName}</strong>
             <span>{companyProfile.jurisdiction}</span>
 
-            {companyProfile.taxRegistrationNumber ? (
+            {taxRegistrationNumber ? (
               <span>
-                TRN: {companyProfile.taxRegistrationNumber}
+                TRN: {taxRegistrationNumber}
               </span>
             ) : null}
           </div>
@@ -96,6 +157,30 @@ export function BrandedDocument({
         </section>
       ) : null}
 
+      {paymentDetails.length > 0 ? (
+        <section className="shab-document-bank-details">
+          <div className="shab-document-section-heading">
+            <span>Payment Details</span>
+            <strong>Bank Transfer</strong>
+          </div>
+
+          <dl>
+            {paymentDetails.map((item) => (
+              <div key={item.label}>
+                <dt>{item.label}</dt>
+                <dd>{item.value}</dd>
+              </div>
+            ))}
+          </dl>
+
+          {companySettings?.payment_instructions ? (
+            <p>
+              {companySettings.payment_instructions}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
       <section className="shab-document-payment-note">
         <strong>Payment Reference</strong>
         <p>
@@ -106,7 +191,7 @@ export function BrandedDocument({
 
       <footer className="shab-document-footer">
         <div>
-          <strong>{companyProfile.legalName}</strong>
+          <strong>{legalName}</strong>
 
           {contactDetails.length > 0 ? (
             contactDetails.map((detail) => (

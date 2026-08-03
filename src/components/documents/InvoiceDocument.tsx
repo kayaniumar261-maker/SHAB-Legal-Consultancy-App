@@ -2,12 +2,16 @@ import { createPortal } from 'react-dom';
 
 import { companyProfile } from '../../constants/companyProfile';
 import type { Invoice } from '../../types/invoice';
+import type {
+  CompanySettings,
+} from '../../services/companySettingsService';
 import { BrandedDocument } from './BrandedDocument';
 
 type InvoiceDocumentProps = {
   invoice: Invoice;
   clientName: string;
   caseReference?: string | null;
+  companySettings?: CompanySettings | null;
 };
 
 export function InvoicePrintPortal(
@@ -29,13 +33,18 @@ export function InvoiceDocument({
   invoice,
   clientName,
   caseReference,
+  companySettings,
 }: InvoiceDocumentProps) {
   const currency =
     invoice.currency ||
     companyProfile.defaultCurrency;
 
+  const taxRegistrationNumber =
+    companySettings?.tax_registration_number ||
+    companyProfile.taxRegistrationNumber;
+
   const documentTitle =
-    companyProfile.taxRegistrationNumber
+    taxRegistrationNumber
       ? 'Tax Invoice'
       : 'Invoice';
 
@@ -70,6 +79,7 @@ export function InvoiceDocument({
         },
       ]}
       notes={invoice.notes}
+      companySettings={companySettings}
     >
       <section className="shab-invoice-services">
         <table>

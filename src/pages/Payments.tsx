@@ -68,6 +68,11 @@ import type {
   PaymentStatus,
 } from '../types/payment';
 
+import {
+  getCompanySettings,
+  type CompanySettings,
+} from '../services/companySettingsService';
+
 import './Payments.css';
 
 const PAGE_SIZE = 12;
@@ -197,6 +202,9 @@ export function Payments() {
   const [loading, setLoading] =
     useState(true);
 
+  const [companySettings, setCompanySettings] =
+    useState<CompanySettings | null>(null);
+
   const [error, setError] =
     useState<string | null>(null);
 
@@ -290,15 +298,18 @@ export function Payments() {
         clientOptions,
         caseOptions,
         staffOptions,
+        loadedCompanySettings,
       ] = await Promise.all([
         getClientOptions(),
         getCaseOptions(),
         getStaffOptions(),
+        getCompanySettings().catch(() => null),
       ]);
 
       setClients(clientOptions);
       setCases(caseOptions);
       setStaff(staffOptions);
+      setCompanySettings(loadedCompanySettings);
     } catch (optionsError) {
       setError(
         optionsError instanceof Error
@@ -756,17 +767,62 @@ export function Payments() {
     Math.ceil(totalCount / PAGE_SIZE),
   );
 
+  const handlePrintInvoice = () => {
+    if (!viewingInvoice) {
+      return;
+    }
+
+    const originalTitle = document.title;
+
+    const clientName =
+      clientMap[viewingInvoice.client_id] ||
+      'Client';
+
+    const safeFilename = [
+      viewingInvoice.invoice_number,
+      clientName,
+    ]
+      .join('-')
+      .replace(/[^a-zA-Z0-9_-]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    const restoreTitle = () => {
+      document.title = originalTitle;
+
+      window.removeEventListener(
+        'afterprint',
+        restoreTitle,
+      );
+    };
+
+    document.title =
+      safeFilename || viewingInvoice.invoice_number;
+
+    window.addEventListener(
+      'afterprint',
+      restoreTitle,
+      {
+        once: true,
+      },
+    );
+
+    window.print();
+
+    window.setTimeout(
+      restoreTitle,
+      1000,
+    );
+  };
+
   const handleCreateInvoice = async (
     event: FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
 
-    if (
-      !invoiceForm.client_id ||
-      !invoiceForm.invoice_number.trim()
-    ) {
+    if (!invoiceForm.client_id) {
       setError(
-        'Client and invoice number are required.',
+        'Client is required.',
       );
       return;
     }
@@ -872,9 +928,6 @@ export function Payments() {
             case_id:
               invoiceForm.case_id || null,
 
-            invoice_number:
-              invoiceForm.invoice_number.trim(),
-
             issue_date:
               invoiceForm.issue_date,
 
@@ -924,8 +977,9 @@ export function Payments() {
           case_id:
             invoiceForm.case_id || null,
 
-          invoice_number:
-            invoiceForm.invoice_number.trim(),
+          // The Supabase BEFORE INSERT trigger replaces
+          // this temporary value with the final annual number.
+          invoice_number: '',
 
           issue_date:
             invoiceForm.issue_date,
@@ -1936,18 +1990,12 @@ export function Payments() {
 
                 <input
                   value={
-                    invoiceForm.invoice_number
+                    editingInvoice
+                      ? invoiceForm.invoice_number
+                      : 'Assigned automatically when saved'
                   }
-                  onChange={(event) =>
-                    setInvoiceForm(
-                      (current) => ({
-                        ...current,
-                        invoice_number:
-                          event.target.value,
-                      }),
-                    )
-                  }
-                  required
+                  readOnly
+                  aria-readonly="true"
                 />
               </label>
 
@@ -2232,6 +2280,7 @@ export function Payments() {
                       ] ?? 'Unknown case'
                     : null
                 }
+                companySettings={companySettings}
               />
             </div>
 
@@ -2239,7 +2288,7 @@ export function Payments() {
               <button
                 type="button"
                 className="primary-action-button"
-                onClick={() => window.print()}
+                onClick={handlePrintInvoice}
               >
                 <Printer size={17} />
                 Print / Save PDF
@@ -2271,6 +2320,7 @@ export function Payments() {
                   ] ?? 'Unknown case'
                 : null
             }
+            companySettings={companySettings}
           />
         </div>
       )}
