@@ -167,6 +167,9 @@ export function Payments() {
   const [invoices, setInvoices] =
     useState<Invoice[]>([]);
 
+  const [invoiceOptions, setInvoiceOptions] =
+    useState<Invoice[]>([]);
+
   const [payments, setPayments] =
     useState<Payment[]>([]);
 
@@ -272,14 +275,16 @@ export function Payments() {
   }, [cases]);
 
   const invoiceMap = useMemo(() => {
-    return invoices.reduce<Record<string, Invoice>>(
+    return invoiceOptions.reduce<
+      Record<string, Invoice>
+    >(
       (map, invoice) => {
         map[invoice.id] = invoice;
         return map;
       },
       {},
     );
-  }, [invoices]);
+  }, [invoiceOptions]);
 
   const filteredCases = useMemo(() => {
     if (!invoiceForm.client_id) {
@@ -299,17 +304,25 @@ export function Payments() {
         caseOptions,
         staffOptions,
         loadedCompanySettings,
+        loadedInvoiceOptions,
       ] = await Promise.all([
         getClientOptions(),
         getCaseOptions(),
         getStaffOptions(),
         getCompanySettings().catch(() => null),
+        getInvoices({
+          page: 1,
+          pageSize: 1000,
+        }),
       ]);
 
       setClients(clientOptions);
       setCases(caseOptions);
       setStaff(staffOptions);
       setCompanySettings(loadedCompanySettings);
+      setInvoiceOptions(
+        loadedInvoiceOptions.data,
+      );
     } catch (optionsError) {
       setError(
         optionsError instanceof Error
@@ -346,13 +359,21 @@ export function Payments() {
             caseIdParam ||
             undefined,
 
-          page,
-          pageSize: PAGE_SIZE,
+          page:
+            search.trim()
+              ? 1
+              : page,
+          pageSize:
+            search.trim()
+              ? 1000
+              : PAGE_SIZE,
         });
 
         const filtered = filterInvoices(
           result.data,
           search,
+          clientMap,
+          caseMap,
         );
 
         setInvoices(filtered);
@@ -376,13 +397,22 @@ export function Payments() {
             caseIdParam ||
             undefined,
 
-          page,
-          pageSize: PAGE_SIZE,
+          page:
+            search.trim()
+              ? 1
+              : page,
+          pageSize:
+            search.trim()
+              ? 1000
+              : PAGE_SIZE,
         });
 
         const filtered = filterPayments(
           result.data,
           search,
+          clientMap,
+          caseMap,
+          invoiceMap,
         );
 
         setPayments(filtered);
@@ -409,6 +439,9 @@ export function Payments() {
     search,
     clientIdParam,
     caseIdParam,
+    clientMap,
+    caseMap,
+    invoiceMap,
   ]);
 
   useEffect(() => {
@@ -1033,7 +1066,10 @@ export function Payments() {
       setInvoiceForm(emptyInvoiceForm);
       setPage(1);
 
-      await loadFinanceData();
+      await Promise.all([
+        loadFinanceData(),
+        loadOptions(),
+      ]);
     } catch (saveError) {
       setError(
         saveError instanceof Error
@@ -1495,8 +1531,8 @@ export function Payments() {
             }}
             placeholder={
               activeTab === 'invoices'
-                ? 'Search invoice number, description or notes'
-                : 'Search reference, method or notes'
+                ? 'Search invoice, client, case or description'
+                : 'Search invoice, client, case or payment reference'
             }
           />
         </div>
@@ -2380,7 +2416,7 @@ export function Payments() {
                     Select invoice
                   </option>
 
-                  {invoices.map((invoice) => (
+                  {invoiceOptions.map((invoice) => (
                     <option
                       key={invoice.id}
                       value={invoice.id}
@@ -2655,9 +2691,30 @@ function FinanceStateRow({
   );
 }
 
+function matchesFinanceSearch(
+  term: string,
+  values: Array<
+    string | number | null | undefined
+  >,
+): boolean {
+  return values
+    .filter(
+      (value) =>
+        value !== null &&
+        value !== undefined,
+    )
+    .some((value) =>
+      String(value)
+        .toLowerCase()
+        .includes(term),
+    );
+}
+
 function filterInvoices(
   rows: Invoice[],
   search: string,
+  clientMap: Record<string, string>,
+  caseMap: Record<string, string>,
 ): Invoice[] {
   const term =
     search.trim().toLowerCase();
@@ -2667,23 +2724,30 @@ function filterInvoices(
   }
 
   return rows.filter((invoice) =>
-    [
-      invoice.invoice_number,
-      invoice.description,
-      invoice.notes,
-    ]
-      .filter(Boolean)
-      .some((value) =>
-        String(value)
-          .toLowerCase()
-          .includes(term),
-      ),
+    matchesFinanceSearch(
+      term,
+      [
+        invoice.invoice_number,
+        clientMap[invoice.client_id],
+        invoice.case_id
+          ? caseMap[invoice.case_id]
+          : null,
+        invoice.description,
+        invoice.notes,
+        invoice.status,
+        invoice.total_amount,
+        invoice.balance_amount,
+      ],
+    ),
   );
 }
 
 function filterPayments(
   rows: Payment[],
   search: string,
+  clientMap: Record<string, string>,
+  caseMap: Record<string, string>,
+  invoiceMap: Record<string, Invoice>,
 ): Payment[] {
   const term =
     search.trim().toLowerCase();
@@ -2692,19 +2756,26 @@ function filterPayments(
     return rows;
   }
 
-  return rows.filter((payment) =>
-    [
-      payment.reference_number,
-      payment.payment_method,
-      payment.notes,
-    ]
-      .filter(Boolean)
-      .some((value) =>
-        String(value)
-          .toLowerCase()
-          .includes(term),
-      ),
-  );
+  return rows.filter((payment) => {
+    const invoice =
+      invoiceMap[payment.invoice_id];
+
+    return matchesFinanceSearch(
+      term,
+      [
+        invoice?.invoice_number,
+        clientMap[payment.client_id],
+        payment.case_id
+          ? caseMap[payment.case_id]
+          : null,
+        payment.reference_number,
+        payment.payment_method,
+        payment.notes,
+        payment.status,
+        payment.amount,
+      ],
+    );
+  });
 }
 
 function formatCurrency(
