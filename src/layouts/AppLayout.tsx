@@ -13,7 +13,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   NavLink,
   Outlet,
@@ -21,6 +21,7 @@ import {
 } from 'react-router-dom';
 
 import { useAuth } from '../hooks/useAuth';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { GlobalSearch } from '../components/search/GlobalSearch';
 import { NotificationCenter } from '../components/notifications/NotificationCenter';
 
@@ -90,30 +91,7 @@ export function AppLayout() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
-  const [isOnline, setIsOnline] =
-    useState(
-      typeof navigator === 'undefined'
-        ? true
-        : navigator.onLine,
-    );
-
-  useEffect(() => {
-    function handleOnline() {
-      setIsOnline(true);
-    }
-
-    function handleOffline() {
-      setIsOnline(false);
-    }
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+  const isOnline = useOnlineStatus();
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
