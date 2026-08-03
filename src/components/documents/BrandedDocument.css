@@ -1,0 +1,344 @@
+.shab-document-print-root {
+  display: flex;
+  width: 100%;
+  max-width: 760px;
+  min-height: 940px;
+  margin: 0 auto;
+  flex-direction: column;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111827;
+  padding: 34px 38px 26px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+}
+
+.shab-document-header {
+  display: flex;
+  min-height: 94px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.shab-document-brand {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 16px;
+}
+
+.shab-document-brand img {
+  width: 108px;
+  height: 88px;
+  flex: 0 0 108px;
+  object-fit: contain;
+}
+
+.shab-document-company {
+  display: grid;
+  max-width: 225px;
+  gap: 4px;
+}
+
+.shab-document-company strong {
+  color: #111827;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.shab-document-company span {
+  color: #64748b;
+  font-size: 0.66rem;
+}
+
+.shab-document-heading {
+  text-align: right;
+}
+
+.shab-document-heading > span,
+.shab-document-recipient > span,
+.shab-document-notes > span {
+  display: block;
+  color: #98751e;
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.shab-document-heading h1 {
+  margin: 7px 0 4px;
+  color: #111827;
+  font-size: 1.65rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.shab-document-heading strong {
+  color: #475569;
+  font-size: 0.77rem;
+}
+
+.shab-document-gold-rule {
+  height: 3px;
+  margin: 18px 0 24px;
+  background: linear-gradient(
+    90deg,
+    #b8912f,
+    #e1c66f,
+    #b8912f
+  );
+}
+
+.shab-document-parties {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 34px;
+  margin-bottom: 28px;
+}
+
+.shab-document-recipient,
+.shab-document-meta {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fafafa;
+  padding: 16px 18px;
+}
+
+.shab-document-recipient strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1rem;
+}
+
+.shab-document-recipient p {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.shab-document-meta {
+  margin: 0;
+}
+
+.shab-document-meta div {
+  display: grid;
+  grid-template-columns: 105px 1fr;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.shab-document-meta dt {
+  color: #64748b;
+  font-size: 0.69rem;
+}
+
+.shab-document-meta dd {
+  margin: 0;
+  text-align: right;
+  font-size: 0.71rem;
+  font-weight: 750;
+}
+
+.shab-invoice-services table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.shab-invoice-services th {
+  border-bottom: 2px solid #c9a84c;
+  background: #111111;
+  color: #ffffff;
+  padding: 11px 13px;
+  text-align: left;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.shab-invoice-services th:last-child,
+.shab-invoice-services td:last-child {
+  width: 180px;
+  text-align: right;
+}
+
+.shab-invoice-services td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 17px 13px;
+  vertical-align: top;
+  font-size: 0.78rem;
+}
+
+.shab-invoice-services td p {
+  margin: 6px 0 0;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.shab-invoice-totals {
+  width: min(100%, 340px);
+  margin: 22px 0 0 auto;
+}
+
+.shab-invoice-totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 7px;
+  font-size: 0.75rem;
+}
+
+.shab-invoice-totals span {
+  color: #64748b;
+}
+
+.shab-invoice-total {
+  border-top: 2px solid #111111;
+  color: #111827;
+  font-size: 0.84rem !important;
+}
+
+.shab-invoice-balance {
+  border: 0 !important;
+  border-radius: 5px;
+  background: #f8f1db;
+  color: #84631a;
+  padding: 11px !important;
+  font-size: 0.87rem !important;
+}
+
+.shab-document-notes,
+.shab-document-payment-note {
+  margin-top: 24px;
+  border-left: 3px solid #c9a84c;
+  background: #fafafa;
+  padding: 11px 14px;
+}
+
+.shab-document-notes p,
+.shab-document-payment-note p {
+  margin: 5px 0 0;
+  color: #475569;
+  font-size: 0.69rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.shab-document-payment-note strong {
+  font-size: 0.69rem;
+}
+
+.shab-document-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: auto;
+  border-top: 1px solid #d6b757;
+  padding-top: 13px;
+  color: #64748b;
+  font-size: 0.59rem;
+}
+
+.shab-document-footer div {
+  display: grid;
+  gap: 3px;
+}
+
+.shab-document-footer strong {
+  color: #111827;
+  font-size: 0.66rem;
+}
+
+.shab-document-footer > span {
+  max-width: 265px;
+  text-align: right;
+  line-height: 1.4;
+}
+
+.shab-document-print-portal {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .shab-document-print-root {
+    min-height: 0;
+    padding: 22px 18px;
+  }
+
+  .shab-document-header {
+    align-items: flex-start;
+  }
+
+  .shab-document-brand img {
+    width: 82px;
+    height: 68px;
+    flex-basis: 82px;
+  }
+
+  .shab-document-company {
+    display: none;
+  }
+
+  .shab-document-heading h1 {
+    font-size: 1.25rem;
+  }
+
+  .shab-document-parties {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+  }
+
+  body > * {
+    display: none !important;
+  }
+
+  body > .shab-document-print-portal {
+    display: block !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .shab-document-print-portal .shab-document-print-root {
+    display: flex !important;
+    position: static !important;
+    width: 210mm !important;
+    max-width: none !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    border: 0 !important;
+    padding: 13mm 15mm 11mm !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .shab-document-print-portal table,
+  .shab-document-print-portal tr,
+  .shab-document-print-portal td,
+  .shab-document-print-portal .shab-invoice-totals,
+  .shab-document-print-portal .shab-document-notes,
+  .shab-document-print-portal .shab-document-payment-note {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

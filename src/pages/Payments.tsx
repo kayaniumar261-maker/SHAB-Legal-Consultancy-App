@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   FileText,
   Plus,
+  Printer,
   ReceiptText,
   Search,
   Trash2,
@@ -25,6 +26,11 @@ import {
 import {
   useSearchParams,
 } from 'react-router-dom';
+
+import {
+  InvoiceDocument,
+  InvoicePrintPortal,
+} from '../components/documents/InvoiceDocument';
 
 import {
   createInvoice,
@@ -2212,152 +2218,33 @@ export function Payments() {
             </header>
 
             <div className="finance-view-content">
-              <div className="finance-view-grid">
-                <div className="finance-view-item">
-                  <span>Client</span>
-                  <strong>
-                    {clientMap[
-                      viewingInvoice.client_id
-                    ] ?? 'Unknown client'}
-                  </strong>
-                </div>
-
-                <div className="finance-view-item">
-                  <span>Case</span>
-                  <strong>
-                    {viewingInvoice.case_id
-                      ? caseMap[
-                          viewingInvoice.case_id
-                        ] ?? 'Unknown case'
-                      : '—'}
-                  </strong>
-                </div>
-
-                <div className="finance-view-item">
-                  <span>Status</span>
-
-                  <strong>
-                    <span
-                      className={`finance-status ${viewingInvoice.status}`}
-                    >
-                      {formatLabel(
-                        viewingInvoice.status,
-                      )}
-                    </span>
-                  </strong>
-                </div>
-
-                <div className="finance-view-item">
-                  <span>Currency</span>
-                  <strong>
-                    {viewingInvoice.currency}
-                  </strong>
-                </div>
-
-                <div className="finance-view-item">
-                  <span>Issue Date</span>
-                  <strong>
-                    {formatDate(
-                      viewingInvoice.issue_date,
-                    )}
-                  </strong>
-                </div>
-
-                <div className="finance-view-item">
-                  <span>Due Date</span>
-                  <strong>
-                    {formatDate(
-                      viewingInvoice.due_date,
-                    )}
-                  </strong>
-                </div>
-
-                <div className="finance-view-item">
-                  <span>Subtotal</span>
-                  <strong>
-                    {formatCurrency(
-                      viewingInvoice.subtotal,
-                    )}
-                  </strong>
-                </div>
-
-                <div className="finance-view-item">
-                  <span>VAT Rate</span>
-                  <strong>
-                    {Number(
-                      viewingInvoice.vat_rate ?? 0,
-                    ).toFixed(2)}%
-                  </strong>
-                </div>
-
-                <div className="finance-view-item">
-                  <span>VAT Amount</span>
-                  <strong>
-                    {formatCurrency(
-                      viewingInvoice.vat_amount,
-                    )}
-                  </strong>
-                </div>
-
-                <div className="finance-view-item">
-                  <span>Discount</span>
-                  <strong>
-                    {formatCurrency(
-                      viewingInvoice.discount_amount,
-                    )}
-                  </strong>
-                </div>
-              </div>
-
-              <div className="finance-view-summary">
-                <div>
-                  <span>Total</span>
-                  <strong>
-                    {formatCurrency(
-                      viewingInvoice.total_amount,
-                    )}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>Paid</span>
-                  <strong>
-                    {formatCurrency(
-                      viewingInvoice.paid_amount,
-                    )}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>Balance</span>
-                  <strong>
-                    {formatCurrency(
-                      viewingInvoice.balance_amount,
-                    )}
-                  </strong>
-                </div>
-              </div>
-
-              {viewingInvoice.description && (
-                <div className="finance-view-section">
-                  <span>Description</span>
-                  <p>
-                    {viewingInvoice.description}
-                  </p>
-                </div>
-              )}
-
-              {viewingInvoice.notes && (
-                <div className="finance-view-section">
-                  <span>Notes</span>
-                  <p>
-                    {viewingInvoice.notes}
-                  </p>
-                </div>
-              )}
+              <InvoiceDocument
+                invoice={viewingInvoice}
+                clientName={
+                  clientMap[
+                    viewingInvoice.client_id
+                  ] ?? 'Unknown client'
+                }
+                caseReference={
+                  viewingInvoice.case_id
+                    ? caseMap[
+                        viewingInvoice.case_id
+                      ] ?? 'Unknown case'
+                    : null
+                }
+              />
             </div>
 
             <footer className="finance-view-actions">
+              <button
+                type="button"
+                className="primary-action-button"
+                onClick={() => window.print()}
+              >
+                <Printer size={17} />
+                Print / Save PDF
+              </button>
+
               <button
                 type="button"
                 className="secondary-action-button"
@@ -2369,6 +2256,22 @@ export function Payments() {
               </button>
             </footer>
           </section>
+
+          <InvoicePrintPortal
+            invoice={viewingInvoice}
+            clientName={
+              clientMap[
+                viewingInvoice.client_id
+              ] ?? 'Unknown client'
+            }
+            caseReference={
+              viewingInvoice.case_id
+                ? caseMap[
+                    viewingInvoice.case_id
+                  ] ?? 'Unknown case'
+                : null
+            }
+          />
         </div>
       )}
 
