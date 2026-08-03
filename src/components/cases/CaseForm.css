@@ -696,3 +696,9 @@
   font-size: 0.78rem;
   font-weight: 750;
 }
+
+.case-form-draft-note.offline {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  color: #c2410c;
+}

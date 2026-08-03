@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 
 import type { Task, TaskInsert, TaskPriority, TaskStatus, TaskUpdate } from '../../types/task';
 import type { CaseOption, ClientOption, StaffOption } from '../../services/taskService';
+import { useOnlineStatus } from '../../hooks/useOnlineStatus';
 import './TaskFormModal.css';
 
 export type TaskFormModalProps = {
@@ -117,6 +118,7 @@ export function TaskFormModal({
     );
 
   const [error, setError] = useState<string | null>(null);
+  const isOnline = useOnlineStatus();
 
   useEffect(() => {
     if (!open) {
@@ -465,8 +467,16 @@ export function TaskFormModal({
             ) : null}
           </div>
 
-          <div className="task-form-draft-note">
-            Draft is saved locally on this device until the task is successfully saved.
+          <div
+            className={
+              isOnline
+                ? 'task-form-draft-note'
+                : 'task-form-draft-note offline'
+            }
+          >
+            {isOnline
+              ? 'Draft is saved locally on this device until the task is successfully saved.'
+              : 'Offline — draft is saved locally. Reconnect before saving this task to SHAB.'}
           </div>
 
           <footer className="task-form-actions">
@@ -481,7 +491,7 @@ export function TaskFormModal({
             <button
               type="submit"
               className="primary-action-button"
-              disabled={loading}
+              disabled={loading || !isOnline}
             >
               {loading ? 'Saving…' : (task ? 'Update Task' : 'Create Task')}
             </button>

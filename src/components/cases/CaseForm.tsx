@@ -25,6 +25,7 @@ import type {
 } from '../../types/case';
 import type { Client } from '../../types/client';
 import type { Staff } from '../../types/staff';
+import { useOnlineStatus } from '../../hooks/useOnlineStatus';
 import './CaseForm.css';
 
 type CaseStatus =
@@ -517,6 +518,8 @@ export function CaseForm({
   const [error, setError] = useState<string | null>(
     null,
   );
+
+  const isOnline = useOnlineStatus();
 
   useEffect(() => {
     const fallback =
@@ -1839,15 +1842,23 @@ export function CaseForm({
         </div>
       ) : null}
 
-      <div className="case-form-draft-note">
-        Draft is saved locally on this device until the matter is successfully saved.
+      <div
+        className={
+          isOnline
+            ? 'case-form-draft-note'
+            : 'case-form-draft-note offline'
+        }
+      >
+        {isOnline
+          ? 'Draft is saved locally on this device until the matter is successfully saved.'
+          : 'Offline — draft is saved locally. Reconnect before saving this matter to SHAB.'}
       </div>
 
       <div className="case-form-actions">
         <button
           type="submit"
           className="primary-action-button"
-          disabled={loading}
+          disabled={loading || !isOnline}
         >
           <Save size={18} />
           {loading ? 'Saving…' : submitLabel}
