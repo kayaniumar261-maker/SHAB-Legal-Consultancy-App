@@ -14,7 +14,7 @@ export function PlaceholderPage({
       <section className="page-heading">
         <div>
           <p className="page-eyebrow">
-            SHAB Legal Consultancy
+            SHAB Legal Consultancy FZE
           </p>
 
           <h2>{title}</h2>

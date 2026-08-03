@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { shabLogoUrl } from '../constants/branding';
 import './Login.css';
 
 export function Login() {
@@ -57,8 +58,20 @@ export function Login() {
     <div className="login-page">
       <div className="login-card">
         <div className="login-brand">
-          <p className="login-eyebrow">SHAB Legal Consultancy</p>
+          <div className="login-logo-shell">
+            <img
+              className="login-logo"
+              src={shabLogoUrl}
+              alt="SHAB Legal Consultancy FZE"
+            />
+          </div>
+
+          <p className="login-eyebrow">
+            SHAB Legal Consultancy FZE
+          </p>
+
           <h1>Secure Practice Management System</h1>
+
           <p className="login-description">
             Sign in with your email and password to access your practice dashboard.
           </p>

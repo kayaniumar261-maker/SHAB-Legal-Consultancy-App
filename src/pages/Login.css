@@ -27,6 +27,23 @@
   margin-bottom: 32px;
 }
 
+.login-logo-shell {
+  display: grid;
+  min-height: 226px;
+  margin: -18px -14px 24px;
+  place-items: center;
+  border-radius: 20px;
+  background: #000000;
+  padding: 18px 24px;
+}
+
+.login-logo {
+  display: block;
+  width: min(100%, 286px);
+  max-height: 210px;
+  object-fit: contain;
+}
+
 .login-eyebrow {
   margin: 0 0 10px;
   color: var(--login-accent);

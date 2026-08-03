@@ -1,11 +1,12 @@
-const CACHE_NAME = 'shab-legal-shell-v1';
+const CACHE_NAME = 'shab-legal-shell-v2';
 
 const SHELL_ASSETS = [
-  '/',
   '/offline.html',
   '/manifest.webmanifest',
-  '/icons/icon-192.svg',
-  '/icons/icon-512.svg'
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/icon-maskable-192.png',
+  '/icons/icon-maskable-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -47,7 +48,9 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).catch(() => caches.match('/offline.html'))
+      fetch(request).catch(() =>
+        caches.match('/offline.html')
+      )
     );
     return;
   }
@@ -59,15 +62,21 @@ self.addEventListener('fetch', (event) => {
       }
 
       return fetch(request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
+        if (
+          !response ||
+          response.status !== 200 ||
+          response.type !== 'basic'
+        ) {
           return response;
         }
 
         const copy = response.clone();
 
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, copy);
-        });
+        void caches
+          .open(CACHE_NAME)
+          .then((cache) =>
+            cache.put(request, copy)
+          );
 
         return response;
       });

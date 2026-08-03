@@ -3,7 +3,6 @@ import {
   CalendarDays,
   CheckSquare,
   CreditCard,
-  FileText,
   FileUp,
   FolderOpen,
   Gavel,
@@ -21,6 +20,7 @@ import {
 } from 'react-router-dom';
 
 import { useAuth } from '../hooks/useAuth';
+import { shabLogoUrl } from '../constants/branding';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { GlobalSearch } from '../components/search/GlobalSearch';
 import { NotificationCenter } from '../components/notifications/NotificationCenter';
@@ -144,7 +144,7 @@ export function AppLayout() {
 
           <div>
             <p className="header-eyebrow">
-              SHAB Legal Consultancy
+              SHAB Legal Consultancy FZE
             </p>
 
             <h1 className="header-title">
@@ -213,19 +213,11 @@ function SidebarContent({
   return (
     <div className="sidebar-content">
       <div className="brand-block">
-        <div className="brand-icon">
-          <FileText size={28} />
-        </div>
-
-        <div>
-          <div className="brand-name">
-            SHAB
-          </div>
-
-          <div className="brand-subtitle">
-            Legal Consultancy
-          </div>
-        </div>
+        <img
+          className="sidebar-brand-logo"
+          src={shabLogoUrl}
+          alt="SHAB Legal Consultancy FZE"
+        />
       </div>
 
       <nav className="sidebar-navigation">
@@ -263,10 +255,10 @@ function SidebarContent({
 
       <div className="sidebar-footer">
         <p>
-          SHAB Legal Consultancy App
+          SHAB Legal Consultancy FZE
         </p>
 
-        <span>Version 1.0.0</span>
+        <span>Version 2.0.0</span>
       </div>
     </div>
   );

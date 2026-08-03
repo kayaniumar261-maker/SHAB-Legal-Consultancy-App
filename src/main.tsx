@@ -24,15 +24,55 @@ ReactDOM.createRoot(rootElement).render(
   </React.StrictMode>,
 );
 
-if (
-  'serviceWorker' in navigator &&
-  import.meta.env.PROD &&
-  window.location.protocol !== 'file:'
-) {
-  window.addEventListener(
-    'load',
-    () => {
-      void navigator.serviceWorker.register('/sw.js');
-    },
-  );
+if ('serviceWorker' in navigator) {
+  if (
+    import.meta.env.PROD &&
+    window.location.protocol !== 'file:'
+  ) {
+    window.addEventListener(
+      'load',
+      () => {
+        void navigator.serviceWorker.register('/sw.js');
+      },
+    );
+  } else if (import.meta.env.DEV) {
+    window.addEventListener(
+      'load',
+      () => {
+        void (async () => {
+          const registrations =
+            await navigator.serviceWorker.getRegistrations();
+
+          await Promise.all(
+            registrations.map((registration) =>
+              registration.unregister()
+            ),
+          );
+
+          const cacheKeys = await caches.keys();
+
+          await Promise.all(
+            cacheKeys
+              .filter((key) =>
+                key.startsWith('shab-legal-')
+              )
+              .map((key) => caches.delete(key)),
+          );
+
+          if (
+            navigator.serviceWorker.controller &&
+            sessionStorage.getItem(
+              'shab-dev-sw-cleared',
+            ) !== 'true'
+          ) {
+            sessionStorage.setItem(
+              'shab-dev-sw-cleared',
+              'true',
+            );
+            window.location.reload();
+          }
+        })();
+      },
+    );
+  }
 }

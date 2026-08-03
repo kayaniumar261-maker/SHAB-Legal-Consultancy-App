@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="SHAB Legal">
-  <rect width="512" height="512" rx="112" fill="#0f172a"/>
-  <circle cx="256" cy="256" r="155" fill="#c9a84c"/>
-  <path d="M256 114v262" stroke="#0f172a" stroke-width="28" stroke-linecap="round"/>
-  <path d="M160 203h192" stroke="#0f172a" stroke-width="28" stroke-linecap="round"/>
-  <path d="M189 203 138 315h102L189 203Z" fill="#0f172a"/>
-  <path d="M323 203 272 315h102L323 203Z" fill="#0f172a"/>
-  <path d="M168 358h176" stroke="#0f172a" stroke-width="28" stroke-linecap="round"/>
-</svg>
