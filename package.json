@@ -11,7 +11,9 @@
     "healthcheck": "node ./scripts/start-dev.mjs --health",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "dev:codespace": "node ./scripts/start-dev.mjs --start"
+    "dev:codespace": "node ./scripts/start-dev.mjs --start",
+    "desktop": "npm run build && electron .",
+    "desktop:pack": "npm run build && electron-builder --win nsis --x64"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",
@@ -25,7 +27,45 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
     "typescript": "^5.7.2",
     "vite": "^6.0.3"
-  }
+  },
+  "main": "electron/main.cjs",
+  "build": {
+    "appId": "com.shab.legalconsultancy",
+    "productName": "SHAB Legal Consultancy",
+    "asar": true,
+    "artifactName": "SHAB-Legal-Consultancy-Setup-${version}.${ext}",
+    "directories": {
+      "output": "release",
+      "buildResources": "build-resources"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build-resources/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SHAB Legal Consultancy"
+    }
+  },
+  "description": "SHAB Legal Consultancy case, client and office management application.",
+  "author": "SHAB Legal Consultancy"
 }

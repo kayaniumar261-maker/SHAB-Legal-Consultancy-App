@@ -1,0 +1,53 @@
+name: Build Windows Installer
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    name: Build Windows installer
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Validate application configuration
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:VITE_SUPABASE_URL)) {
+            throw "Missing GitHub secret: VITE_SUPABASE_URL"
+          }
+
+          if ([string]::IsNullOrWhiteSpace($env:VITE_SUPABASE_ANON_KEY)) {
+            throw "Missing GitHub secret: VITE_SUPABASE_ANON_KEY"
+          }
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Windows installer
+        run: npm run desktop:pack
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: SHAB-Legal-Consultancy-Windows
+          path: release/*.exe
+          if-no-files-found: error
+          retention-days: 30
