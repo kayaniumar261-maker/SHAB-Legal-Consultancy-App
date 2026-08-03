@@ -1173,3 +1173,16 @@ grid-template-columns:1fr;
   }
 }
 
+
+
+.finance-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.finance-row-actions .secondary-action-button {
+  min-height: 38px;
+  padding: 8px 11px;
+}

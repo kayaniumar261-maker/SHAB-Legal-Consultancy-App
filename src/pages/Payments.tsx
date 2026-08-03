@@ -33,6 +33,11 @@ import {
 } from '../components/documents/InvoiceDocument';
 
 import {
+  PaymentReceiptDocument,
+  PaymentReceiptPrintPortal,
+} from '../components/documents/PaymentReceiptDocument';
+
+import {
   createInvoice,
   deleteInvoice,
   getFinanceSummary,
@@ -231,6 +236,9 @@ export function Payments() {
 
   const [viewingInvoice, setViewingInvoice] =
     useState<Invoice | null>(null);
+
+  const [viewingPayment, setViewingPayment] =
+    useState<Payment | null>(null);
 
   const [editingInvoice, setEditingInvoice] =
     useState<Invoice | null>(null);
@@ -1193,7 +1201,15 @@ export function Payments() {
             : null,
       };
 
-      await recordPayment(payload);
+      const createdPayment =
+        await recordPayment(payload);
+
+      setViewingPayment(
+        createdPayment.status === 'completed' &&
+          createdPayment.receipt_number
+          ? createdPayment
+          : null,
+      );
 
       setPaymentModalOpen(false);
       setPaymentForm(emptyPaymentForm);
@@ -1839,20 +1855,43 @@ export function Payments() {
                       </td>
 
                       <td>
-                        <button
-                          type="button"
-                          className="finance-delete-button"
-                          onClick={() =>
-                            void handleDeletePayment(
-                              payment,
-                            )
-                          }
-                          disabled={
-                            actionId === payment.id
-                          }
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="finance-row-actions">
+                          {payment.status ===
+                            'completed' &&
+                          payment.receipt_number ? (
+                            <button
+                              type="button"
+                              className="secondary-action-button"
+                              onClick={() =>
+                                setViewingPayment(
+                                  payment,
+                                )
+                              }
+                            >
+                              <ReceiptText size={16} />
+                              Receipt
+                            </button>
+                          ) : null}
+
+                          {payment.status !==
+                          'completed' ? (
+                            <button
+                              type="button"
+                              className="finance-delete-button"
+                              onClick={() =>
+                                void handleDeletePayment(
+                                  payment,
+                                )
+                              }
+                              disabled={
+                                actionId ===
+                                payment.id
+                              }
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -2353,6 +2392,124 @@ export function Payments() {
         </div>
       )}
 
+
+      {viewingPayment && (() => {
+        const receiptInvoice =
+          invoiceMap[viewingPayment.invoice_id];
+
+        if (!receiptInvoice) {
+          return null;
+        }
+
+        const receiptClientName =
+          clientMap[viewingPayment.client_id] ??
+          'Unknown client';
+
+        const receiptCaseReference =
+          viewingPayment.case_id
+            ? caseMap[viewingPayment.case_id] ??
+              'Unknown case'
+            : null;
+
+        return (
+          <div className="finance-modal-layer">
+            <button
+              type="button"
+              className="finance-modal-backdrop"
+              onClick={() =>
+                setViewingPayment(null)
+              }
+            />
+
+            <section className="finance-modal finance-view-modal">
+              <header className="finance-modal-header">
+                <div>
+                  <p className="page-eyebrow">
+                    Payment receipt
+                  </p>
+
+                  <h3>
+                    {viewingPayment.receipt_number}
+                  </h3>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setViewingPayment(null)
+                  }
+                >
+                  ×
+                </button>
+              </header>
+
+              <div className="finance-view-content">
+                <PaymentReceiptDocument
+                  payment={viewingPayment}
+                  invoice={receiptInvoice}
+                  clientName={receiptClientName}
+                  caseReference={
+                    receiptCaseReference
+                  }
+                  companySettings={
+                    companySettings
+                  }
+                />
+              </div>
+
+              <footer className="finance-view-actions">
+                <button
+                  type="button"
+                  className="primary-action-button"
+                  onClick={() => {
+                    const originalTitle =
+                      document.title;
+
+                    document.title =
+                      createReceiptFileName(
+                        viewingPayment,
+                        receiptClientName,
+                      );
+
+                    window.print();
+
+                    window.setTimeout(() => {
+                      document.title =
+                        originalTitle;
+                    }, 500);
+                  }}
+                >
+                  <Printer size={17} />
+                  Print / Save PDF
+                </button>
+
+                <button
+                  type="button"
+                  className="secondary-action-button"
+                  onClick={() =>
+                    setViewingPayment(null)
+                  }
+                >
+                  Close
+                </button>
+              </footer>
+            </section>
+
+            <PaymentReceiptPrintPortal
+              payment={viewingPayment}
+              invoice={receiptInvoice}
+              clientName={receiptClientName}
+              caseReference={
+                receiptCaseReference
+              }
+              companySettings={
+                companySettings
+              }
+            />
+          </div>
+        );
+      })()}
+
       {paymentModalOpen && (
         <div className="finance-modal-layer">
           <button
@@ -2829,4 +2986,22 @@ function getTodayDate(): string {
   return new Date()
     .toISOString()
     .slice(0, 10);
+}
+
+function createReceiptFileName(
+  payment: Payment,
+  clientName: string,
+): string {
+  const receiptNumber =
+    payment.receipt_number ||
+    'SHAB-Payment-Receipt';
+
+  const safeClientName = clientName
+    .trim()
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return safeClientName
+    ? `${receiptNumber}-${safeClientName}`
+    : receiptNumber;
 }

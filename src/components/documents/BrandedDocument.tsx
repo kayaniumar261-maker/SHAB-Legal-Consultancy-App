@@ -20,6 +20,12 @@ type BrandedDocumentProps = {
   children: ReactNode;
   notes?: string | null;
   companySettings?: CompanySettings | null;
+  headingLabel?: string;
+  recipientLabel?: string;
+  showBankDetails?: boolean;
+  referenceNoteTitle?: string;
+  referenceNote?: string | null;
+  footerText?: string;
 };
 
 export function BrandedDocument({
@@ -31,6 +37,13 @@ export function BrandedDocument({
   children,
   notes,
   companySettings,
+  headingLabel = 'Billing Document',
+  recipientLabel = 'Bill To',
+  showBankDetails = true,
+  referenceNoteTitle = 'Payment Reference',
+  referenceNote,
+  footerText =
+    'This invoice was generated electronically through the SHAB practice management system.',
 }: BrandedDocumentProps) {
   const legalName =
     companySettings?.legal_name ||
@@ -116,7 +129,7 @@ export function BrandedDocument({
         </div>
 
         <div className="shab-document-heading">
-          <span>Billing Document</span>
+          <span>{headingLabel}</span>
           <h1>{documentTitle}</h1>
           <strong>{referenceNumber}</strong>
         </div>
@@ -126,7 +139,7 @@ export function BrandedDocument({
 
       <section className="shab-document-parties">
         <div className="shab-document-recipient">
-          <span>Bill To</span>
+          <span>{recipientLabel}</span>
           <strong>{recipientName}</strong>
 
           {caseReference ? (
@@ -157,7 +170,8 @@ export function BrandedDocument({
         </section>
       ) : null}
 
-      {paymentDetails.length > 0 ? (
+      {showBankDetails &&
+      paymentDetails.length > 0 ? (
         <section className="shab-document-bank-details">
           <div className="shab-document-section-heading">
             <span>Payment Details</span>
@@ -181,13 +195,15 @@ export function BrandedDocument({
         </section>
       ) : null}
 
-      <section className="shab-document-payment-note">
-        <strong>Payment Reference</strong>
-        <p>
-          Please quote {referenceNumber} when making payment
-          or corresponding with SHAB regarding this invoice.
-        </p>
-      </section>
+      {referenceNote !== null ? (
+        <section className="shab-document-payment-note">
+          <strong>{referenceNoteTitle}</strong>
+          <p>
+            {referenceNote ??
+              `Please quote ${referenceNumber} when making payment or corresponding with SHAB regarding this invoice.`}
+          </p>
+        </section>
+      ) : null}
 
       <footer className="shab-document-footer">
         <div>
@@ -202,10 +218,7 @@ export function BrandedDocument({
           )}
         </div>
 
-        <span>
-          This invoice was generated electronically through
-          the SHAB practice management system.
-        </span>
+        <span>{footerText}</span>
       </footer>
     </article>
   );

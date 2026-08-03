@@ -13,6 +13,9 @@ export interface Payment {
   payment_method: string | null;
   reference_number: string | null;
 
+  receipt_number: string | null;
+  receipt_issued_at: string | null;
+
   status: PaymentStatus;
   notes: string | null;
 
@@ -26,7 +29,11 @@ export interface Payment {
 
 export type PaymentInsert = Omit<
   Payment,
-  'id' | 'created_at' | 'updated_at'
+  | 'id'
+  | 'receipt_number'
+  | 'receipt_issued_at'
+  | 'created_at'
+  | 'updated_at'
 >;
 
 export type PaymentUpdate = Partial<PaymentInsert>;
