@@ -70,6 +70,29 @@ export async function getPayments(
   };
 }
 
+export async function recordPayment(
+  data: PaymentInsert
+): Promise<Payment> {
+  const result = await supabase.rpc(
+    'shab_record_payment',
+    {
+      p_invoice_id: data.invoice_id,
+      p_amount: data.amount,
+      p_payment_date: data.payment_date,
+      p_payment_method:
+        data.payment_method,
+      p_reference_number:
+        data.reference_number,
+      p_status: data.status,
+      p_notes: data.notes,
+      p_received_by_staff_id:
+        data.received_by_staff_id,
+    },
+  );
+
+  return handleError(result) as Payment;
+}
+
 export async function createPayment(
   data: PaymentInsert
 ): Promise<Payment> {

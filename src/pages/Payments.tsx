@@ -42,7 +42,7 @@ import {
 } from '../services/invoiceService';
 
 import {
-  createPayment,
+  recordPayment,
   deletePayment,
   getPayments,
 } from '../services/paymentService';
@@ -285,6 +285,22 @@ export function Payments() {
       {},
     );
   }, [invoiceOptions]);
+
+  const payableInvoiceOptions = useMemo(
+    () =>
+      invoiceOptions.filter(
+        (invoice) =>
+          Number(
+            invoice.balance_amount ?? 0,
+          ) > 0 &&
+          ![
+            'paid',
+            'cancelled',
+            'written_off',
+          ].includes(invoice.status),
+      ),
+    [invoiceOptions],
+  );
 
   const filteredCases = useMemo(() => {
     if (!invoiceForm.client_id) {
@@ -1106,11 +1122,18 @@ export function Payments() {
       return;
     }
 
-    const currentPaid =
-      Number(invoice.paid_amount ?? 0);
-
-    const totalAmount =
-      Number(invoice.total_amount ?? 0);
+    if (
+      [
+        'paid',
+        'cancelled',
+        'written_off',
+      ].includes(invoice.status)
+    ) {
+      setError(
+        'Payments cannot be recorded against this invoice.',
+      );
+      return;
+    }
 
     const currentBalance =
       Number(invoice.balance_amount ?? 0);
@@ -1170,47 +1193,16 @@ export function Payments() {
             : null,
       };
 
-      await createPayment(payload);
-
-      if (paymentForm.status === 'completed') {
-        const newPaidAmount =
-          currentPaid + amount;
-
-        const newBalanceAmount =
-          Math.max(
-            0,
-            totalAmount - newPaidAmount,
-          );
-
-        let newStatus: InvoiceStatus =
-          'issued';
-
-        if (newPaidAmount >= totalAmount) {
-          newStatus = 'paid';
-        } else if (newPaidAmount > 0) {
-          newStatus = 'partially_paid';
-        }
-
-        await updateInvoice(
-          invoice.id,
-          {
-            paid_amount:
-              newPaidAmount,
-
-            balance_amount:
-              newBalanceAmount,
-
-            status:
-              newStatus,
-          },
-        );
-      }
+      await recordPayment(payload);
 
       setPaymentModalOpen(false);
       setPaymentForm(emptyPaymentForm);
       setPage(1);
 
-      await loadFinanceData();
+      await Promise.all([
+        loadFinanceData(),
+        loadOptions(),
+      ]);
     } catch (saveError) {
       setError(
         saveError instanceof Error
@@ -2401,22 +2393,37 @@ export function Payments() {
                   value={
                     paymentForm.invoice_id
                   }
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const selectedInvoice =
+                      invoiceMap[
+                        event.target.value
+                      ];
+
                     setPaymentForm(
                       (current) => ({
                         ...current,
                         invoice_id:
                           event.target.value,
+                        amount:
+                          selectedInvoice
+                            ? String(
+                                selectedInvoice
+                                  .balance_amount ?? '',
+                              )
+                            : '',
+                        currency:
+                          selectedInvoice?.currency ??
+                          'AED',
                       }),
-                    )
-                  }
+                    );
+                  }}
                   required
                 >
                   <option value="">
                     Select invoice
                   </option>
 
-                  {invoiceOptions.map((invoice) => (
+                  {payableInvoiceOptions.map((invoice) => (
                     <option
                       key={invoice.id}
                       value={invoice.id}
