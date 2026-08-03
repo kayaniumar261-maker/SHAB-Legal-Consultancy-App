@@ -388,7 +388,7 @@ export function Dashboard() {
             Executive overview
           </p>
 
-          <h2>SHAB Legal Consultancy FZE</h2>
+          <h2>SHAB Legal Consultants FZC</h2>
 
           <p className="page-intro">
             A centralized command centre for cases,

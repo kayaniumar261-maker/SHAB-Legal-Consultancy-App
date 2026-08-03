@@ -364,7 +364,7 @@ export function Staff() {
       <section className="page-heading">
         <div>
           <p className="page-eyebrow">
-            SHAB Legal Consultancy FZE
+            SHAB Legal Consultants FZC
           </p>
 
           <h2>Staff</h2>

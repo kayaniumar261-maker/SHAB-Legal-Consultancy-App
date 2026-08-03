@@ -9,7 +9,7 @@ const createMainWindow = () => {
     minHeight: 700,
     show: false,
     backgroundColor: '#f8fafc',
-    title: 'SHAB Legal Consultancy FZE',
+    title: 'SHAB Legal Consultants FZC',
     autoHideMenuBar: true,
     webPreferences: {
       contextIsolation: true,

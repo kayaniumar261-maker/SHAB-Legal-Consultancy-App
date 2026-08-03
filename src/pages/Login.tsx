@@ -62,12 +62,12 @@ export function Login() {
             <img
               className="login-logo"
               src={shabLogoUrl}
-              alt="SHAB Legal Consultancy FZE"
+              alt="SHAB Legal Consultants FZC"
             />
           </div>
 
           <p className="login-eyebrow">
-            SHAB Legal Consultancy FZE
+            SHAB Legal Consultants FZC
           </p>
 
           <h1>Secure Practice Management System</h1>

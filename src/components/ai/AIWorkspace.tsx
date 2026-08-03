@@ -1108,7 +1108,7 @@ function buildPreviewResponse(
       'We will continue to keep you informed of material developments. Please provide any outstanding documents or instructions requested by our team without delay.',
       '',
       'Kind regards,',
-      'SHAB Legal Consultancy FZE',
+      'SHAB Legal Consultants FZC',
     ].join('\n');
   }
 

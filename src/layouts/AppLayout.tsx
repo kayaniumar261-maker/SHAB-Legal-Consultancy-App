@@ -144,7 +144,7 @@ export function AppLayout() {
 
           <div>
             <p className="header-eyebrow">
-              SHAB Legal Consultancy FZE
+              SHAB Legal Consultants FZC
             </p>
 
             <h1 className="header-title">
@@ -216,7 +216,7 @@ function SidebarContent({
         <img
           className="sidebar-brand-logo"
           src={shabLogoUrl}
-          alt="SHAB Legal Consultancy FZE"
+          alt="SHAB Legal Consultants FZC"
         />
       </div>
 
@@ -255,7 +255,7 @@ function SidebarContent({
 
       <div className="sidebar-footer">
         <p>
-          SHAB Legal Consultancy FZE
+          SHAB Legal Consultants FZC
         </p>
 
         <span>Version 2.0.0</span>

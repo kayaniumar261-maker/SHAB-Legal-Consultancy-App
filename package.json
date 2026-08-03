@@ -35,9 +35,9 @@
   "main": "electron/main.cjs",
   "build": {
     "appId": "com.shab.legalconsultancy",
-    "productName": "SHAB Legal Consultancy FZE",
+    "productName": "SHAB Legal Consultants FZC",
     "asar": true,
-    "artifactName": "SHAB-Legal-Consultancy-FZE-Setup-${version}.${ext}",
+    "artifactName": "SHAB-Legal-Consultants-FZC-Setup-${version}.${ext}",
     "directories": {
       "output": "release",
       "buildResources": "build-resources"
@@ -63,9 +63,9 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "SHAB Legal Consultancy FZE"
+      "shortcutName": "SHAB Legal Consultants FZC"
     }
   },
-  "description": "SHAB Legal Consultancy FZE case, client and office management application.",
-  "author": "SHAB Legal Consultancy FZE"
+  "description": "SHAB Legal Consultants FZC case, client and office management application.",
+  "author": "SHAB Legal Consultants FZC"
 }

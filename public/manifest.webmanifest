@@ -1,7 +1,7 @@
 {
-  "name": "SHAB Legal Consultancy FZE",
+  "name": "SHAB Legal Consultants FZC",
   "short_name": "SHAB Legal",
-  "description": "SHAB Legal Consultancy FZE case, client and office management workspace.",
+  "description": "SHAB Legal Consultants FZC case, client and office management workspace.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

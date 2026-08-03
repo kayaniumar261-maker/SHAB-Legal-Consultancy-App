@@ -13,7 +13,7 @@ export type CompanyProfile = {
 };
 
 export const companyProfile: CompanyProfile = {
-  legalName: 'SHAB Legal Consultancy FZE',
+  legalName: 'SHAB Legal Consultants FZC',
   shortName: 'SHAB',
   logoUrl: shabLogoUrl,
   jurisdiction: 'United Arab Emirates',

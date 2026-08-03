@@ -434,7 +434,7 @@ export function buildMatterPrompt(
         'Use only the supplied matter information.',
         'Do not invent facts, dates, documents, amounts, admissions, legal authorities, or procedural events.',
         'Clearly identify missing or uncertain information.',
-        'Use a professional legal tone suitable for SHAB Legal Consultancy FZE.',
+        'Use a professional legal tone suitable for SHAB Legal Consultants FZC.',
         'Preserve confidentiality and distinguish internal notes from client-facing content.',
       ],
     ),
