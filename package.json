@@ -13,7 +13,7 @@
     "preview": "vite preview",
     "dev:codespace": "node ./scripts/start-dev.mjs --start",
     "desktop": "npm run build && electron .",
-    "desktop:pack": "npm run build && electron-builder --win nsis --x64"
+    "desktop:pack": "npm run build && electron-builder --win nsis --x64 --publish never"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",
