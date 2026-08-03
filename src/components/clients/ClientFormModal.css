@@ -339,3 +339,20 @@
   }
 }
 
+
+.client-form-draft-note {
+  margin: 0 20px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 10px 12px;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.client-form-draft-note.offline {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  color: #c2410c;
+}

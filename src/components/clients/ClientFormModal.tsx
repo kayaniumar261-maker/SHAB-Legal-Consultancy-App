@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import type { Client } from '../../types/client';
 import type { ClientInsert, ClientUpdate } from '../../services/clientService';
+import { useOnlineStatus } from '../../hooks/useOnlineStatus';
 import './ClientFormModal.css';
 
 type ClientFormModalProps = {
@@ -45,6 +46,48 @@ const emptyState: FormState = {
   status: 'active',
 };
 
+function loadSavedClientDraft(
+  storageKey: string,
+  fallback: FormState,
+): FormState {
+  try {
+    const saved = window.localStorage.getItem(storageKey);
+
+    if (!saved) {
+      return fallback;
+    }
+
+    return {
+      ...fallback,
+      ...(JSON.parse(saved) as Partial<FormState>),
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function saveClientDraft(
+  storageKey: string,
+  state: FormState,
+): void {
+  try {
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify(state),
+    );
+  } catch {
+    // Local drafts are a convenience only.
+  }
+}
+
+function clearClientDraft(storageKey: string): void {
+  try {
+    window.localStorage.removeItem(storageKey);
+  } catch {
+    // Nothing to clear.
+  }
+}
+
 export function ClientFormModal({
   open,
   client,
@@ -52,8 +95,17 @@ export function ClientFormModal({
   onSave,
   loading,
 }: ClientFormModalProps) {
-  const [formState, setFormState] = useState<FormState>(emptyState);
+  const draftStorageKey = client?.id
+    ? `shab-client-form-draft-${client.id}`
+    : 'shab-client-form-draft-new';
+
+  const [formState, setFormState] = useState<FormState>(() =>
+    loadSavedClientDraft(draftStorageKey, emptyState),
+  );
   const [error, setError] = useState<string | null>(null);
+  const [hydratedDraftKey, setHydratedDraftKey] =
+    useState<string | null>(null);
+  const isOnline = useOnlineStatus();
 
   useEffect(() => {
     if (!open) {
@@ -61,26 +113,54 @@ export function ClientFormModal({
     }
 
     if (client) {
-      setFormState({
-        client_type: client.client_type,
-        full_name: client.full_name,
-        email: client.email ?? '',
-        phone: client.phone ?? '',
-        nationality: client.nationality ?? '',
-        emirates_id: client.emirates_id ?? '',
-        passport_number: client.passport_number ?? '',
-        company_name: client.company_name ?? '',
-        trade_license_number: client.trade_license_number ?? '',
-        address: client.address ?? '',
-        notes: client.notes ?? '',
-        status: client.status,
-      });
+      setFormState(
+        loadSavedClientDraft(draftStorageKey, {
+          client_type: client.client_type,
+          full_name: client.full_name,
+          email: client.email ?? '',
+          phone: client.phone ?? '',
+          nationality: client.nationality ?? '',
+          emirates_id: client.emirates_id ?? '',
+          passport_number: client.passport_number ?? '',
+          company_name: client.company_name ?? '',
+          trade_license_number: client.trade_license_number ?? '',
+          address: client.address ?? '',
+          notes: client.notes ?? '',
+          status: client.status,
+        }),
+      );
       return;
     }
 
-    setFormState(emptyState);
+    setFormState(
+      loadSavedClientDraft(draftStorageKey, emptyState),
+    );
     setError(null);
-  }, [client, open]);
+  }, [client, draftStorageKey, open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setHydratedDraftKey(draftStorageKey);
+  }, [draftStorageKey, open]);
+
+  useEffect(() => {
+    if (
+      !open ||
+      hydratedDraftKey !== draftStorageKey
+    ) {
+      return;
+    }
+
+    saveClientDraft(draftStorageKey, formState);
+  }, [
+    draftStorageKey,
+    formState,
+    hydratedDraftKey,
+    open,
+  ]);
 
   const isCompany = formState.client_type === 'company';
 
@@ -110,6 +190,13 @@ export function ClientFormModal({
     event.preventDefault();
     setError(null);
 
+    if (!isOnline) {
+      setError(
+        'You are offline. Your draft is saved locally; reconnect before saving this client.',
+      );
+      return;
+    }
+
     if (validationErrors.length > 0) {
       setError(validationErrors.join(' '));
       return;
@@ -132,6 +219,7 @@ export function ClientFormModal({
 
     try {
       await onSave(client?.id ?? null, payload);
+      clearClientDraft(draftStorageKey);
       onClose();
     } catch (saveError) {
       if (saveError instanceof Error) {
@@ -376,6 +464,18 @@ export function ClientFormModal({
             </div>
           )}
 
+          <div
+            className={
+              isOnline
+                ? 'client-form-draft-note'
+                : 'client-form-draft-note offline'
+            }
+          >
+            {isOnline
+              ? 'Draft is saved locally on this device until the client is successfully saved.'
+              : 'Offline — draft is saved locally. Reconnect before saving this client to SHAB.'}
+          </div>
+
           <footer className="client-form-actions">
             <button
               type="button"
@@ -387,7 +487,7 @@ export function ClientFormModal({
             <button
               type="submit"
               className="primary-action-button"
-              disabled={loading}
+              disabled={loading || !isOnline}
             >
               {loading
                 ? 'Saving…'
