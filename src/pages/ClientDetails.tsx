@@ -69,21 +69,9 @@ import {
 import type { Task } from '../types/task';
 import type { DocumentWithRelations } from '../types/document';
 
-import {
-  getInvoices,
-} from '../services/invoiceService';
 
-import {
-  getPayments,
-} from '../services/paymentService';
 
-import type {
-  Invoice,
-} from '../types/invoice';
 
-import type {
-  Payment,
-} from '../types/payment';
 
 import type {
   CaseWithRelations,
@@ -93,6 +81,10 @@ import {
   ClientWorkspace,
 } from '../components/clients/ClientWorkspace';
 
+import {
+  FinancialLedger,
+} from '../components/finance/FinancialLedger';
+
 import './ClientDetails.css';
 
 type ClientTab =
@@ -101,8 +93,7 @@ type ClientTab =
   | 'hearings'
   | 'tasks'
   | 'documents'
-  | 'invoices'
-  | 'payments'
+  | 'finance'
   | 'timeline'
   | 'notes';
 
@@ -115,8 +106,7 @@ const tabs: Array<{
   { id: 'hearings', label: 'Hearings' },
   { id: 'tasks', label: 'Tasks' },
   { id: 'documents', label: 'Documents' },
-  { id: 'invoices', label: 'Invoices' },
-  { id: 'payments', label: 'Payments' },
+  { id: 'finance', label: 'Finance' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'notes', label: 'Notes' },
 ];
@@ -505,16 +495,11 @@ export function ClientDetails() {
           />
         )}
 
-        {activeTab === 'invoices' && (
-          <ClientInvoicesTab
+        {activeTab === 'finance' && (
+          <FinancialLedger
             clientId={client.id}
-          />
-        )}
-
-        {activeTab ===
-          'payments' && (
-          <ClientPaymentsTab
-            clientId={client.id}
+            title="Client Financial Ledger"
+            description="Complete financial history across all matters, invoices, payments, credit notes and reversals for this client."
           />
         )}
 
@@ -1203,363 +1188,6 @@ function ClientTasksTab({
                 </td>
                 <td>
                   {formatOptionalDate(task.due_at)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </article>
-  );
-}
-
-function ClientInvoicesTab({
-  clientId,
-}: {
-  clientId: string;
-}) {
-  const [invoices, setInvoices] =
-    useState<Invoice[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-
-    async function load() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const result =
-          await getInvoices({
-            clientId,
-            page: 1,
-            pageSize: 50,
-          });
-
-        if (active) {
-          setInvoices(result.data);
-        }
-      } catch (loadError) {
-        if (active) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : 'Unable to load invoices.',
-          );
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void load();
-
-    return () => {
-      active = false;
-    };
-  }, [clientId]);
-
-  if (loading) {
-    return (
-      <div className="client-module-placeholder">
-        <ReceiptText size={24} />
-        <h3>Loading invoices…</h3>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="client-module-placeholder">
-        <ShieldAlert size={24} />
-        <h3>Unable to load invoices</h3>
-        <p>{error}</p>
-      </div>
-    );
-  }
-
-  if (invoices.length === 0) {
-    return (
-      <div className="client-module-placeholder">
-        <ReceiptText size={24} />
-
-        <h3>No invoices yet</h3>
-
-        <p>
-          This client does not have any invoices recorded.
-        </p>
-
-        <Link
-          className="secondary-action-button"
-          to={`/payments?clientId=${clientId}`}
-        >
-          Open Finance Module
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <article className="client-profile-card">
-      <div className="client-profile-card-heading client-cases-heading">
-        <div>
-          <ReceiptText size={20} />
-          <h3>Client Invoices</h3>
-        </div>
-
-        <Link
-          className="secondary-action-button"
-          to={`/payments?clientId=${clientId}`}
-        >
-          Open Finance
-        </Link>
-      </div>
-
-      <div className="client-cases-table-wrap">
-        <table className="client-cases-table">
-          <thead>
-            <tr>
-              <th>Invoice</th>
-              <th>Issue Date</th>
-              <th>Due Date</th>
-              <th>Status</th>
-              <th>Total</th>
-              <th>Paid</th>
-              <th>Balance</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {invoices.map((invoice) => (
-              <tr key={invoice.id}>
-                <td>
-                  <strong>
-                    {invoice.invoice_number}
-                  </strong>
-                </td>
-
-                <td>
-                  {formatOptionalDate(
-                    invoice.issue_date,
-                  )}
-                </td>
-
-                <td>
-                  {formatOptionalDate(
-                    invoice.due_date,
-                  )}
-                </td>
-
-                <td>
-                  <span
-                    className={`case-inline-status ${normalizeClassName(
-                      invoice.status,
-                    )}`}
-                  >
-                    {formatLabel(
-                      invoice.status,
-                    )}
-                  </span>
-                </td>
-
-                <td>
-                  {formatCurrency(
-                    invoice.total_amount,
-                  )}
-                </td>
-
-                <td>
-                  {formatCurrency(
-                    invoice.paid_amount,
-                  )}
-                </td>
-
-                <td>
-                  <strong>
-                    {formatCurrency(
-                      invoice.balance_amount,
-                    )}
-                  </strong>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </article>
-  );
-}
-
-function ClientPaymentsTab({
-  clientId,
-}: {
-  clientId: string;
-}) {
-  const [payments, setPayments] =
-    useState<Payment[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-
-    async function load() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const result =
-          await getPayments({
-            clientId,
-            page: 1,
-            pageSize: 50,
-          });
-
-        if (active) {
-          setPayments(result.data);
-        }
-      } catch (loadError) {
-        if (active) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : 'Unable to load payments.',
-          );
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void load();
-
-    return () => {
-      active = false;
-    };
-  }, [clientId]);
-
-  if (loading) {
-    return (
-      <div className="client-module-placeholder">
-        <WalletCards size={24} />
-        <h3>Loading payments…</h3>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="client-module-placeholder">
-        <ShieldAlert size={24} />
-        <h3>Unable to load payments</h3>
-        <p>{error}</p>
-      </div>
-    );
-  }
-
-  if (payments.length === 0) {
-    return (
-      <div className="client-module-placeholder">
-        <WalletCards size={24} />
-
-        <h3>No payments yet</h3>
-
-        <p>
-          No payment records are currently linked to this client.
-        </p>
-
-        <Link
-          className="secondary-action-button"
-          to={`/payments?clientId=${clientId}`}
-        >
-          Open Finance Module
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <article className="client-profile-card">
-      <div className="client-profile-card-heading client-cases-heading">
-        <div>
-          <WalletCards size={20} />
-          <h3>Client Payments</h3>
-        </div>
-
-        <Link
-          className="secondary-action-button"
-          to={`/payments?clientId=${clientId}`}
-        >
-          Open Finance
-        </Link>
-      </div>
-
-      <div className="client-cases-table-wrap">
-        <table className="client-cases-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Amount</th>
-              <th>Method</th>
-              <th>Reference</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {payments.map((payment) => (
-              <tr key={payment.id}>
-                <td>
-                  {formatOptionalDate(
-                    payment.payment_date,
-                  )}
-                </td>
-
-                <td>
-                  <strong>
-                    {formatCurrency(
-                      payment.amount,
-                    )}
-                  </strong>
-                </td>
-
-                <td>
-                  {payment.payment_method
-                    ? formatLabel(
-                        payment.payment_method,
-                      )
-                    : 'Not provided'}
-                </td>
-
-                <td>
-                  {payment.reference_number ||
-                    '—'}
-                </td>
-
-                <td>
-                  <span
-                    className={`case-inline-status ${normalizeClassName(
-                      payment.status,
-                    )}`}
-                  >
-                    {formatLabel(
-                      payment.status,
-                    )}
-                  </span>
                 </td>
               </tr>
             ))}
