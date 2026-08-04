@@ -8,8 +8,10 @@ import {
   Clock3,
   AlertTriangle,
   FileText,
+  FileMinus,
   Plus,
   Printer,
+  Undo2,
   ReceiptText,
   Search,
   Trash2,
@@ -53,6 +55,11 @@ import {
   deletePayment,
   getPayments,
 } from '../services/paymentService';
+
+import {
+  issueCreditNote,
+  reversePayment,
+} from '../services/financeAdjustmentService';
 
 import {
   getClientOptions,
@@ -113,6 +120,19 @@ type PaymentFormState = {
   received_by_staff_id: string;
 };
 
+type CreditNoteFormState = {
+  subtotal: string;
+  vat_rate: string;
+  issue_date: string;
+  reason: string;
+};
+
+type PaymentReversalFormState = {
+  amount: string;
+  reversal_date: string;
+  reason: string;
+};
+
 const emptyInvoiceForm: InvoiceFormState = {
   client_id: '',
   case_id: '',
@@ -139,6 +159,20 @@ const emptyPaymentForm: PaymentFormState = {
   notes: '',
   received_by_staff_id: '',
 };
+
+const emptyCreditNoteForm: CreditNoteFormState = {
+  subtotal: '',
+  vat_rate: '5',
+  issue_date: getTodayDate(),
+  reason: '',
+};
+
+const emptyPaymentReversalForm:
+  PaymentReversalFormState = {
+    amount: '',
+    reversal_date: getTodayDate(),
+    reason: '',
+  };
 
 export function Payments() {
   const [
@@ -254,6 +288,30 @@ export function Payments() {
     cancellationReason,
     setCancellationReason,
   ] = useState('');
+
+  const [
+    creditingInvoice,
+    setCreditingInvoice,
+  ] = useState<Invoice | null>(null);
+
+  const [
+    creditNoteForm,
+    setCreditNoteForm,
+  ] = useState<CreditNoteFormState>(
+    emptyCreditNoteForm,
+  );
+
+  const [
+    reversingPayment,
+    setReversingPayment,
+  ] = useState<Payment | null>(null);
+
+  const [
+    paymentReversalForm,
+    setPaymentReversalForm,
+  ] = useState<PaymentReversalFormState>(
+    emptyPaymentReversalForm,
+  );
 
   const [paymentModalOpen, setPaymentModalOpen] =
     useState(false);
@@ -1289,6 +1347,174 @@ export function Payments() {
     }
   };
 
+  const handleIssueCreditNote = async (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
+    if (!creditingInvoice) {
+      return;
+    }
+
+    const subtotal =
+      Number(creditNoteForm.subtotal);
+
+    const vatRate =
+      Number(creditNoteForm.vat_rate);
+
+    const reason =
+      creditNoteForm.reason.trim();
+
+    const creditTotal =
+      subtotal +
+      subtotal * vatRate / 100;
+
+    if (!Number.isFinite(subtotal) || subtotal <= 0) {
+      setError(
+        'Credit-note subtotal must be greater than zero.',
+      );
+      return;
+    }
+
+    if (
+      !Number.isFinite(vatRate) ||
+      vatRate < 0 ||
+      vatRate > 100
+    ) {
+      setError('Enter a valid VAT rate.');
+      return;
+    }
+
+    if (
+      creditTotal >
+      Number(creditingInvoice.balance_amount ?? 0) +
+        0.005
+    ) {
+      setError(
+        'Credit note cannot exceed the outstanding invoice balance.',
+      );
+      return;
+    }
+
+    if (reason.length < 5) {
+      setError(
+        'Please provide a meaningful credit-note reason.',
+      );
+      return;
+    }
+
+    setFormLoading(true);
+    setError(null);
+
+    try {
+      await issueCreditNote({
+        invoice_id: creditingInvoice.id,
+        subtotal,
+        vat_rate: vatRate,
+        issue_date:
+          creditNoteForm.issue_date,
+        reason,
+      });
+
+      setCreditingInvoice(null);
+      setCreditNoteForm(
+        emptyCreditNoteForm,
+      );
+      setPage(1);
+
+      await Promise.all([
+        loadFinanceData(),
+        loadOptions(),
+      ]);
+    } catch (creditError) {
+      setError(
+        creditError instanceof Error
+          ? creditError.message
+          : 'Unable to issue credit note.',
+      );
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleReversePayment = async (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
+    if (!reversingPayment) {
+      return;
+    }
+
+    const amount =
+      Number(paymentReversalForm.amount);
+
+    const availableAmount =
+      Number(reversingPayment.amount ?? 0) -
+      Number(
+        reversingPayment.reversed_amount ?? 0,
+      );
+
+    const reason =
+      paymentReversalForm.reason.trim();
+
+    if (
+      !Number.isFinite(amount) ||
+      amount <= 0
+    ) {
+      setError(
+        'Reversal amount must be greater than zero.',
+      );
+      return;
+    }
+
+    if (amount > availableAmount + 0.005) {
+      setError(
+        'Reversal cannot exceed the unreversed payment amount.',
+      );
+      return;
+    }
+
+    if (reason.length < 5) {
+      setError(
+        'Please provide a meaningful reversal reason.',
+      );
+      return;
+    }
+
+    setFormLoading(true);
+    setError(null);
+
+    try {
+      await reversePayment({
+        payment_id: reversingPayment.id,
+        amount,
+        reversal_date:
+          paymentReversalForm.reversal_date,
+        reason,
+      });
+
+      setReversingPayment(null);
+      setPaymentReversalForm(
+        emptyPaymentReversalForm,
+      );
+      setPage(1);
+
+      await Promise.all([
+        loadFinanceData(),
+        loadOptions(),
+      ]);
+    } catch (reversalError) {
+      setError(
+        reversalError instanceof Error
+          ? reversalError.message
+          : 'Unable to reverse payment.',
+      );
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
   const handleDeleteInvoice = async (
     invoice: Invoice,
   ) => {
@@ -1684,7 +1910,7 @@ export function Payments() {
 
       <section className="finance-table-wrapper">
         {activeTab === 'invoices' ? (
-          <table className="finance-table">
+          <table className="finance-table finance-invoice-table">
             <thead>
               <tr>
                 <th>Invoice</th>
@@ -1753,6 +1979,17 @@ export function Payments() {
                       {formatCurrency(
                         invoice.total_amount,
                       )}
+
+                      {Number(
+                        invoice.credited_amount ?? 0,
+                      ) > 0 ? (
+                        <small>
+                          Credited:{' '}
+                          {formatCurrency(
+                            invoice.credited_amount,
+                          )}
+                        </small>
+                      ) : null}
                     </td>
 
                     <td>
@@ -1773,7 +2010,7 @@ export function Payments() {
                       )}
                     </td>
 
-                    <td>
+                    <td className="finance-actions-cell">
                       <div className="finance-row-actions">
                         <button
                           type="button"
@@ -1785,111 +2022,139 @@ export function Payments() {
                           View
                         </button>
 
-                        {invoice.status ===
-                        'draft' ? (
-                          <>
-                            <button
-                              type="button"
-                              className="finance-action-button"
-                              onClick={() => {
-                                setEditingInvoice(
-                                  invoice,
-                                );
+                        {invoice.status === 'draft' ||
+                        (
+                          [
+                            'issued',
+                            'overdue',
+                            'partially_paid',
+                            'partially_credited',
+                          ].includes(invoice.status) &&
+                          Number(
+                            invoice.balance_amount ?? 0,
+                          ) > 0
+                        ) ? (
+                          <details className="finance-actions-menu">
+                            <summary>
+                              Actions
+                              <span aria-hidden="true">▾</span>
+                            </summary>
 
-                                setInvoiceForm({
-                                  client_id:
-                                    invoice.client_id,
-                                  case_id:
-                                    invoice.case_id ??
-                                    '',
-                                  invoice_number:
-                                    invoice.invoice_number,
-                                  issue_date:
-                                    invoice.issue_date,
-                                  due_date:
-                                    invoice.due_date ??
-                                    '',
-                                  status:
-                                    invoice.status,
-                                  currency:
-                                    invoice.currency,
-                                  subtotal:
-                                    String(
-                                      invoice.subtotal ??
-                                        0,
-                                    ),
-                                  vat_rate:
-                                    String(
-                                      invoice.vat_rate ??
-                                        0,
-                                    ),
-                                  discount_amount:
-                                    String(
-                                      invoice
-                                        .discount_amount ??
-                                        0,
-                                    ),
-                                  description:
-                                    invoice.description ??
-                                    '',
-                                  notes:
-                                    invoice.notes ??
-                                    '',
-                                });
+                            <div className="finance-actions-popover">
+                              {invoice.status === 'draft' ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingInvoice(invoice);
 
-                                setInvoiceModalOpen(
-                                  true,
-                                );
-                              }}
-                            >
-                              Edit
-                            </button>
+                                      setInvoiceForm({
+                                        client_id:
+                                          invoice.client_id,
+                                        case_id:
+                                          invoice.case_id ?? '',
+                                        invoice_number:
+                                          invoice.invoice_number,
+                                        issue_date:
+                                          invoice.issue_date,
+                                        due_date:
+                                          invoice.due_date ?? '',
+                                        status:
+                                          invoice.status,
+                                        currency:
+                                          invoice.currency,
+                                        subtotal:
+                                          String(
+                                            invoice.subtotal ?? 0,
+                                          ),
+                                        vat_rate:
+                                          String(
+                                            invoice.vat_rate ?? 0,
+                                          ),
+                                        discount_amount:
+                                          String(
+                                            invoice
+                                              .discount_amount ?? 0,
+                                          ),
+                                        description:
+                                          invoice.description ?? '',
+                                        notes:
+                                          invoice.notes ?? '',
+                                      });
 
-                            <button
-                              type="button"
-                              className="finance-delete-button"
-                              onClick={() =>
-                                void handleDeleteInvoice(
-                                  invoice,
-                                )
-                              }
-                              disabled={
-                                actionId ===
-                                invoice.id
-                              }
-                              aria-label={`Delete draft invoice ${invoice.invoice_number}`}
-                              title="Delete draft"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </>
-                        ) : null}
+                                      setInvoiceModalOpen(true);
+                                    }}
+                                  >
+                                    Edit Draft
+                                  </button>
 
-                        {[
-                          'issued',
-                          'overdue',
-                        ].includes(
-                          invoice.status,
-                        ) &&
-                        Number(
-                          invoice.paid_amount ??
-                            0,
-                        ) <= 0 ? (
-                          <button
-                            type="button"
-                            className="finance-cancel-button"
-                            onClick={() => {
-                              setCancellingInvoice(
-                                invoice,
-                              );
-                              setCancellationReason(
-                                '',
-                              );
-                            }}
-                          >
-                            <Ban size={16} />
-                            Cancel
-                          </button>
+                                  <button
+                                    type="button"
+                                    className="is-danger"
+                                    onClick={() =>
+                                      void handleDeleteInvoice(
+                                        invoice,
+                                      )
+                                    }
+                                    disabled={
+                                      actionId === invoice.id
+                                    }
+                                  >
+                                    Delete Draft
+                                  </button>
+                                </>
+                              ) : null}
+
+                              {[
+                                'issued',
+                                'overdue',
+                                'partially_paid',
+                                'partially_credited',
+                              ].includes(invoice.status) &&
+                              Number(
+                                invoice.balance_amount ?? 0,
+                              ) > 0 ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCreditingInvoice(
+                                      invoice,
+                                    );
+
+                                    setCreditNoteForm({
+                                      ...emptyCreditNoteForm,
+                                      vat_rate: String(
+                                        invoice.vat_rate ?? 0,
+                                      ),
+                                    });
+                                  }}
+                                >
+                                  Issue Credit Note
+                                </button>
+                              ) : null}
+
+                              {[
+                                'issued',
+                                'overdue',
+                              ].includes(invoice.status) &&
+                              Number(
+                                invoice.paid_amount ?? 0,
+                              ) <= 0 ? (
+                                <button
+                                  type="button"
+                                  className="is-danger"
+                                  onClick={() => {
+                                    setCancellingInvoice(
+                                      invoice,
+                                    );
+                                    setCancellationReason('');
+                                  }}
+                                >
+                                  Cancel Invoice
+                                </button>
+                              ) : null}
+                            </div>
+                          </details>
                         ) : null}
                       </div>
                     </td>
@@ -1899,7 +2164,7 @@ export function Payments() {
             </tbody>
           </table>
         ) : (
-          <table className="finance-table">
+          <table className="finance-table finance-payment-table">
             <thead>
               <tr>
                 <th>Date</th>
@@ -1974,6 +2239,17 @@ export function Payments() {
                         {formatCurrency(
                           payment.amount,
                         )}
+
+                        {Number(
+                          payment.reversed_amount ?? 0,
+                        ) > 0 ? (
+                          <small>
+                            Reversed:{' '}
+                            {formatCurrency(
+                              payment.reversed_amount,
+                            )}
+                          </small>
+                        ) : null}
                       </td>
 
                       <td>
@@ -1995,8 +2271,47 @@ export function Payments() {
                             </button>
                           ) : null}
 
+                          {[
+                            'completed',
+                            'refunded',
+                          ].includes(
+                            payment.status,
+                          ) &&
+                          Number(payment.amount ?? 0) -
+                            Number(
+                              payment.reversed_amount ?? 0,
+                            ) > 0 ? (
+                            <button
+                              type="button"
+                              className="finance-reversal-button"
+                              onClick={() => {
+                                const available =
+                                  Number(
+                                    payment.amount ?? 0,
+                                  ) -
+                                  Number(
+                                    payment.reversed_amount ?? 0,
+                                  );
+
+                                setReversingPayment(
+                                  payment,
+                                );
+                                setPaymentReversalForm({
+                                  ...emptyPaymentReversalForm,
+                                  amount:
+                                    String(available),
+                                });
+                              }}
+                            >
+                              <Undo2 size={16} />
+                              Reverse
+                            </button>
+                          ) : null}
+
                           {payment.status !==
-                          'completed' ? (
+                          'completed' &&
+                          payment.status !==
+                          'refunded' ? (
                             <button
                               type="button"
                               className="finance-delete-button"
@@ -2507,6 +2822,305 @@ export function Payments() {
                     : editingInvoice
                       ? 'Save Changes'
                       : 'Create Invoice'}
+                </button>
+              </footer>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {creditingInvoice && (
+        <div className="finance-modal-layer">
+          <button
+            type="button"
+            className="finance-modal-backdrop"
+            onClick={() =>
+              setCreditingInvoice(null)
+            }
+          />
+
+          <section className="finance-modal finance-adjustment-modal">
+            <header className="finance-modal-header">
+              <div>
+                <p className="page-eyebrow">
+                  Invoice adjustment
+                </p>
+                <h3>
+                  Credit {creditingInvoice.invoice_number}
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCreditingInvoice(null)
+                }
+              >
+                ×
+              </button>
+            </header>
+
+            <form
+              className="finance-adjustment-form"
+              onSubmit={handleIssueCreditNote}
+            >
+              <div className="finance-adjustment-summary">
+                <span>Outstanding balance</span>
+                <strong>
+                  {formatCurrency(
+                    creditingInvoice.balance_amount,
+                  )}
+                </strong>
+                <p>
+                  The original invoice remains unchanged.
+                  This credit note reduces the amount payable.
+                </p>
+              </div>
+
+              <div className="finance-adjustment-grid">
+                <label>
+                  <span>Subtotal to credit</span>
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={creditNoteForm.subtotal}
+                    onChange={(event) =>
+                      setCreditNoteForm(
+                        (current) => ({
+                          ...current,
+                          subtotal:
+                            event.target.value,
+                        }),
+                      )
+                    }
+                    required
+                  />
+                </label>
+
+                <label>
+                  <span>VAT Rate (%)</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={creditNoteForm.vat_rate}
+                    onChange={(event) =>
+                      setCreditNoteForm(
+                        (current) => ({
+                          ...current,
+                          vat_rate:
+                            event.target.value,
+                        }),
+                      )
+                    }
+                    required
+                  />
+                </label>
+
+                <label>
+                  <span>Issue Date</span>
+                  <input
+                    type="date"
+                    value={creditNoteForm.issue_date}
+                    onChange={(event) =>
+                      setCreditNoteForm(
+                        (current) => ({
+                          ...current,
+                          issue_date:
+                            event.target.value,
+                        }),
+                      )
+                    }
+                    required
+                  />
+                </label>
+
+                <label className="finance-form-wide">
+                  <span>Reason</span>
+                  <textarea
+                    value={creditNoteForm.reason}
+                    onChange={(event) =>
+                      setCreditNoteForm(
+                        (current) => ({
+                          ...current,
+                          reason:
+                            event.target.value,
+                        }),
+                      )
+                    }
+                    placeholder="Explain why this credit note is being issued"
+                    required
+                  />
+                </label>
+              </div>
+
+              <footer className="finance-form-actions">
+                <button
+                  type="button"
+                  className="secondary-action-button"
+                  onClick={() =>
+                    setCreditingInvoice(null)
+                  }
+                >
+                  Keep Invoice
+                </button>
+
+                <button
+                  type="submit"
+                  className="primary-action-button"
+                  disabled={formLoading}
+                >
+                  <FileMinus size={16} />
+                  {formLoading
+                    ? 'Issuing…'
+                    : 'Issue Credit Note'}
+                </button>
+              </footer>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {reversingPayment && (
+        <div className="finance-modal-layer">
+          <button
+            type="button"
+            className="finance-modal-backdrop"
+            onClick={() =>
+              setReversingPayment(null)
+            }
+          />
+
+          <section className="finance-modal finance-adjustment-modal">
+            <header className="finance-modal-header">
+              <div>
+                <p className="page-eyebrow">
+                  Payment correction
+                </p>
+                <h3>
+                  Reverse{' '}
+                  {reversingPayment.receipt_number ??
+                    'payment'}
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setReversingPayment(null)
+                }
+              >
+                ×
+              </button>
+            </header>
+
+            <form
+              className="finance-adjustment-form"
+              onSubmit={handleReversePayment}
+            >
+              <div className="finance-adjustment-summary danger">
+                <span>Available to reverse</span>
+                <strong>
+                  {formatCurrency(
+                    Number(reversingPayment.amount) -
+                      Number(
+                        reversingPayment.reversed_amount ??
+                          0,
+                      ),
+                  )}
+                </strong>
+                <p>
+                  The original receipt remains permanently
+                  available in the financial history.
+                </p>
+              </div>
+
+              <div className="finance-adjustment-grid">
+                <label>
+                  <span>Reversal Amount</span>
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={
+                      paymentReversalForm.amount
+                    }
+                    onChange={(event) =>
+                      setPaymentReversalForm(
+                        (current) => ({
+                          ...current,
+                          amount:
+                            event.target.value,
+                        }),
+                      )
+                    }
+                    required
+                  />
+                </label>
+
+                <label>
+                  <span>Reversal Date</span>
+                  <input
+                    type="date"
+                    value={
+                      paymentReversalForm.reversal_date
+                    }
+                    onChange={(event) =>
+                      setPaymentReversalForm(
+                        (current) => ({
+                          ...current,
+                          reversal_date:
+                            event.target.value,
+                        }),
+                      )
+                    }
+                    required
+                  />
+                </label>
+
+                <label className="finance-form-wide">
+                  <span>Reason</span>
+                  <textarea
+                    value={
+                      paymentReversalForm.reason
+                    }
+                    onChange={(event) =>
+                      setPaymentReversalForm(
+                        (current) => ({
+                          ...current,
+                          reason:
+                            event.target.value,
+                        }),
+                      )
+                    }
+                    placeholder="Explain why this payment is being reversed"
+                    required
+                  />
+                </label>
+              </div>
+
+              <footer className="finance-form-actions">
+                <button
+                  type="button"
+                  className="secondary-action-button"
+                  onClick={() =>
+                    setReversingPayment(null)
+                  }
+                >
+                  Keep Payment
+                </button>
+
+                <button
+                  type="submit"
+                  className="finance-danger-action"
+                  disabled={formLoading}
+                >
+                  <Undo2 size={16} />
+                  {formLoading
+                    ? 'Reversing…'
+                    : 'Confirm Reversal'}
                 </button>
               </footer>
             </form>

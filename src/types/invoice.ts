@@ -4,6 +4,8 @@ export type InvoiceStatus =
   | 'partially_paid'
   | 'paid'
   | 'overdue'
+  | 'partially_credited'
+  | 'credited'
   | 'cancelled'
   | 'written_off';
 
@@ -26,6 +28,7 @@ export interface Invoice {
 
   total_amount: number;
   paid_amount: number;
+  credited_amount: number;
   balance_amount: number;
 
   description: string | null;
@@ -47,6 +50,7 @@ export type InvoiceInsert = Omit<
   Invoice,
   | 'id'
   | 'issued_at'
+  | 'credited_amount'
   | 'cancelled_at'
   | 'cancelled_by'
   | 'cancellation_reason'

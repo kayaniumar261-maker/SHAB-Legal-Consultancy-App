@@ -1,4 +1,9 @@
-export type PaymentStatus = 'completed' | 'failed' | 'pending';
+export type PaymentStatus =
+  | 'completed'
+  | 'failed'
+  | 'pending'
+  | 'refunded'
+  | 'cancelled';
 
 export interface Payment {
   id: string;
@@ -16,6 +21,8 @@ export interface Payment {
   receipt_number: string | null;
   receipt_issued_at: string | null;
 
+  reversed_amount: number;
+
   status: PaymentStatus;
   notes: string | null;
 
@@ -32,6 +39,7 @@ export type PaymentInsert = Omit<
   | 'id'
   | 'receipt_number'
   | 'receipt_issued_at'
+  | 'reversed_amount'
   | 'created_at'
   | 'updated_at'
 >;
