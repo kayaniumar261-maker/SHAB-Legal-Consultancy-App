@@ -570,3 +570,123 @@
     page-break-inside: avoid;
   }
 }
+
+
+.shab-adjustment-summary {
+  margin: 8px 0 22px;
+  border: 1px solid #dfc46a;
+  border-radius: 14px;
+  padding: 22px;
+  text-align: center;
+}
+
+.shab-adjustment-summary.credit {
+  background: #fbf7e9;
+}
+
+.shab-adjustment-summary.reversal {
+  border-color: #efcaca;
+  background: #fff5f5;
+}
+
+.shab-adjustment-summary > span {
+  display: block;
+  color: #84631a;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.shab-adjustment-summary.reversal > span {
+  color: #a61b1b;
+}
+
+.shab-adjustment-summary > strong {
+  display: block;
+  margin-top: 9px;
+  color: #111827;
+  font-size: 1.9rem;
+  line-height: 1.1;
+}
+
+.shab-adjustment-summary > p {
+  margin: 10px 0 0;
+  color: #64748b;
+  font-size: 0.74rem;
+}
+
+.shab-adjustment-breakdown {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+
+.shab-adjustment-breakdown dl {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 0 28px;
+  margin: 0;
+}
+
+.shab-adjustment-breakdown dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 0;
+}
+
+.shab-adjustment-breakdown dt {
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.shab-adjustment-breakdown dd {
+  margin: 0;
+  color: #111827;
+  font-size: 0.74rem;
+  font-weight: 750;
+  text-align: right;
+}
+
+.shab-adjustment-reason-box {
+  margin-top: 18px;
+  border-left: 3px solid #c9a84c;
+  background: #fafafa;
+  padding: 12px 15px;
+}
+
+.shab-adjustment-reason-box > span {
+  color: #98751e;
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.shab-adjustment-reason-box p {
+  margin: 6px 0 0;
+  color: #475569;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 700px) {
+  .shab-adjustment-breakdown dl {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .shab-adjustment-summary {
+    margin-bottom: 15px;
+    padding: 16px;
+  }
+
+  .shab-adjustment-reason-box {
+    margin-top: 14px;
+  }
+}

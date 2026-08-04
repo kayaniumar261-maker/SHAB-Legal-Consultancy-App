@@ -70,6 +70,18 @@ export async function getPayments(
   };
 }
 
+export async function getPaymentById(
+  id: string,
+): Promise<Payment> {
+  const result = await supabase
+    .from('payments')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  return handleError(result) as Payment;
+}
+
 export async function recordPayment(
   data: PaymentInsert
 ): Promise<Payment> {

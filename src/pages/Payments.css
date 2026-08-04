@@ -1647,17 +1647,17 @@ grid-template-columns:1fr;
 
   .finance-adjustments-table th:nth-child(1),
   .finance-adjustments-table td:nth-child(1) {
-    width: 10%;
+    width: 9%;
   }
 
   .finance-adjustments-table th:nth-child(2),
   .finance-adjustments-table td:nth-child(2) {
-    width: 14%;
+    width: 13%;
   }
 
   .finance-adjustments-table th:nth-child(3),
   .finance-adjustments-table td:nth-child(3) {
-    width: 18%;
+    width: 17%;
   }
 
   .finance-adjustments-table th:nth-child(4),
@@ -1667,13 +1667,20 @@ grid-template-columns:1fr;
 
   .finance-adjustments-table th:nth-child(5),
   .finance-adjustments-table td:nth-child(5) {
-    width: 13%;
+    width: 12%;
     white-space: nowrap;
   }
 
   .finance-adjustments-table th:nth-child(6),
   .finance-adjustments-table td:nth-child(6) {
-    width: 27%;
+    width: 21%;
+  }
+
+  .finance-adjustments-table th:nth-child(7),
+  .finance-adjustments-table td:nth-child(7) {
+    width: 11%;
+    overflow: visible;
+    white-space: nowrap;
   }
 }
 

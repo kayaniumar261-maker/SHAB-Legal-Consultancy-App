@@ -54,7 +54,8 @@ import {
   recordPayment,
   deletePayment,
   getPayments,
-} from '../services/paymentService';
+
+  getPaymentById,} from '../services/paymentService';
 
 import {
   issueCreditNote,
@@ -97,6 +98,16 @@ import type {
   PaymentReversal,
 } from '../types/paymentReversal';
 
+import {
+  CreditNoteDocument,
+  CreditNotePrintPortal,
+} from '../components/documents/CreditNoteDocument';
+
+import {
+  PaymentReversalDocument,
+  PaymentReversalPrintPortal,
+} from '../components/documents/PaymentReversalDocument';
+
 import './Payments.css';
 
 const PAGE_SIZE = 12;
@@ -124,6 +135,14 @@ type FinanceAdjustmentRow = {
   currency: string;
   reason: string;
   createdAt: string;
+  creditNote: CreditNote | null;
+  paymentReversal:
+    PaymentReversal | null;
+};
+
+type ViewingAdjustment = {
+  row: FinanceAdjustmentRow;
+  payment: Payment | null;
 };
 
 type InvoiceFormState = {
@@ -288,6 +307,13 @@ export function Payments() {
     adjustmentType,
     setAdjustmentType,
   ] = useState<AdjustmentFilter>('all');
+
+  const [
+    viewingAdjustment,
+    setViewingAdjustment,
+  ] = useState<ViewingAdjustment | null>(
+    null,
+  );
 
   const [companySettings, setCompanySettings] =
     useState<CompanySettings | null>(null);
@@ -1023,6 +1049,95 @@ export function Payments() {
     1,
     Math.ceil(totalCount / PAGE_SIZE),
   );
+
+  const handleViewAdjustment = async (
+    row: FinanceAdjustmentRow,
+  ) => {
+    setActionId(row.id);
+    setError(null);
+
+    try {
+      if (
+        row.kind === 'payment_reversal'
+      ) {
+        const reversal =
+          row.paymentReversal;
+
+        if (!reversal) {
+          throw new Error(
+            'Payment reversal details are unavailable.',
+          );
+        }
+
+        const payment =
+          await getPaymentById(
+            reversal.payment_id,
+          );
+
+        setViewingAdjustment({
+          row,
+          payment,
+        });
+      } else {
+        setViewingAdjustment({
+          row,
+          payment: null,
+        });
+      }
+    } catch (viewError) {
+      setError(
+        viewError instanceof Error
+          ? viewError.message
+          : 'Unable to load adjustment document.',
+      );
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const handlePrintAdjustment = () => {
+    if (!viewingAdjustment) {
+      return;
+    }
+
+    const row =
+      viewingAdjustment.row;
+
+    const clientName =
+      clientMap[row.clientId] ||
+      'Client';
+
+    const safeClientName =
+      clientName
+        .trim()
+        .replace(
+          /[^a-zA-Z0-9_-]+/g,
+          '-',
+        )
+        .replace(/^-+|-+$/g, '');
+
+    const safeDocumentNumber =
+      row.documentNumber
+        .trim()
+        .replace(
+          /[^a-zA-Z0-9_-]+/g,
+          '-',
+        )
+        .replace(/^-+|-+$/g, '');
+
+    const originalTitle =
+      document.title;
+
+    document.title =
+      `${safeDocumentNumber}-${safeClientName}`;
+
+    window.print();
+
+    window.setTimeout(() => {
+      document.title =
+        originalTitle;
+    }, 1000);
+  };
 
   const handlePrintInvoice = () => {
     if (!viewingInvoice) {
@@ -2521,6 +2636,7 @@ export function Payments() {
                 <th>Client</th>
                 <th>Amount</th>
                 <th>Reason</th>
+                <th>Actions</th>
               </tr>
             </thead>
 
@@ -2528,12 +2644,12 @@ export function Payments() {
               {loading ? (
                 <FinanceStateRow
                   message="Loading adjustments…"
-                  columns={8}
+                  columns={7}
                 />
               ) : adjustments.length === 0 ? (
                 <FinanceStateRow
                   message="No financial adjustments found."
-                  columns={8}
+                  columns={7}
                 />
               ) : (
                 adjustments.map(
@@ -2596,6 +2712,26 @@ export function Payments() {
                         >
                           {adjustment.reason}
                         </span>
+                      </td>
+
+                      <td>
+                        <button
+                          type="button"
+                          className="finance-action-button"
+                          onClick={() =>
+                            void handleViewAdjustment(
+                              adjustment,
+                            )
+                          }
+                          disabled={
+                            actionId ===
+                            adjustment.id
+                          }
+                        >
+                          {actionId === adjustment.id
+                            ? 'Loading…'
+                            : 'View'}
+                        </button>
                       </td>
                     </tr>
                   ),
@@ -3395,6 +3531,157 @@ export function Payments() {
         </div>
       )}
 
+      {viewingAdjustment && (() => {
+        const row =
+          viewingAdjustment.row;
+
+        const invoice =
+          invoiceMap[row.invoiceId];
+
+        if (!invoice) {
+          return null;
+        }
+
+        const clientName =
+          clientMap[row.clientId] ??
+          'Unknown client';
+
+        const caseReference =
+          row.caseId
+            ? caseMap[row.caseId] ??
+              'Unknown case'
+            : null;
+
+        const creditNote =
+          row.creditNote;
+
+        const reversal =
+          row.paymentReversal;
+
+        const payment =
+          viewingAdjustment.payment;
+
+        return (
+          <div className="finance-modal-layer">
+            <button
+              type="button"
+              className="finance-modal-backdrop"
+              onClick={() =>
+                setViewingAdjustment(null)
+              }
+            />
+
+            <section className="finance-modal finance-view-modal">
+              <header className="finance-modal-header">
+                <div>
+                  <p className="page-eyebrow">
+                    Financial adjustment
+                  </p>
+
+                  <h3>
+                    {row.documentNumber}
+                  </h3>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setViewingAdjustment(null)
+                  }
+                >
+                  ×
+                </button>
+              </header>
+
+              <div className="finance-document-preview">
+                {row.kind === 'credit_note' &&
+                creditNote ? (
+                  <CreditNoteDocument
+                    creditNote={creditNote}
+                    invoice={invoice}
+                    clientName={clientName}
+                    caseReference={
+                      caseReference
+                    }
+                    companySettings={
+                      companySettings
+                    }
+                  />
+                ) : reversal && payment ? (
+                  <PaymentReversalDocument
+                    reversal={reversal}
+                    payment={payment}
+                    invoice={invoice}
+                    clientName={clientName}
+                    caseReference={
+                      caseReference
+                    }
+                    companySettings={
+                      companySettings
+                    }
+                  />
+                ) : (
+                  <div className="finance-error">
+                    Adjustment document data is incomplete.
+                  </div>
+                )}
+              </div>
+
+              <footer className="finance-view-actions">
+                <button
+                  type="button"
+                  className="primary-action-button"
+                  onClick={
+                    handlePrintAdjustment
+                  }
+                >
+                  <Printer size={17} />
+                  Print / Save PDF
+                </button>
+
+                <button
+                  type="button"
+                  className="secondary-action-button"
+                  onClick={() =>
+                    setViewingAdjustment(null)
+                  }
+                >
+                  Close
+                </button>
+              </footer>
+            </section>
+
+            {row.kind === 'credit_note' &&
+            creditNote ? (
+              <CreditNotePrintPortal
+                creditNote={creditNote}
+                invoice={invoice}
+                clientName={clientName}
+                caseReference={
+                  caseReference
+                }
+                companySettings={
+                  companySettings
+                }
+              />
+            ) : reversal && payment ? (
+              <PaymentReversalPrintPortal
+                reversal={reversal}
+                payment={payment}
+                invoice={invoice}
+                clientName={clientName}
+                caseReference={
+                  caseReference
+                }
+                companySettings={
+                  companySettings
+                }
+              />
+            ) : null}
+          </div>
+        );
+      })()}
+
       {viewingInvoice && (
         <div className="finance-modal-layer">
           <button
@@ -3984,6 +4271,8 @@ function buildFinanceAdjustments(
           creditNote.reason,
         createdAt:
           creditNote.created_at,
+        creditNote,
+        paymentReversal: null,
       }),
     );
 
@@ -4019,6 +4308,8 @@ function buildFinanceAdjustments(
             reversal.reason,
           createdAt:
             reversal.created_at,
+          creditNote: null,
+          paymentReversal: reversal,
         };
       },
     );
