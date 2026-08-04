@@ -1594,3 +1594,110 @@ grid-template-columns:1fr;
     left: 0;
   }
 }
+
+/* Financial adjustments ledger — authoritative layout. */
+.finance-adjustment-kind {
+  display: inline-flex;
+  min-width: 118px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.finance-adjustment-kind.credit_note {
+  background: #fff8df;
+  color: #806218;
+}
+
+.finance-adjustment-kind.payment_reversal {
+  background: #fff1f1;
+  color: #a61b1b;
+}
+
+.finance-adjustment-reason {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  color: #64748b;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 801px) {
+  .finance-table-wrapper.adjustments {
+    overflow-x: hidden;
+  }
+
+  .finance-adjustments-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed;
+  }
+
+  .finance-adjustments-table th,
+  .finance-adjustments-table td {
+    display: table-cell;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .finance-adjustments-table th:nth-child(1),
+  .finance-adjustments-table td:nth-child(1) {
+    width: 10%;
+  }
+
+  .finance-adjustments-table th:nth-child(2),
+  .finance-adjustments-table td:nth-child(2) {
+    width: 14%;
+  }
+
+  .finance-adjustments-table th:nth-child(3),
+  .finance-adjustments-table td:nth-child(3) {
+    width: 18%;
+  }
+
+  .finance-adjustments-table th:nth-child(4),
+  .finance-adjustments-table td:nth-child(4) {
+    width: 18%;
+  }
+
+  .finance-adjustments-table th:nth-child(5),
+  .finance-adjustments-table td:nth-child(5) {
+    width: 13%;
+    white-space: nowrap;
+  }
+
+  .finance-adjustments-table th:nth-child(6),
+  .finance-adjustments-table td:nth-child(6) {
+    width: 27%;
+  }
+}
+
+@media (max-width: 800px) {
+  .finance-tabs {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .finance-tabs button {
+    flex: 0 0 auto;
+  }
+
+  .finance-adjustments-table {
+    min-width: 900px;
+  }
+
+  .finance-adjustments-table th,
+  .finance-adjustments-table td {
+    white-space: nowrap;
+  }
+
+  .finance-adjustment-reason {
+    width: 220px;
+  }
+}

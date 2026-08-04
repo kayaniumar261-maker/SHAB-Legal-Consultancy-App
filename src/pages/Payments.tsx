@@ -59,7 +59,9 @@ import {
 import {
   issueCreditNote,
   reversePayment,
-} from '../services/financeAdjustmentService';
+
+  getCreditNotes,
+  getPaymentReversals,} from '../services/financeAdjustmentService';
 
 import {
   getClientOptions,
@@ -87,11 +89,42 @@ import {
   type CompanySettings,
 } from '../services/companySettingsService';
 
+import type {
+  CreditNote,
+} from '../types/creditNote';
+
+import type {
+  PaymentReversal,
+} from '../types/paymentReversal';
+
 import './Payments.css';
 
 const PAGE_SIZE = 12;
 
-type FinanceTab = 'invoices' | 'payments';
+type FinanceTab =
+  | 'invoices'
+  | 'payments'
+  | 'adjustments';
+
+type AdjustmentFilter =
+  | 'all'
+  | 'credit_note'
+  | 'payment_reversal';
+
+type FinanceAdjustmentRow = {
+  id: string;
+  kind: Exclude<AdjustmentFilter, 'all'>;
+  documentNumber: string;
+  originalNumber: string;
+  invoiceId: string;
+  clientId: string;
+  caseId: string | null;
+  date: string;
+  amount: number;
+  currency: string;
+  reason: string;
+  createdAt: string;
+};
 
 type InvoiceFormState = {
   client_id: string;
@@ -245,6 +278,16 @@ export function Payments() {
 
   const [loading, setLoading] =
     useState(true);
+
+  const [
+    adjustments,
+    setAdjustments,
+  ] = useState<FinanceAdjustmentRow[]>([]);
+
+  const [
+    adjustmentType,
+    setAdjustmentType,
+  ] = useState<AdjustmentFilter>('all');
 
   const [companySettings, setCompanySettings] =
     useState<CompanySettings | null>(null);
@@ -476,7 +519,7 @@ export function Payments() {
             ? filtered.length
             : result.count,
         );
-      } else {
+      } else if (activeTab === 'payments') {
         const result = await getPayments({
           status:
             paymentStatus === 'all'
@@ -515,6 +558,79 @@ export function Payments() {
             ? filtered.length
             : result.count,
         );
+      } else {
+        const [
+          loadedCreditNotes,
+          loadedPaymentReversals,
+        ] = await Promise.all([
+          getCreditNotes(),
+          getPaymentReversals(),
+        ]);
+
+        const combined =
+          buildFinanceAdjustments(
+            loadedCreditNotes,
+            loadedPaymentReversals,
+            invoiceMap,
+          );
+
+        const scoped = combined.filter(
+          (adjustment) => {
+            if (
+              clientIdParam &&
+              adjustment.clientId !==
+                clientIdParam
+            ) {
+              return false;
+            }
+
+            if (
+              caseIdParam &&
+              adjustment.caseId !==
+                caseIdParam
+            ) {
+              return false;
+            }
+
+            if (
+              adjustmentType !== 'all' &&
+              adjustment.kind !==
+                adjustmentType
+            ) {
+              return false;
+            }
+
+            return matchesFinanceSearch(
+              search.trim().toLowerCase(),
+              [
+                adjustment.documentNumber,
+                adjustment.originalNumber,
+                clientMap[
+                  adjustment.clientId
+                ],
+                adjustment.caseId
+                  ? caseMap[
+                      adjustment.caseId
+                    ]
+                  : null,
+                adjustment.reason,
+                adjustment.amount,
+              ],
+            );
+          },
+        );
+
+        const from =
+          (page - 1) * PAGE_SIZE;
+
+        setAdjustments(
+          scoped.slice(
+            from,
+            from + PAGE_SIZE,
+          ),
+        );
+
+        setTotalCount(scoped.length);
       }
     } catch (fetchError) {
       setError(
@@ -529,6 +645,7 @@ export function Payments() {
     activeTab,
     invoiceStatus,
     paymentStatus,
+    adjustmentType,
     page,
     search,
     clientIdParam,
@@ -546,6 +663,11 @@ export function Payments() {
     void loadFinanceData();
   }, [loadFinanceData]);
 
+  useEffect(() => {
+    setSearch('');
+    setPage(1);
+  }, [activeTab]);
+
 
   useEffect(() => {
     if (
@@ -561,6 +683,14 @@ export function Payments() {
       activeTab !== 'invoices'
     ) {
       setActiveTab('invoices');
+      setPage(1);
+    }
+
+    if (
+      tabParam === 'adjustments' &&
+      activeTab !== 'adjustments'
+    ) {
+      setActiveTab('adjustments');
       setPage(1);
     }
   }, [
@@ -1688,6 +1818,7 @@ export function Payments() {
           }
           onClick={() => {
             setActiveTab('invoices');
+            setSearch('');
             setPage(1);
           }}
         >
@@ -1704,11 +1835,29 @@ export function Payments() {
           }
           onClick={() => {
             setActiveTab('payments');
+            setSearch('');
             setPage(1);
           }}
         >
           <WalletCards size={17} />
           Payments
+        </button>
+
+        <button
+          type="button"
+          className={
+            activeTab === 'adjustments'
+              ? 'active'
+              : ''
+          }
+          onClick={() => {
+            setActiveTab('adjustments');
+            setSearch('');
+            setPage(1);
+          }}
+        >
+          <FileMinus size={17} />
+          Adjustments
         </button>
       </section>
 
@@ -1825,7 +1974,9 @@ export function Payments() {
             placeholder={
               activeTab === 'invoices'
                 ? 'Search invoice, client, case or description'
-                : 'Search invoice, client, case or payment reference'
+                : activeTab === 'payments'
+                  ? 'Search invoice, client, case or payment reference'
+                  : 'Search adjustment, invoice, client, case or reason'
             }
           />
         </div>
@@ -1843,36 +1994,29 @@ export function Payments() {
                 setPage(1);
               }}
             >
-              <option value="all">
-                All statuses
+              <option value="all">All statuses</option>
+              <option value="draft">Draft</option>
+              <option value="issued">Issued</option>
+              <option value="partially_paid">
+                Partially Paid
               </option>
-              <option value="draft">
-                Draft
+              <option value="partially_credited">
+                Partially Credited
               </option>
-              <option value="issued">
-  Issued
-</option>
-
-<option value="partially_paid">
-  Partially Paid
-</option>
-
-<option value="cancelled">
-  Cancelled
-</option>
-
-<option value="written_off">
-  Written Off
-</option>
-              <option value="paid">
-                Paid
+              <option value="credited">
+                Credited
               </option>
-              <option value="overdue">
-                Overdue
+              <option value="paid">Paid</option>
+              <option value="overdue">Overdue</option>
+              <option value="cancelled">
+                Cancelled
+              </option>
+              <option value="written_off">
+                Written Off
               </option>
             </select>
           </label>
-        ) : (
+        ) : activeTab === 'payments' ? (
           <label className="finance-filter">
             <span>Status</span>
 
@@ -1885,17 +2029,42 @@ export function Payments() {
                 setPage(1);
               }}
             >
-              <option value="all">
-                All statuses
-              </option>
+              <option value="all">All statuses</option>
               <option value="completed">
                 Completed
               </option>
-              <option value="pending">
-                Pending
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+              <option value="refunded">
+                Refunded
               </option>
-              <option value="failed">
-                Failed
+              <option value="cancelled">
+                Cancelled
+              </option>
+            </select>
+          </label>
+        ) : (
+          <label className="finance-filter">
+            <span>Type</span>
+
+            <select
+              value={adjustmentType}
+              onChange={(event) => {
+                setAdjustmentType(
+                  event.target
+                    .value as AdjustmentFilter,
+                );
+                setPage(1);
+              }}
+            >
+              <option value="all">
+                All adjustments
+              </option>
+              <option value="credit_note">
+                Credit Notes
+              </option>
+              <option value="payment_reversal">
+                Payment Reversals
               </option>
             </select>
           </label>
@@ -1908,7 +2077,13 @@ export function Payments() {
         </div>
       )}
 
-      <section className="finance-table-wrapper">
+      <section
+        className={`finance-table-wrapper ${
+          activeTab === 'adjustments'
+            ? 'adjustments'
+            : ''
+        }`}
+      >
         {activeTab === 'invoices' ? (
           <table className="finance-table finance-invoice-table">
             <thead>
@@ -2163,7 +2338,7 @@ export function Payments() {
               )}
             </tbody>
           </table>
-        ) : (
+        ) : activeTab === 'payments' ? (
           <table className="finance-table finance-payment-table">
             <thead>
               <tr>
@@ -2182,12 +2357,12 @@ export function Payments() {
               {loading ? (
                 <FinanceStateRow
                   message="Loading payments…"
-                  columns={8}
+                  columns={6}
                 />
               ) : payments.length === 0 ? (
                 <FinanceStateRow
                   message="No payments found."
-                  columns={8}
+                  columns={6}
                 />
               ) : (
                 payments.map((payment) => {
@@ -2333,6 +2508,98 @@ export function Payments() {
                     </tr>
                   );
                 })
+              )}
+            </tbody>
+          </table>
+        ) : (
+          <table className="finance-table finance-adjustments-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Document</th>
+                <th>Client</th>
+                <th>Amount</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {loading ? (
+                <FinanceStateRow
+                  message="Loading adjustments…"
+                  columns={8}
+                />
+              ) : adjustments.length === 0 ? (
+                <FinanceStateRow
+                  message="No financial adjustments found."
+                  columns={8}
+                />
+              ) : (
+                adjustments.map(
+                  (adjustment) => (
+                    <tr key={`${adjustment.kind}-${adjustment.id}`}>
+                      <td>
+                        {formatDate(
+                          adjustment.date,
+                        )}
+                      </td>
+
+                      <td>
+                        <span
+                          className={`finance-adjustment-kind ${adjustment.kind}`}
+                        >
+                          {adjustment.kind ===
+                          'credit_note'
+                            ? 'Credit Note'
+                            : 'Payment Reversal'}
+                        </span>
+                      </td>
+
+                      <td>
+                        <strong>
+                          {adjustment.documentNumber}
+                        </strong>
+
+                        <small>
+                          Invoice:{' '}
+                          {adjustment.originalNumber}
+                        </small>
+                      </td>
+
+                      <td>
+                        {clientMap[
+                          adjustment.clientId
+                        ] ?? 'Unknown client'}
+
+                        <small>
+                          {adjustment.caseId
+                            ? caseMap[
+                                adjustment.caseId
+                              ] ?? 'Unknown case'
+                            : 'No linked case'}
+                        </small>
+                      </td>
+
+                      <td>
+                        {formatCurrency(
+                          adjustment.amount,
+                        )}
+                      </td>
+
+                      <td>
+                        <span
+                          className="finance-adjustment-reason"
+                          title={
+                            adjustment.reason
+                          }
+                        >
+                          {adjustment.reason}
+                        </span>
+                      </td>
+                    </tr>
+                  ),
+                )
               )}
             </tbody>
           </table>
@@ -3681,6 +3948,98 @@ function FinanceStateRow({
       </td>
     </tr>
   );
+}
+
+function buildFinanceAdjustments(
+  creditNotes: CreditNote[],
+  paymentReversals: PaymentReversal[],
+  invoiceMap: Record<string, Invoice>,
+): FinanceAdjustmentRow[] {
+  const creditRows =
+    creditNotes.map<FinanceAdjustmentRow>(
+      (creditNote) => ({
+        id: creditNote.id,
+        kind: 'credit_note',
+        documentNumber:
+          creditNote.credit_note_number,
+        originalNumber:
+          invoiceMap[
+            creditNote.invoice_id
+          ]?.invoice_number ?? 'Unknown invoice',
+        invoiceId:
+          creditNote.invoice_id,
+        clientId:
+          creditNote.client_id,
+        caseId:
+          creditNote.case_id,
+        date:
+          creditNote.issue_date,
+        amount:
+          Number(
+            creditNote.total_amount ?? 0,
+          ),
+        currency:
+          creditNote.currency,
+        reason:
+          creditNote.reason,
+        createdAt:
+          creditNote.created_at,
+      }),
+    );
+
+  const reversalRows =
+    paymentReversals.map<FinanceAdjustmentRow>(
+      (reversal) => {
+        const invoice =
+          invoiceMap[
+            reversal.invoice_id
+          ];
+
+        return {
+          id: reversal.id,
+          kind: 'payment_reversal',
+          documentNumber:
+            reversal.reversal_number,
+          originalNumber:
+            invoice?.invoice_number ??
+            'Unknown invoice',
+          invoiceId:
+            reversal.invoice_id,
+          clientId:
+            invoice?.client_id ?? '',
+          caseId:
+            invoice?.case_id ?? null,
+          date:
+            reversal.reversal_date,
+          amount:
+            Number(reversal.amount ?? 0),
+          currency:
+            reversal.currency,
+          reason:
+            reversal.reason,
+          createdAt:
+            reversal.created_at,
+        };
+      },
+    );
+
+  return [
+    ...creditRows,
+    ...reversalRows,
+  ].sort((left, right) => {
+    const dateDifference =
+      new Date(right.date).getTime() -
+      new Date(left.date).getTime();
+
+    if (dateDifference !== 0) {
+      return dateDifference;
+    }
+
+    return (
+      new Date(right.createdAt).getTime() -
+      new Date(left.createdAt).getTime()
+    );
+  });
 }
 
 function matchesFinanceSearch(
