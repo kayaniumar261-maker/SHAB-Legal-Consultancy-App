@@ -24,6 +24,9 @@ export interface Invoice {
   subtotal: number;
   vat_rate: number;
   vat_amount: number;
+  vat_treatment?: import('./vatAccounting').VatTreatment;
+  supply_date?: string;
+  is_tax_invoice?: boolean;
   discount_amount: number;
 
   total_amount: number;

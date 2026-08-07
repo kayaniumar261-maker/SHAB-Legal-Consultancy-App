@@ -13,6 +13,8 @@ export interface CreditNote {
   subtotal: number;
   vat_rate: number;
   vat_amount: number;
+  vat_treatment?: import('./vatAccounting').VatTreatment;
+  tax_point_date?: string;
   total_amount: number;
 
   currency: string;

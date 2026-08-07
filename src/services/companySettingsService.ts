@@ -7,6 +7,9 @@ export type CompanySettings = {
   email: string | null;
   phone: string | null;
   tax_registration_number: string | null;
+  vat_registered: boolean;
+  default_vat_rate: number;
+  vat_effective_date: string | null;
   bank_name: string | null;
   account_holder_name: string | null;
   account_number: string | null;
@@ -29,6 +32,9 @@ Promise<CompanySettings | null> {
       email,
       phone,
       tax_registration_number,
+      vat_registered,
+      default_vat_rate,
+      vat_effective_date,
       bank_name,
       account_holder_name,
       account_number,
