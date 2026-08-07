@@ -82,6 +82,7 @@ import {
   FinancialLedger,
 } from '../components/finance/FinancialLedger';
 import { ClientStatementWorkspace } from '../components/finance/ClientStatementWorkspace';
+import { ClientFundsWorkspace } from '../components/finance/ClientFundsWorkspace';
 import {
   EMPTY_FINANCE_SUMMARY,
   getCaseFinanceSummaries,
@@ -465,6 +466,7 @@ export function ClientDetails() {
 
         {activeTab === 'finance' && (
           <div className="client-finance-workspace">
+            <ClientFundsWorkspace clientId={client.id} />
             <ClientStatementWorkspace clientId={client.id} clientName={client.full_name} />
             <FinancialLedger
               clientId={client.id}
