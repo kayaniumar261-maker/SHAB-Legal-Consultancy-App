@@ -1,6 +1,7 @@
 import type { PostgrestError } from '@supabase/supabase-js';
 
 import { supabase } from '../lib/supabase';
+import { getCaseFinanceSummaries } from './financeSummaryService';
 import type { Client } from '../types/client';
 import type {
   Case,
@@ -322,14 +323,14 @@ export async function getCaseDashboardStats(
     .from('cases')
     .select(
       `
+        id,
         status,
         priority,
         requires_urgent_action,
         next_hearing_at,
         next_action_at,
         claim_amount,
-        recovered_amount,
-        outstanding_balance
+        recovered_amount
       `,
     )
     .eq('is_archived', false);
@@ -344,11 +345,15 @@ export async function getCaseDashboardStats(
     throw new Error(result.error.message);
   }
 
+  const records = result.data ?? [];
+  const financeSummaries = await getCaseFinanceSummaries(
+    records.map((record) => String(record.id)),
+  );
   const now = new Date();
   const upcomingLimit = new Date(now);
   upcomingLimit.setDate(upcomingLimit.getDate() + 30);
 
-  return (result.data ?? []).reduce<CaseDashboardStats>(
+  return records.reduce<CaseDashboardStats>(
     (stats, record) => {
       const status = String(record.status ?? '').toLowerCase();
       const priority = String(record.priority ?? '').toLowerCase();
@@ -400,7 +405,11 @@ export async function getCaseDashboardStats(
 
       stats.totalClaimValue += Number(record.claim_amount ?? 0);
       stats.recoveredAmount += Number(record.recovered_amount ?? 0);
-      stats.outstandingBalance += Number(record.outstanding_balance ?? 0);
+      const finance = financeSummaries[String(record.id)];
+
+      if (finance && !finance.hasMixedCurrencies) {
+        stats.outstandingBalance += finance.outstanding;
+      }
 
       return stats;
     },

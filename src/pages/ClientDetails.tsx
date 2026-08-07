@@ -1,7 +1,6 @@
 import {
   AlertTriangle,
   ArrowLeft,
-  BadgeDollarSign,
   Building2,
   CalendarDays,
   CircleUserRound,
@@ -18,12 +17,10 @@ import {
   MessageCircle,
   Phone,
   Plus,
-  ReceiptText,
   Scale,
   ShieldAlert,
   Star,
   UserRound,
-  WalletCards,
 } from 'lucide-react';
 
 import type {
@@ -84,6 +81,11 @@ import {
 import {
   FinancialLedger,
 } from '../components/finance/FinancialLedger';
+import {
+  EMPTY_FINANCE_SUMMARY,
+  getCaseFinanceSummaries,
+  type AuthoritativeFinanceSummary,
+} from '../services/financeSummaryService';
 
 import './ClientDetails.css';
 
@@ -401,41 +403,6 @@ export function ClientDetails() {
           helper="Files on record"
         />
 
-        <ProfileStat
-          icon={
-            <ReceiptText size={20} />
-          }
-          label="Total Fees"
-          value={formatCurrency(
-            client.total_fees,
-          )}
-          helper="Billed to client"
-        />
-
-        <ProfileStat
-          icon={
-            <WalletCards size={20} />
-          }
-          label="Total Paid"
-          value={formatCurrency(
-            client.total_paid,
-          )}
-          helper="Payments received"
-        />
-
-        <ProfileStat
-          icon={
-            <BadgeDollarSign
-              size={20}
-            />
-          }
-          label="Outstanding"
-          value={formatCurrency(
-            client.outstanding_balance,
-          )}
-          helper="Current balance"
-          emphasis
-        />
       </section>
 
       <section
@@ -532,6 +499,9 @@ function ClientCasesTab({
     useState<
       CaseWithRelations[]
     >([]);
+  const [financeSummaries, setFinanceSummaries] = useState<
+    Record<string, AuthoritativeFinanceSummary>
+  >({});
 
   const [loading, setLoading] =
     useState(true);
@@ -561,9 +531,14 @@ function ClientCasesTab({
           });
 
         if (active) {
-          setCases(
-            result.data,
+          const summaries = await getCaseFinanceSummaries(
+            result.data.map((caseItem) => caseItem.id),
           );
+
+          if (active) {
+            setCases(result.data);
+            setFinanceSummaries(summaries);
+          }
         }
       } catch (loadError) {
         if (active) {
@@ -756,8 +731,8 @@ function ClientCasesTab({
 
                   <td>
                     <strong>
-                      {formatCurrency(
-                        caseItem.outstanding_balance,
+                      {formatCaseOutstanding(
+                        financeSummaries[caseItem.id],
                       )}
                     </strong>
                   </td>
@@ -1967,6 +1942,22 @@ function formatCurrency(
   ).format(
     Number(value ?? 0),
   );
+}
+
+function formatCaseOutstanding(
+  summary?: AuthoritativeFinanceSummary,
+): string {
+  const finance = summary ?? EMPTY_FINANCE_SUMMARY;
+
+  if (finance.hasMixedCurrencies) {
+    return 'Mixed currencies';
+  }
+
+  return new Intl.NumberFormat('en-AE', {
+    style: 'currency',
+    currency: finance.currency ?? 'AED',
+    maximumFractionDigits: 2,
+  }).format(finance.outstanding);
 }
 
 function formatOptionalDate(

@@ -31,6 +31,11 @@ import {
   updateClient,
 } from '../services/clientService';
 import type { Client } from '../types/client';
+import {
+  EMPTY_FINANCE_SUMMARY,
+  getClientFinanceSummaries,
+  type AuthoritativeFinanceSummary,
+} from '../services/financeSummaryService';
 import { ClientFormModal } from '../components/clients/ClientFormModal';
 import { DeleteClientModal } from '../components/clients/DeleteClientModal';
 import './Clients.css';
@@ -54,6 +59,9 @@ const PAGE_SIZE = 12;
 
 export function Clients() {
   const [clients, setClients] = useState<ProfessionalClient[]>([]);
+  const [financeSummaries, setFinanceSummaries] = useState<
+    Record<string, AuthoritativeFinanceSummary>
+  >({});
   const [totalClients, setTotalClients] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +89,13 @@ export function Clients() {
         pageSize: PAGE_SIZE,
       });
 
-      setClients(result.data as ProfessionalClient[]);
+      const nextClients = result.data as ProfessionalClient[];
+      const nextFinanceSummaries = await getClientFinanceSummaries(
+        nextClients.map((client) => client.id),
+      );
+
+      setClients(nextClients);
+      setFinanceSummaries(nextFinanceSummaries);
       setTotalClients(result.count);
     } catch (fetchError) {
       setError(
@@ -113,7 +127,16 @@ export function Clients() {
         current.companies += client.client_type === 'company' ? 1 : 0;
         current.vip += client.vip ? 1 : 0;
         current.cases += Number(client.total_cases ?? 0);
-        current.outstanding += Number(client.outstanding_balance ?? 0);
+        const finance =
+          financeSummaries[client.id] ?? EMPTY_FINANCE_SUMMARY;
+
+        if (finance.hasMixedCurrencies) {
+          current.hasMixedCurrencies = true;
+        } else if ((finance.currency ?? 'AED') === 'AED') {
+          current.outstanding += finance.outstanding;
+        } else if (finance.outstanding !== 0) {
+          current.hasMixedCurrencies = true;
+        }
         return current;
       },
       {
@@ -122,9 +145,10 @@ export function Clients() {
         vip: 0,
         cases: 0,
         outstanding: 0,
+        hasMixedCurrencies: false,
       },
     );
-  }, [clients]);
+  }, [clients, financeSummaries]);
 
   const openNewClient = () => {
     setActiveClient(null);
@@ -304,8 +328,12 @@ export function Clients() {
         <SummaryCard
           icon={<CircleDollarSign size={20} />}
           label="Outstanding"
-          value={formatCurrency(summary.outstanding)}
-          detail="Displayed page"
+          value={
+            summary.hasMixedCurrencies
+              ? 'Mixed currencies'
+              : formatCurrency(summary.outstanding)
+          }
+          detail="Live ledger · displayed page"
         />
       </section>
 
@@ -485,8 +513,8 @@ export function Clients() {
 
                   <td>
                     <strong className="balance-value">
-                      {formatCurrency(
-                        Number(client.outstanding_balance ?? 0),
+                      {formatFinanceAmount(
+                        financeSummaries[client.id],
                       )}
                     </strong>
                   </td>
@@ -646,4 +674,20 @@ function formatCurrency(value: number): string {
     currency: 'AED',
     maximumFractionDigits: 2,
   }).format(value);
+}
+
+function formatFinanceAmount(
+  summary?: AuthoritativeFinanceSummary,
+): string {
+  const finance = summary ?? EMPTY_FINANCE_SUMMARY;
+
+  if (finance.hasMixedCurrencies) {
+    return 'Mixed currencies';
+  }
+
+  return new Intl.NumberFormat('en-AE', {
+    style: 'currency',
+    currency: finance.currency ?? 'AED',
+    maximumFractionDigits: 2,
+  }).format(finance.outstanding);
 }

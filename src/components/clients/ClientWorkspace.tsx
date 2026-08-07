@@ -45,12 +45,9 @@ import {
 } from '../../services/documentService';
 
 import {
-  getInvoices,
-} from '../../services/invoiceService';
-
-import {
-  getPayments,
-} from '../../services/paymentService';
+  getFinancialLedger,
+  type FinancialLedgerSummary,
+} from '../../services/financialLedgerService';
 
 import type {
   CaseWithRelations,
@@ -82,9 +79,6 @@ type ClientWorkspaceClient = {
   risk_level?: string | null;
   is_vip?: boolean | null;
   vip?: boolean | null;
-  total_fees?: number | string | null;
-  total_paid?: number | string | null;
-  outstanding_balance?: number | string | null;
   active_cases?: number | null;
   total_cases?: number | null;
 };
@@ -121,6 +115,9 @@ export function ClientWorkspace({
   const [payments, setPayments] =
     useState<Payment[]>([]);
 
+  const [financialSummary, setFinancialSummary] =
+    useState<FinancialLedgerSummary | null>(null);
+
   const [loading, setLoading] =
     useState(true);
 
@@ -156,16 +153,8 @@ export function ClientWorkspace({
             client.id,
           ),
 
-          getInvoices({
+          getFinancialLedger({
             clientId: client.id,
-            page: 1,
-            pageSize: 10,
-          }),
-
-          getPayments({
-            clientId: client.id,
-            page: 1,
-            pageSize: 10,
           }),
         ]);
 
@@ -178,8 +167,7 @@ export function ClientWorkspace({
         hearingsResult,
         tasksResult,
         documentsResult,
-        invoicesResult,
-        paymentsResult,
+        financialLedgerResult,
       ] = results;
 
       if (
@@ -221,25 +209,24 @@ export function ClientWorkspace({
       }
 
       if (
-        invoicesResult.status ===
+        financialLedgerResult.status ===
         'fulfilled'
       ) {
         setInvoices(
-          extractArray<Invoice>(
-            invoicesResult.value,
-          ),
+          financialLedgerResult.value.invoices,
         );
-      }
 
-      if (
-        paymentsResult.status ===
-        'fulfilled'
-      ) {
         setPayments(
-          extractArray<Payment>(
-            paymentsResult.value,
-          ),
+          financialLedgerResult.value.payments,
         );
+
+        setFinancialSummary(
+          financialLedgerResult.value.summary,
+        );
+      } else {
+        setInvoices([]);
+        setPayments([]);
+        setFinancialSummary(null);
       }
 
       if (
@@ -385,71 +372,16 @@ export function ClientWorkspace({
   );
 
   const totalBilled =
-    invoices.reduce(
-      (total, invoice) =>
-        total +
-        Number(
-          invoice.total_amount ??
-            0,
-        ),
-      0,
-    );
+    financialSummary?.totalBilled ?? 0;
 
   const totalPaid =
-    payments.reduce(
-      (total, payment) =>
-        total +
-        Number(
-          payment.amount ??
-            0,
-        ),
-      0,
-    );
+    financialSummary?.netCollected ?? 0;
 
   const outstanding =
-    unpaidInvoices.reduce(
-      (total, invoice) =>
-        total +
-        Number(
-          invoice.balance_amount ??
-            0,
-        ),
-      0,
-    ) ||
-    Number(
-      client.outstanding_balance ??
-        0,
-    );
+    financialSummary?.outstanding ?? 0;
 
   const collectionRate =
-    totalBilled > 0
-      ? Math.min(
-          100,
-          Math.max(
-            0,
-            (
-              totalPaid /
-              totalBilled
-            ) * 100,
-          ),
-        )
-      : Number(
-          client.total_fees ?? 0,
-        ) > 0
-        ? Math.min(
-            100,
-            (
-              Number(
-                client.total_paid ??
-                  0,
-              ) /
-              Number(
-                client.total_fees ??
-                  1,
-              )
-            ) * 100,
-          )
-        : 0;
+    financialSummary?.collectionRate ?? 0;
 
   const health = useMemo(() => {
     let score = 100;
@@ -680,9 +612,11 @@ export function ClientWorkspace({
             value={
               loading
                 ? '—'
-                : formatCurrency(
-                    outstanding,
-                  )
+                : financialSummary
+                  ? formatCurrency(
+                      outstanding,
+                    )
+                  : '—'
             }
             detail={`${overdueInvoices.length} overdue invoices`}
             tone={
@@ -977,13 +911,13 @@ export function ClientWorkspace({
                   />
                 }
                 label="Total Billed"
-                value={formatCurrency(
-                  totalBilled ||
-                    Number(
-                      client.total_fees ??
-                        0,
-                    ),
-                )}
+                value={
+                  financialSummary
+                    ? formatCurrency(
+                        totalBilled,
+                      )
+                    : '—'
+                }
               />
 
               <FinancialMetric
@@ -992,14 +926,14 @@ export function ClientWorkspace({
                     size={15}
                   />
                 }
-                label="Total Paid"
-                value={formatCurrency(
-                  totalPaid ||
-                    Number(
-                      client.total_paid ??
-                        0,
-                    ),
-                )}
+                label="Net Collected"
+                value={
+                  financialSummary
+                    ? formatCurrency(
+                        totalPaid,
+                      )
+                    : '—'
+                }
               />
 
               <FinancialMetric
@@ -1009,9 +943,13 @@ export function ClientWorkspace({
                   />
                 }
                 label="Outstanding"
-                value={formatCurrency(
-                  outstanding,
-                )}
+                value={
+                  financialSummary
+                    ? formatCurrency(
+                        outstanding,
+                      )
+                    : '—'
+                }
                 danger={
                   outstanding > 0
                 }
@@ -1024,10 +962,11 @@ export function ClientWorkspace({
               </span>
 
               <strong>
-                {collectionRate.toFixed(
-                  0,
-                )}
-                %
+                {financialSummary
+                  ? `${collectionRate.toFixed(
+                      0,
+                    )}%`
+                  : '—'}
               </strong>
             </div>
 
@@ -1035,7 +974,9 @@ export function ClientWorkspace({
               <div
                 style={{
                   width:
-                    `${collectionRate}%`,
+                    financialSummary
+                      ? `${collectionRate}%`
+                      : '0%',
                 }}
               />
             </div>

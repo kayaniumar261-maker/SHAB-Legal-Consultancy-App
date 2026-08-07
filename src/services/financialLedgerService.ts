@@ -10,6 +10,7 @@ import type { CreditNote } from '../types/creditNote';
 import type {
   PaymentReversal,
 } from '../types/paymentReversal';
+import { calculateFinanceSummary } from './financeSummaryService';
 
 export type FinancialLedgerScope =
   | {
@@ -459,79 +460,20 @@ export async function getFinancialLedger(
     );
   });
 
-  const billableInvoices =
-    invoices.filter(
-      (invoice) =>
-        ![
-          'draft',
-          'cancelled',
-          'written_off',
-        ].includes(invoice.status),
-    );
-
-  const completedPayments =
-    payments.filter(
-      (payment) =>
-        [
-          'completed',
-          'refunded',
-        ].includes(payment.status),
-    );
-
-  const totalBilled = sum(
-    billableInvoices.map(
-      (invoice) =>
-        invoice.total_amount,
-    ),
+  const authoritativeSummary = calculateFinanceSummary(
+    invoices,
+    payments,
+    creditNotes,
+    paymentReversals,
   );
-
-  const grossCollected = sum(
-    completedPayments.map(
-      (payment) =>
-        payment.amount,
-    ),
-  );
-
-  const totalCredited = sum(
-    creditNotes.map(
-      (creditNote) =>
-        creditNote.total_amount,
-    ),
-  );
-
-  const totalReversed = sum(
-    paymentReversals.map(
-      (reversal) =>
-        reversal.amount,
-    ),
-  );
-
-  const netCollected =
-    Math.max(
-      0,
-      grossCollected -
-        totalReversed,
-    );
-
-  const outstanding = sum(
-    invoices
-      .filter(
-        (invoice) =>
-          ![
-            'draft',
-            'cancelled',
-            'written_off',
-            'paid',
-            'credited',
-          ].includes(
-            invoice.status,
-          ),
-      )
-      .map(
-        (invoice) =>
-          invoice.balance_amount,
-      ),
-  );
+  const {
+    totalBilled,
+    grossCollected,
+    totalCredited,
+    totalReversed,
+    netCollected,
+    outstanding,
+  } = authoritativeSummary;
 
   return {
     invoices,
@@ -579,19 +521,6 @@ export async function getFinancialLedger(
           : 0,
     },
   };
-}
-
-function sum(
-  values: Array<
-    number | string | null | undefined
-  >,
-): number {
-  return values.reduce<number>(
-    (total, value) =>
-      total +
-      Number(value ?? 0),
-    0,
-  );
 }
 
 function toTimestamp(

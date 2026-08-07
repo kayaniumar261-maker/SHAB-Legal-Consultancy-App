@@ -295,6 +295,11 @@ export function AIWorkspace({
     clientName,
   ]);
 
+  const liveOutstanding = useMemo(
+    () => getMatterOutstanding(matterContext),
+    [matterContext],
+  );
+
   const contextItems = useMemo(
     () => [
       {
@@ -341,7 +346,7 @@ export function AIWorkspace({
       {
         label: 'Outstanding',
         value: formatCurrency(
-          caseRecord.outstanding_balance,
+          liveOutstanding,
           caseRecord.currency,
         ),
       },
@@ -349,6 +354,7 @@ export function AIWorkspace({
     [
       caseRecord,
       clientName,
+      liveOutstanding,
     ],
   );
 
@@ -1027,7 +1033,7 @@ function buildPreviewResponse(
       `Court: ${caseRecord.court ?? 'Not specified'}`,
       `Opponent: ${caseRecord.opponent_name ?? 'Not specified'}`,
       `Outstanding: ${formatCurrency(
-        caseRecord.outstanding_balance,
+        getMatterOutstanding(matterContext),
         caseRecord.currency,
       )}`,
       '',
@@ -1147,6 +1153,31 @@ function buildPreviewResponse(
       ? `Structured legal prompt prepared locally (${structuredPrompt.length.toLocaleString('en-AE')} characters).`
       : 'Complete matter context is still loading.',
   ].join('\n');
+}
+
+function getMatterOutstanding(
+  context: AIMatterContext | null,
+): number {
+  if (!context) {
+    return 0;
+  }
+
+  return context.invoices
+    .filter(
+      (invoice) =>
+        ![
+          'draft',
+          'cancelled',
+          'written_off',
+          'paid',
+          'credited',
+        ].includes(invoice.status),
+    )
+    .reduce(
+      (total, invoice) =>
+        total + Number(invoice.balance_amount ?? 0),
+      0,
+    );
 }
 
 function getMatterReference(

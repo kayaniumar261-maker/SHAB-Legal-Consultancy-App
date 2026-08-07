@@ -47,6 +47,11 @@ import {
   getDocumentsByCase,
 } from '../../services/documentService';
 
+import {
+  getFinancialLedger,
+  type FinancialLedgerSummary,
+} from '../../services/financialLedgerService';
+
 import type {
   CaseActivity,
   CaseNote,
@@ -109,6 +114,9 @@ export function CaseMatterWorkspace({
   const [documents, setDocuments] =
     useState<DocumentWithRelations[]>([]);
 
+  const [financialSummary, setFinancialSummary] =
+    useState<FinancialLedgerSummary | null>(null);
+
   const [loading, setLoading] =
     useState(true);
 
@@ -129,6 +137,9 @@ export function CaseMatterWorkspace({
         getHearingsByCase(caseRecord.id),
         getTasksByCase(caseRecord.id),
         getDocumentsByCase(caseRecord.id),
+        getFinancialLedger({
+          caseId: caseRecord.id,
+        }),
       ]);
 
       if (!active) {
@@ -142,6 +153,7 @@ export function CaseMatterWorkspace({
         hearingsResult,
         tasksResult,
         documentsResult,
+        financialLedgerResult,
       ] = results;
 
       if (activitiesResult.status === 'fulfilled') {
@@ -166,6 +178,17 @@ export function CaseMatterWorkspace({
 
       if (documentsResult.status === 'fulfilled') {
         setDocuments(documentsResult.value);
+      }
+
+      if (
+        financialLedgerResult.status ===
+        'fulfilled'
+      ) {
+        setFinancialSummary(
+          financialLedgerResult.value.summary,
+        );
+      } else {
+        setFinancialSummary(null);
       }
 
       if (
@@ -462,24 +485,21 @@ export function CaseMatterWorkspace({
             }
           />
 
-          <ActionItem
-            icon={<Banknote size={18} />}
-            label="Outstanding Fees"
-            value={formatCurrency(
-              caseRecord.outstanding_balance,
-              caseRecord.currency,
-            )}
-            detail="Unpaid case balance"
-            to={`/payments?caseId=${caseRecord.id}`}
-            tone={
-              Number(
-                caseRecord.outstanding_balance ??
-                  0,
-              ) > 0
-                ? 'warning'
-                : 'success'
-            }
-          />
+          {Number(
+            financialSummary?.outstanding ?? 0,
+          ) > 0 && (
+            <ActionItem
+              icon={<Banknote size={18} />}
+              label="Outstanding Fees"
+              value={formatCurrency(
+                financialSummary?.outstanding ?? 0,
+                caseRecord.currency,
+              )}
+              detail="Unpaid case balance"
+              to={`/payments?caseId=${caseRecord.id}`}
+              tone="warning"
+            />
+          )}
 
           <ActionItem
             icon={<Clock3 size={18} />}
@@ -533,9 +553,13 @@ export function CaseMatterWorkspace({
             ),
           )
         }
-        outstandingBalance={Number(
-          caseRecord.outstanding_balance ?? 0,
-        )}
+        outstandingBalance={
+          financialSummary
+            ? Number(
+                financialSummary.outstanding,
+              )
+            : null
+        }
         nextActionOverdue={isPast(
           caseRecord.next_action_at,
         )}
@@ -694,18 +718,26 @@ export function CaseMatterWorkspace({
 
             <DetailMetric
               label="Total Billed"
-              value={formatCurrency(
-                caseRecord.total_billed,
-                caseRecord.currency,
-              )}
+              value={
+                financialSummary
+                  ? formatCurrency(
+                      financialSummary.totalBilled,
+                      caseRecord.currency,
+                    )
+                  : '—'
+              }
             />
 
             <DetailMetric
               label="Outstanding"
-              value={formatCurrency(
-                caseRecord.outstanding_balance,
-                caseRecord.currency,
-              )}
+              value={
+                financialSummary
+                  ? formatCurrency(
+                      financialSummary.outstanding,
+                      caseRecord.currency,
+                    )
+                  : '—'
+              }
             />
           </div>
 

@@ -51,6 +51,23 @@ export function buildMatterPrompt(
           invoice.balance_amount ?? 0,
         ) > 0,
     );
+  const liveTotalBilled = context.invoices
+    .filter(
+      (invoice) =>
+        !['draft', 'cancelled', 'written_off'].includes(
+          invoice.status,
+        ),
+    )
+    .reduce(
+      (total, invoice) =>
+        total + Number(invoice.total_amount ?? 0),
+      0,
+    );
+  const liveOutstanding = outstandingInvoices.reduce(
+    (total, invoice) =>
+      total + Number(invoice.balance_amount ?? 0),
+    0,
+  );
 
   const sections = [
     createSection('MATTER IDENTITY', [
@@ -185,7 +202,7 @@ export function buildMatterPrompt(
       createLine(
         'Total billed',
         formatCurrency(
-          caseRecord.total_billed,
+          liveTotalBilled,
           caseRecord.currency,
         ),
       ),
@@ -193,7 +210,7 @@ export function buildMatterPrompt(
       createLine(
         'Outstanding case balance',
         formatCurrency(
-          caseRecord.outstanding_balance,
+          liveOutstanding,
           caseRecord.currency,
         ),
       ),

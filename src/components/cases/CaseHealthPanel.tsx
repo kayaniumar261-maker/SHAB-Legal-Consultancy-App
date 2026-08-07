@@ -27,7 +27,7 @@ type CaseHealthPanelProps = {
   timelineCount: number;
   urgent: boolean;
   highRisk: boolean;
-  outstandingBalance: number;
+  outstandingBalance: number | null;
   nextActionOverdue: boolean;
 };
 
@@ -159,7 +159,11 @@ export function CaseHealthPanel({
       );
     }
 
-    if (
+    if (outstandingBalance === null) {
+      actions.push(
+        'Review finance data availability',
+      );
+    } else if (
       outstandingBalance >= 100_000
     ) {
       score -= 15;
@@ -359,7 +363,9 @@ export function CaseHealthPanel({
         id: 'finance',
         label: 'Case Balance',
         detail:
-          outstandingBalance > 0
+          outstandingBalance === null
+            ? 'Unavailable'
+            : outstandingBalance > 0
             ? formatCurrency(
                 outstandingBalance,
               )

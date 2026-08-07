@@ -40,6 +40,11 @@ import type {
   CaseStatus,
   CaseWithRelations,
 } from '../types/case';
+import {
+  EMPTY_FINANCE_SUMMARY,
+  getCaseFinanceSummaries,
+  type AuthoritativeFinanceSummary,
+} from '../services/financeSummaryService';
 import './Cases.css';
 
 const PAGE_SIZE = 12;
@@ -144,6 +149,9 @@ export function Cases() {
     searchParams.get('assignedStaffId') ?? 'all';
 
   const [cases, setCases] = useState<CaseWithRelations[]>([]);
+  const [financeSummaries, setFinanceSummaries] = useState<
+    Record<string, AuthoritativeFinanceSummary>
+  >({});
   const [clients, setClients] = useState<Record<string, string>>({});
   const [stats, setStats] = useState<CaseDashboardStats>(emptyStats);
 
@@ -226,7 +234,12 @@ export function Cases() {
         getClientOptions(),
       ]);
 
+      const nextFinanceSummaries = await getCaseFinanceSummaries(
+        casesResult.data.map((record) => record.id),
+      );
+
       setCases(casesResult.data);
+      setFinanceSummaries(nextFinanceSummaries);
       setTotalCount(casesResult.count);
       setClients(
         clientOptions.reduce<Record<string, string>>(
@@ -643,6 +656,7 @@ export function Cases() {
                 clients[record.client_id] ??
                 'Unknown client'
               }
+              financeSummary={financeSummaries[record.id]}
             />
           ))
         )}
@@ -684,9 +698,11 @@ export function Cases() {
 function CaseCard({
   record,
   clientName,
+  financeSummary,
 }: {
   record: CaseWithRelations;
   clientName: string;
+  financeSummary?: AuthoritativeFinanceSummary;
 }) {
   const nextHearingState = getDateState(record.next_hearing_at);
   const nextActionState = getDateState(record.next_action_at);
@@ -838,10 +854,13 @@ function CaseCard({
         <div>
           <span>Outstanding</span>
           <strong>
-            {formatCurrency(
-              record.outstanding_balance,
-              record.currency ?? undefined,
-            )}
+            {financeSummary?.hasMixedCurrencies
+              ? 'Mixed currencies'
+              : formatCurrency(
+                  financeSummary?.outstanding ??
+                    EMPTY_FINANCE_SUMMARY.outstanding,
+                  financeSummary?.currency ?? 'AED',
+                )}
           </strong>
         </div>
 

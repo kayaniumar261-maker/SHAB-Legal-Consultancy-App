@@ -8,7 +8,6 @@ import {
   CircleDollarSign,
   Clock3,
   Edit3,
-  FileText,
   Gavel,
   Landmark,
   Scale,
@@ -22,6 +21,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { CaseTabs } from '../components/cases/CaseTabs';
 import { deleteCase, getCaseById } from '../services/caseService';
+import {
+  getFinancialLedger,
+  type FinancialLedgerSummary,
+} from '../services/financialLedgerService';
 import type { CaseWithRelations as Case } from '../types/case';
 import './CaseDetails.css';
 
@@ -33,6 +36,8 @@ export function CaseDetails() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [financialSummary, setFinancialSummary] =
+    useState<FinancialLedgerSummary | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -79,6 +84,44 @@ export function CaseDetails() {
     }
 
     void loadCase();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) {
+      setFinancialSummary(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadFinancialSummary(
+      caseId: string,
+    ) {
+      setFinancialSummary(null);
+
+      try {
+        const ledger =
+          await getFinancialLedger({
+            caseId,
+          });
+
+        if (!cancelled) {
+          setFinancialSummary(
+            ledger.summary,
+          );
+        }
+      } catch {
+        if (!cancelled) {
+          setFinancialSummary(null);
+        }
+      }
+    }
+
+    void loadFinancialSummary(id);
 
     return () => {
       cancelled = true;
@@ -309,10 +352,14 @@ export function CaseDetails() {
         <KpiCard
           icon={<CircleDollarSign size={20} />}
           label="Outstanding"
-          value={formatCurrency(
-            caseRecord.outstanding_balance,
-            caseRecord.currency,
-          )}
+          value={
+            financialSummary
+              ? formatCurrency(
+                  financialSummary.outstanding,
+                  caseRecord.currency,
+                )
+              : '—'
+          }
         />
       </section>
 
@@ -498,64 +545,6 @@ export function CaseDetails() {
           />
         </OverviewCard>
 
-        <OverviewCard
-          icon={<FileText size={19} />}
-          title="Financial Position"
-        >
-          <DetailRow
-            label="Claim Amount"
-            value={formatCurrency(
-              caseRecord.claim_amount ?? caseRecord.case_value,
-              caseRecord.currency,
-            )}
-          />
-          <DetailRow
-            label="Settlement Amount"
-            value={formatCurrency(
-              caseRecord.settlement_amount,
-              caseRecord.currency,
-            )}
-          />
-          <DetailRow
-            label="Judgment Amount"
-            value={formatCurrency(
-              caseRecord.judgment_amount,
-              caseRecord.currency,
-            )}
-          />
-          <DetailRow
-            label="Recovered Amount"
-            value={formatCurrency(
-              caseRecord.recovered_amount,
-              caseRecord.currency,
-            )}
-          />
-          <DetailRow
-            label="Total Billed"
-            value={formatCurrency(
-              caseRecord.total_billed,
-              caseRecord.currency,
-            )}
-          />
-          <DetailRow
-            label="Total Paid"
-            value={formatCurrency(
-              caseRecord.total_paid,
-              caseRecord.currency,
-            )}
-          />
-          <DetailRow
-            label="Outstanding"
-            value={formatCurrency(
-              caseRecord.outstanding_balance,
-              caseRecord.currency,
-            )}
-          />
-          <DetailRow
-            label="Fee Arrangement"
-            value={caseRecord.fee_arrangement}
-          />
-        </OverviewCard>
       </section>
 
       {(caseRecord.description ||

@@ -123,9 +123,6 @@ type FormState = {
   settlement_amount: string;
   judgment_amount: string;
   recovered_amount: string;
-  total_billed: string;
-  total_paid: string;
-  outstanding_balance: string;
   currency: string;
   fee_arrangement: string;
 
@@ -201,9 +198,6 @@ const emptyFormState: FormState = {
   settlement_amount: '',
   judgment_amount: '',
   recovered_amount: '',
-  total_billed: '',
-  total_paid: '',
-  outstanding_balance: '',
   currency: 'AED',
   fee_arrangement: '',
 
@@ -462,13 +456,6 @@ function buildFormState(
     recovered_amount: toNumberString(
       caseRecord.recovered_amount,
     ),
-    total_billed: toNumberString(
-      caseRecord.total_billed,
-    ),
-    total_paid: toNumberString(caseRecord.total_paid),
-    outstanding_balance: toNumberString(
-      caseRecord.outstanding_balance,
-    ),
     currency: caseRecord.currency ?? 'AED',
     fee_arrangement:
       caseRecord.fee_arrangement ?? '',
@@ -595,9 +582,6 @@ export function CaseForm({
       ['settlement_amount', 'Settlement amount'],
       ['judgment_amount', 'Judgment amount'],
       ['recovered_amount', 'Recovered amount'],
-      ['total_billed', 'Total billed'],
-      ['total_paid', 'Total paid'],
-      ['outstanding_balance', 'Outstanding balance'],
     ];
 
     numericFields.forEach(([key, label]) => {
@@ -747,12 +731,6 @@ export function CaseForm({
         optionalNumber(formState.judgment_amount),
       recovered_amount:
         optionalNumber(formState.recovered_amount),
-      total_billed:
-        optionalNumber(formState.total_billed),
-      total_paid:
-        optionalNumber(formState.total_paid),
-      outstanding_balance:
-        optionalNumber(formState.outstanding_balance),
       currency:
         formState.currency.trim().toUpperCase() ||
         'AED',
@@ -830,10 +808,7 @@ export function CaseForm({
 
       'case-section-finance':
         hasValue(formState.case_value) ||
-        hasValue(formState.claim_amount) ||
-        hasValue(formState.total_billed) ||
-        hasValue(formState.total_paid) ||
-        hasValue(formState.outstanding_balance),
+        hasValue(formState.claim_amount),
 
       'case-section-management':
         hasValue(formState.status) &&
@@ -1512,33 +1487,6 @@ export function CaseForm({
           value={formState.recovered_amount}
           onChange={(value) =>
             setField('recovered_amount', value)
-          }
-        />
-
-        <NumberField
-          id="total_billed"
-          label="Total Billed"
-          value={formState.total_billed}
-          onChange={(value) =>
-            setField('total_billed', value)
-          }
-        />
-
-        <NumberField
-          id="total_paid"
-          label="Total Paid"
-          value={formState.total_paid}
-          onChange={(value) =>
-            setField('total_paid', value)
-          }
-        />
-
-        <NumberField
-          id="outstanding_balance"
-          label="Outstanding Balance"
-          value={formState.outstanding_balance}
-          onChange={(value) =>
-            setField('outstanding_balance', value)
           }
         />
 
