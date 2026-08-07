@@ -22,6 +22,10 @@ import {
   updateFeeAgreement,
   updateFeeInstallment,
 } from '../../services/feeAgreementService';
+import {
+  getFinancialLedger,
+  type FinancialLedgerSummary,
+} from '../../services/financialLedgerService';
 import type {
   FeeAgreementInsert,
   FeeAgreementWithInstallments,
@@ -56,6 +60,12 @@ const money = (amount: number, currency: string) =>
     maximumFractionDigits: 2,
   }).format(amount);
 
+const emptyLedgerSummary: FinancialLedgerSummary = {
+  invoiceCount: 0, paymentCount: 0, creditNoteCount: 0, reversalCount: 0,
+  totalBilled: 0, grossCollected: 0, totalCredited: 0, totalReversed: 0,
+  netCollected: 0, outstanding: 0, collectionRate: 0,
+};
+
 export function CaseBillingWorkspace({
   caseId,
   clientId,
@@ -70,18 +80,24 @@ export function CaseBillingWorkspace({
   const [editingAgreement, setEditingAgreement] = useState<FeeAgreementWithInstallments | null>(null);
   const [editingInstallment, setEditingInstallment] = useState<FeeInstallment | null>(null);
   const [ledgerVersion, setLedgerVersion] = useState(0);
+  const [ledgerSummary, setLedgerSummary] = useState<FinancialLedgerSummary>(emptyLedgerSummary);
 
   const loadAgreements = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const rows = await getFeeAgreements({ caseId });
+      const [rows, ledger] = await Promise.all([
+        getFeeAgreements({ caseId }),
+        getFinancialLedger({ caseId }),
+      ]);
       setAgreements(rows);
+      setLedgerSummary(ledger.summary);
       setSelectedId((current) =>
         rows.some((item) => item.id === current) ? current : rows[0]?.id ?? null,
       );
     } catch (loadError) {
       setAgreements([]);
+      setLedgerSummary(emptyLedgerSummary);
       setError(loadError instanceof Error ? loadError.message : 'Unable to load fee agreements.');
     } finally {
       setLoading(false);
@@ -101,6 +117,8 @@ export function CaseBillingWorkspace({
     [selected],
   );
   const hasOpenAgreement = agreements.some((item) => ['draft', 'active'].includes(item.status));
+  const netBillable = Math.max(0, ledgerSummary.totalBilled - ledgerSummary.totalCredited);
+  const unbilledAgreementBalance = Math.max(0, (summary?.agreedFee ?? 0) - netBillable);
 
   async function changeAgreementStatus(status: 'completed' | 'cancelled') {
     if (!selected) return;
@@ -211,11 +229,20 @@ export function CaseBillingWorkspace({
                   </div>}
                 </div>
 
-                <div className="fee-summary-grid">
+                <div className="fee-dashboard-heading">
+                  <div><CircleDollarSign size={18} /><strong>Case Financial Position</strong></div>
+                  <span>Agreement and live ledger totals</span>
+                </div>
+                <div className="fee-summary-grid fee-dashboard-grid">
                   <FeeStat label="Agreed fee" value={money(summary.agreedFee, selected.currency)} />
-                  <FeeStat label="Planned" value={money(summary.plannedSubtotal, selected.currency)} />
-                  <FeeStat label="Invoiced" value={money(summary.invoicedTotal, selected.currency)} />
-                  <FeeStat label="Unplanned balance" value={money(summary.unplannedBalance, selected.currency)} warning={summary.unplannedBalance > 0} />
+                  <FeeStat label="Total invoiced" value={money(ledgerSummary.totalBilled, selected.currency)} />
+                  <FeeStat label="Credited" value={money(ledgerSummary.totalCredited, selected.currency)} />
+                  <FeeStat label="Net billable" value={money(netBillable, selected.currency)} />
+                  <FeeStat label="Gross collected" value={money(ledgerSummary.grossCollected, selected.currency)} />
+                  <FeeStat label="Reversed" value={money(ledgerSummary.totalReversed, selected.currency)} warning={ledgerSummary.totalReversed > 0} />
+                  <FeeStat label="Net collected" value={money(ledgerSummary.netCollected, selected.currency)} />
+                  <FeeStat label="Outstanding" value={money(ledgerSummary.outstanding, selected.currency)} warning={ledgerSummary.outstanding > 0} />
+                  <FeeStat label="Unbilled agreement" value={money(unbilledAgreementBalance, selected.currency)} warning={unbilledAgreementBalance > 0} />
                 </div>
                 {(summary.nextInstallment || summary.overdueInstallments.length > 0) && <div className={`fee-plan-alert${summary.overdueInstallments.length ? ' overdue' : ''}`}>
                   <CalendarClock size={17} />

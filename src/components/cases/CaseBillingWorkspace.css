@@ -129,6 +129,17 @@
   gap: 10px;
 }
 
+.fee-dashboard-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.fee-dashboard-heading > div { display: flex; align-items: center; gap: 8px; color: #1e293b; }
+.fee-dashboard-heading strong { font-size: .84rem; }
+.fee-dashboard-heading > span { color: #64748b; font-size: .68rem; }
+.fee-dashboard-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
 .fee-summary-stat {
   display: grid;
   gap: 5px;
