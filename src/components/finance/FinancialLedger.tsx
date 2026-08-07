@@ -50,6 +50,10 @@ const emptyLedger: LedgerData = {
   payments: [],
   creditNotes: [],
   paymentReversals: [],
+  clientFundReceipts: [],
+  paymentAllocations: [],
+  paymentAllocationReversals: [],
+  clientFundReversals: [],
   entries: [],
 
   summary: {
@@ -438,6 +442,10 @@ export function FinancialLedger({
             <option value="payment_reversal">
               Payment reversals
             </option>
+            <option value="client_fund_receipt">Client funds</option>
+            <option value="payment_allocation">Allocations</option>
+            <option value="allocation_reversal">Allocation reversals</option>
+            <option value="client_fund_reversal">Client fund reversals</option>
           </select>
         </label>
       </section>
@@ -604,7 +612,7 @@ function LedgerRow({
             entry.kind ===
               'credit_note' ||
             entry.kind ===
-              'payment_reversal'
+              'payment_reversal' || entry.kind === 'allocation_reversal' || entry.kind === 'client_fund_reversal'
               ? 'financial-ledger-negative'
               : ''
           }
@@ -612,7 +620,7 @@ function LedgerRow({
           {entry.kind ===
             'credit_note' ||
           entry.kind ===
-            'payment_reversal'
+            'payment_reversal' || entry.kind === 'allocation_reversal' || entry.kind === 'client_fund_reversal'
             ? '− '
             : ''}
 
@@ -688,6 +696,10 @@ function formatEntryKind(
       credit_note: 'Credit Note',
       payment_reversal:
         'Payment Reversal',
+      client_fund_receipt: 'Client Funds',
+      payment_allocation: 'Allocation',
+      allocation_reversal: 'Allocation Reversal',
+      client_fund_reversal: 'Client Fund Reversal',
     };
 
   return labels[kind];

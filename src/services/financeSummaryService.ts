@@ -3,6 +3,7 @@ import type { CreditNote } from '../types/creditNote';
 import type { Invoice } from '../types/invoice';
 import type { Payment } from '../types/payment';
 import type { PaymentReversal } from '../types/paymentReversal';
+import type { ClientFundReceipt, ClientFundReversal, PaymentAllocation, PaymentAllocationReversal } from '../types/clientFunds';
 
 export type AuthoritativeFinanceSummary = {
   currency: string | null;
@@ -86,6 +87,33 @@ async function getFinanceSummaries(
       (reversalResult.data ?? []) as PaymentReversal[];
   }
 
+  let clientFundReceipts: ClientFundReceipt[] = [];
+  let clientFundReversals: ClientFundReversal[] = [];
+  let paymentAllocations: PaymentAllocation[] = [];
+  let paymentAllocationReversals: PaymentAllocationReversal[] = [];
+
+  if (scopeField === 'client_id') {
+    const receiptResult = await supabase.from('client_fund_receipts').select('*').in('client_id', uniqueIds);
+    if (receiptResult.error) throw new Error(receiptResult.error.message);
+    clientFundReceipts = (receiptResult.data ?? []) as ClientFundReceipt[];
+    const receiptIds = clientFundReceipts.map((receipt) => receipt.id);
+    if (receiptIds.length > 0) {
+      const result = await supabase.from('client_fund_reversals').select('*').in('receipt_id', receiptIds);
+      if (result.error) throw new Error(result.error.message);
+      clientFundReversals = (result.data ?? []) as ClientFundReversal[];
+    }
+  } else if (invoiceIds.length > 0) {
+    const allocationResult = await supabase.from('payment_allocations').select('*').in('invoice_id', invoiceIds);
+    if (allocationResult.error) throw new Error(allocationResult.error.message);
+    paymentAllocations = (allocationResult.data ?? []) as PaymentAllocation[];
+    const allocationIds = paymentAllocations.map((allocation) => allocation.id);
+    if (allocationIds.length > 0) {
+      const result = await supabase.from('payment_allocation_reversals').select('*').in('allocation_id', allocationIds);
+      if (result.error) throw new Error(result.error.message);
+      paymentAllocationReversals = (result.data ?? []) as PaymentAllocationReversal[];
+    }
+  }
+
   const invoiceScope = new Map(
     invoices.map((invoice) => [
       invoice.id,
@@ -108,15 +136,39 @@ async function getFinanceSummaries(
         (reversal) => invoiceScope.get(reversal.invoice_id) === scopeId,
       );
 
-      return [
-        scopeId,
-        calculateFinanceSummary(
+      const summary = calculateFinanceSummary(
           scopedInvoices,
           scopedPayments,
           scopedCreditNotes,
           scopedReversals,
-        ),
-      ];
+        );
+      const scopedInvoiceIds = new Set(scopedInvoices.map((invoice) => invoice.id));
+      const scopedReceipts = clientFundReceipts.filter((receipt) => receipt.client_id === scopeId);
+      const scopedReceiptIds = new Set(scopedReceipts.map((receipt) => receipt.id));
+      const scopedFundReversals = clientFundReversals.filter((reversal) => scopedReceiptIds.has(reversal.receipt_id));
+      const scopedAllocations = paymentAllocations.filter((allocation) => scopedInvoiceIds.has(allocation.invoice_id));
+      const scopedAllocationIds = new Set(scopedAllocations.map((allocation) => allocation.id));
+      const scopedAllocationReversals = paymentAllocationReversals.filter((reversal) => scopedAllocationIds.has(reversal.allocation_id));
+      const fundGross = sum(scopeField === 'client_id' ? scopedReceipts.map((row) => row.amount) : scopedAllocations.map((row) => row.amount));
+      const fundReversed = sum(scopeField === 'client_id' ? scopedFundReversals.map((row) => row.amount) : scopedAllocationReversals.map((row) => row.amount));
+      const fundCurrencies = scopeField === 'client_id'
+        ? scopedReceipts.map((row) => row.currency)
+        : scopedAllocations.map((row) => scopedInvoices.find((invoice) => invoice.id === row.invoice_id)?.currency);
+      const currencies = new Set([
+        ...(summary.currency ? [summary.currency] : []),
+        ...fundCurrencies.map((value) => value?.trim().toUpperCase()).filter((value): value is string => Boolean(value)),
+      ]);
+      const grossCollected = summary.grossCollected + fundGross;
+      const totalReversed = summary.totalReversed + fundReversed;
+
+      return [scopeId, {
+        ...summary,
+        currency: summary.hasMixedCurrencies || currencies.size > 1 ? null : ([...currencies][0] ?? 'AED'),
+        hasMixedCurrencies: summary.hasMixedCurrencies || currencies.size > 1,
+        grossCollected,
+        totalReversed,
+        netCollected: Math.max(0, grossCollected - totalReversed),
+      }];
     }),
   );
 }

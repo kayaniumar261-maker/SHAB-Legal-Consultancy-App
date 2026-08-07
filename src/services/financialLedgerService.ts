@@ -10,6 +10,12 @@ import type { CreditNote } from '../types/creditNote';
 import type {
   PaymentReversal,
 } from '../types/paymentReversal';
+import type {
+  ClientFundReceipt,
+  ClientFundReversal,
+  PaymentAllocation,
+  PaymentAllocationReversal,
+} from '../types/clientFunds';
 import { calculateFinanceSummary } from './financeSummaryService';
 
 export type FinancialLedgerScope =
@@ -26,7 +32,11 @@ export type FinancialLedgerEntryKind =
   | 'invoice'
   | 'payment'
   | 'credit_note'
-  | 'payment_reversal';
+  | 'payment_reversal'
+  | 'client_fund_receipt'
+  | 'payment_allocation'
+  | 'allocation_reversal'
+  | 'client_fund_reversal';
 
 export type FinancialLedgerEntry = {
   id: string;
@@ -76,6 +86,10 @@ export type FinancialLedger = {
   payments: Payment[];
   creditNotes: CreditNote[];
   paymentReversals: PaymentReversal[];
+  clientFundReceipts: ClientFundReceipt[];
+  paymentAllocations: PaymentAllocation[];
+  paymentAllocationReversals: PaymentAllocationReversal[];
+  clientFundReversals: ClientFundReversal[];
 
   entries: FinancialLedgerEntry[];
   summary: FinancialLedgerSummary;
@@ -204,6 +218,49 @@ export async function getFinancialLedger(
         []) as PaymentReversal[];
   }
 
+  let paymentAllocations: PaymentAllocation[] = [];
+  if (invoiceIds.length > 0) {
+    const result = await supabase.from('payment_allocations').select('*').in('invoice_id', invoiceIds);
+    throwIfError(result.error);
+    paymentAllocations = (result.data ?? []) as PaymentAllocation[];
+  }
+
+  const allocationIds = paymentAllocations.map((allocation) => allocation.id);
+  let paymentAllocationReversals: PaymentAllocationReversal[] = [];
+  if (allocationIds.length > 0) {
+    const result = await supabase.from('payment_allocation_reversals').select('*').in('allocation_id', allocationIds);
+    throwIfError(result.error);
+    paymentAllocationReversals = (result.data ?? []) as PaymentAllocationReversal[];
+  }
+
+  let clientFundReceipts: ClientFundReceipt[] = [];
+  if (scope.clientId) {
+    const result = await supabase.from('client_fund_receipts').select('*').eq('client_id', scope.clientId);
+    throwIfError(result.error);
+    clientFundReceipts = (result.data ?? []) as ClientFundReceipt[];
+  } else {
+    const allocatedReceiptIds = [...new Set(paymentAllocations.map((allocation) => allocation.receipt_id))];
+    const directResult = await supabase.from('client_fund_receipts').select('*').eq('case_id', scope.caseId as string);
+    throwIfError(directResult.error);
+    const rows = (directResult.data ?? []) as ClientFundReceipt[];
+    if (allocatedReceiptIds.length > 0) {
+      const allocatedResult = await supabase.from('client_fund_receipts').select('*').in('id', allocatedReceiptIds);
+      throwIfError(allocatedResult.error);
+      for (const receipt of (allocatedResult.data ?? []) as ClientFundReceipt[]) {
+        if (!rows.some((row) => row.id === receipt.id)) rows.push(receipt);
+      }
+    }
+    clientFundReceipts = rows;
+  }
+
+  const receiptIds = clientFundReceipts.map((receipt) => receipt.id);
+  let clientFundReversals: ClientFundReversal[] = [];
+  if (receiptIds.length > 0) {
+    const result = await supabase.from('client_fund_reversals').select('*').in('receipt_id', receiptIds);
+    throwIfError(result.error);
+    clientFundReversals = (result.data ?? []) as ClientFundReversal[];
+  }
+
   const invoiceMap = new Map(
     invoices.map(
       (invoice) => [
@@ -221,6 +278,16 @@ export async function getFinancialLedger(
       ],
     ),
   );
+
+  const receiptMap = new Map(clientFundReceipts.map((receipt) => [receipt.id, receipt]));
+  const allocationMap = new Map(paymentAllocations.map((allocation) => [allocation.id, allocation]));
+  const scopedFundReceiptEntries = scope.clientId
+    ? clientFundReceipts
+    : clientFundReceipts.filter((receipt) => receipt.case_id === scope.caseId);
+  const scopedFundReceiptEntryIds = new Set(scopedFundReceiptEntries.map((receipt) => receipt.id));
+  const scopedFundReversalEntries = scope.clientId
+    ? clientFundReversals
+    : clientFundReversals.filter((reversal) => scopedFundReceiptEntryIds.has(reversal.receipt_id));
 
   const entries: FinancialLedgerEntry[] = [
     ...invoices.map(
@@ -445,6 +512,86 @@ export async function getFinancialLedger(
         };
       },
     ),
+    ...scopedFundReceiptEntries.map((receipt): FinancialLedgerEntry => ({
+      id: `client-fund-receipt:${receipt.id}`,
+      kind: 'client_fund_receipt',
+      date: receipt.payment_date,
+      createdAt: receipt.created_at,
+      documentNumber: receipt.receipt_number,
+      relatedDocumentNumber: receipt.reference_number,
+      clientId: receipt.client_id,
+      caseId: receipt.case_id,
+      invoiceId: null,
+      paymentId: null,
+      description: receipt.notes || (receipt.payment_method ? `${formatLabel(receipt.payment_method)} client funds` : 'Client funds received'),
+      status: receipt.status,
+      amount: Number(receipt.amount),
+      currency: receipt.currency || 'AED',
+      invoice: null, payment: null, creditNote: null, paymentReversal: null,
+    })),
+    ...paymentAllocations.map((allocation): FinancialLedgerEntry => {
+      const invoice = invoiceMap.get(allocation.invoice_id) ?? null;
+      const receipt = receiptMap.get(allocation.receipt_id);
+      return {
+        id: `payment-allocation:${allocation.id}`,
+        kind: 'payment_allocation',
+        date: allocation.allocation_date,
+        createdAt: allocation.created_at,
+        documentNumber: receipt?.receipt_number || 'Funds allocation',
+        relatedDocumentNumber: invoice?.invoice_number ?? null,
+        clientId: invoice?.client_id ?? receipt?.client_id ?? null,
+        caseId: invoice?.case_id ?? null,
+        invoiceId: allocation.invoice_id,
+        paymentId: null,
+        description: allocation.notes || 'Client funds allocated to invoice',
+        status: allocation.status,
+        amount: Number(allocation.amount),
+        currency: receipt?.currency || invoice?.currency || 'AED',
+        invoice, payment: null, creditNote: null, paymentReversal: null,
+      };
+    }),
+    ...paymentAllocationReversals.map((reversal): FinancialLedgerEntry => {
+      const allocation = allocationMap.get(reversal.allocation_id);
+      const invoice = allocation ? invoiceMap.get(allocation.invoice_id) ?? null : null;
+      const receipt = allocation ? receiptMap.get(allocation.receipt_id) : undefined;
+      return {
+        id: `allocation-reversal:${reversal.id}`,
+        kind: 'allocation_reversal',
+        date: reversal.reversal_date,
+        createdAt: reversal.created_at,
+        documentNumber: 'Allocation reversal',
+        relatedDocumentNumber: invoice?.invoice_number || receipt?.receipt_number || null,
+        clientId: invoice?.client_id ?? receipt?.client_id ?? null,
+        caseId: invoice?.case_id ?? null,
+        invoiceId: invoice?.id ?? null,
+        paymentId: null,
+        description: reversal.reason,
+        status: 'issued',
+        amount: Number(reversal.amount),
+        currency: receipt?.currency || invoice?.currency || 'AED',
+        invoice, payment: null, creditNote: null, paymentReversal: null,
+      };
+    }),
+    ...scopedFundReversalEntries.map((reversal): FinancialLedgerEntry => {
+      const receipt = receiptMap.get(reversal.receipt_id);
+      return {
+        id: `client-fund-reversal:${reversal.id}`,
+        kind: 'client_fund_reversal',
+        date: reversal.reversal_date,
+        createdAt: reversal.created_at,
+        documentNumber: 'Client funds reversal',
+        relatedDocumentNumber: receipt?.receipt_number || null,
+        clientId: receipt?.client_id ?? null,
+        caseId: receipt?.case_id ?? null,
+        invoiceId: null,
+        paymentId: null,
+        description: reversal.reason,
+        status: 'issued',
+        amount: Number(reversal.amount),
+        currency: receipt?.currency || 'AED',
+        invoice: null, payment: null, creditNote: null, paymentReversal: null,
+      };
+    }),
   ].sort((left, right) => {
     const dateDifference =
       toTimestamp(right.date) -
@@ -466,20 +613,32 @@ export async function getFinancialLedger(
     creditNotes,
     paymentReversals,
   );
+  const fundGross = scope.clientId
+    ? clientFundReceipts.reduce((total, receipt) => total + Number(receipt.amount), 0)
+    : paymentAllocations.reduce((total, allocation) => total + Number(allocation.amount), 0);
+  const fundReversed = scope.clientId
+    ? clientFundReversals.reduce((total, reversal) => total + Number(reversal.amount), 0)
+    : paymentAllocationReversals.reduce((total, reversal) => total + Number(reversal.amount), 0);
   const {
     totalBilled,
-    grossCollected,
+    grossCollected: legacyGrossCollected,
     totalCredited,
-    totalReversed,
-    netCollected,
+    totalReversed: legacyTotalReversed,
     outstanding,
   } = authoritativeSummary;
+  const grossCollected = legacyGrossCollected + fundGross;
+  const totalReversed = legacyTotalReversed + fundReversed;
+  const netCollected = Math.max(0, grossCollected - totalReversed);
 
   return {
     invoices,
     payments,
     creditNotes,
     paymentReversals,
+    clientFundReceipts,
+    paymentAllocations,
+    paymentAllocationReversals,
+    clientFundReversals,
     entries,
 
     summary: {
@@ -487,13 +646,13 @@ export async function getFinancialLedger(
         invoices.length,
 
       paymentCount:
-        payments.length,
+        payments.length + clientFundReceipts.length,
 
       creditNoteCount:
         creditNotes.length,
 
       reversalCount:
-        paymentReversals.length,
+        paymentReversals.length + clientFundReversals.length + paymentAllocationReversals.length,
 
       totalBilled,
       grossCollected,

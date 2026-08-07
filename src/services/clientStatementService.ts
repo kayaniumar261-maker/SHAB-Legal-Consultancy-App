@@ -121,12 +121,15 @@ function isStatementEntry(entry: FinancialLedgerEntry): boolean {
   if (entry.kind === 'payment') {
     return entry.status === 'completed';
   }
+  if (entry.kind === 'payment_allocation' || entry.kind === 'allocation_reversal') {
+    return false;
+  }
   return true;
 }
 
 function signedAmount(entry: FinancialLedgerEntry): number {
   const amount = Number(entry.amount || 0);
-  return entry.kind === 'invoice' || entry.kind === 'payment_reversal'
+  return entry.kind === 'invoice' || entry.kind === 'payment_reversal' || entry.kind === 'client_fund_reversal'
     ? amount
     : -amount;
 }

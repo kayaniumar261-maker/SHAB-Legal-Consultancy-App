@@ -306,6 +306,22 @@
   color: #b42323;
 }
 
+.financial-ledger-kind.client_fund_receipt {
+  background: #e6fffb;
+  color: #0f766e;
+}
+
+.financial-ledger-kind.payment_allocation {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.financial-ledger-kind.allocation_reversal,
+.financial-ledger-kind.client_fund_reversal {
+  background: #fff0f0;
+  color: #b42323;
+}
+
 .financial-ledger-status {
   background: #f1f5f9;
   color: #475569;
