@@ -81,6 +81,7 @@ import {
 import {
   FinancialLedger,
 } from '../components/finance/FinancialLedger';
+import { ClientStatementWorkspace } from '../components/finance/ClientStatementWorkspace';
 import {
   EMPTY_FINANCE_SUMMARY,
   getCaseFinanceSummaries,
@@ -463,11 +464,14 @@ export function ClientDetails() {
         )}
 
         {activeTab === 'finance' && (
-          <FinancialLedger
-            clientId={client.id}
-            title="Client Financial Ledger"
-            description="Complete financial history across all matters, invoices, payments, credit notes and reversals for this client."
-          />
+          <div className="client-finance-workspace">
+            <ClientStatementWorkspace clientId={client.id} clientName={client.full_name} />
+            <FinancialLedger
+              clientId={client.id}
+              title="Client Financial Ledger"
+              description="Complete financial history across all matters, invoices, payments, credit notes and reversals for this client."
+            />
+          </div>
         )}
 
         {activeTab ===

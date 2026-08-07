@@ -974,4 +974,4 @@
     grid-template-columns: 1fr;
   }
 }
-
+.client-finance-workspace{display:grid;gap:18px}
