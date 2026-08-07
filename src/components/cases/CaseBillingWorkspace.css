@@ -40,7 +40,8 @@
 }
 
 .fee-primary-button,
-.fee-secondary-button {
+.fee-secondary-button,
+.fee-danger-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -65,6 +66,13 @@
   background: #fff;
   color: #334155;
 }
+.fee-danger-button { border: 1px solid #fecaca; background: #fff7f7; color: #b91c1c; }
+.fee-agreement-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.fee-plan-alert { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #f0fdf4; color: #047857; }
+.fee-plan-alert.overdue { background: #fff1f2; color: #be123c; }
+.fee-plan-alert > div { display: grid; gap: 2px; }
+.fee-plan-alert strong { font-size: .76rem; }
+.fee-plan-alert span { font-size: .68rem; }
 
 .fee-primary-button:disabled,
 .fee-secondary-button:disabled { opacity: .6; cursor: not-allowed; }
@@ -213,7 +221,9 @@
   .fee-agreement-header,
   .fee-agreement-title-row { align-items: stretch; flex-direction: column; }
   .fee-primary-button,
-  .fee-secondary-button { width: 100%; }
+  .fee-secondary-button,
+  .fee-danger-button { width: 100%; }
+  .fee-agreement-actions { display: grid; }
   .fee-summary-grid,
   .fee-form-grid { grid-template-columns: 1fr; }
   .fee-field-wide { grid-column: auto; }

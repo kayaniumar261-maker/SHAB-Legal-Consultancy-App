@@ -6,6 +6,7 @@ import {
   CircleDollarSign,
   FilePlus2,
   LoaderCircle,
+  Pencil,
   Plus,
   ReceiptText,
   X,
@@ -18,6 +19,8 @@ import {
   generateInvoiceFromInstallment,
   getFeeAgreements,
   summarizeFeeAgreement,
+  updateFeeAgreement,
+  updateFeeInstallment,
 } from '../../services/feeAgreementService';
 import type {
   FeeAgreementInsert,
@@ -64,6 +67,8 @@ export function CaseBillingWorkspace({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [showAgreementForm, setShowAgreementForm] = useState(false);
   const [showInstallmentForm, setShowInstallmentForm] = useState(false);
+  const [editingAgreement, setEditingAgreement] = useState<FeeAgreementWithInstallments | null>(null);
+  const [editingInstallment, setEditingInstallment] = useState<FeeInstallment | null>(null);
   const [ledgerVersion, setLedgerVersion] = useState(0);
 
   const loadAgreements = useCallback(async () => {
@@ -95,6 +100,25 @@ export function CaseBillingWorkspace({
     () => selected ? summarizeFeeAgreement(selected) : null,
     [selected],
   );
+  const hasOpenAgreement = agreements.some((item) => ['draft', 'active'].includes(item.status));
+
+  async function changeAgreementStatus(status: 'completed' | 'cancelled') {
+    if (!selected) return;
+    let cancellationReason: string | null = null;
+    if (status === 'cancelled') {
+      cancellationReason = window.prompt('Reason for cancelling this fee agreement:')?.trim() || null;
+      if (!cancellationReason) return;
+    } else if (!window.confirm('Complete this fee agreement? No further installments can be changed afterward.')) {
+      return;
+    }
+    try {
+      setBusyId(selected.id); setError(null);
+      await updateFeeAgreement(selected.id, { status, cancellation_reason: cancellationReason });
+      await loadAgreements();
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'Unable to update agreement.');
+    } finally { setBusyId(null); }
+  }
 
   async function changeStatus(
     installment: FeeInstallment,
@@ -141,9 +165,9 @@ export function CaseBillingWorkspace({
             <h3>Fee Agreement &amp; Installment Plan</h3>
             <p>Track the agreed professional fee before amounts become invoices and payments.</p>
           </div>
-          <button className="fee-primary-button" type="button" onClick={() => setShowAgreementForm(true)}>
+          {!hasOpenAgreement && <button className="fee-primary-button" type="button" onClick={() => setShowAgreementForm(true)}>
             <Plus size={16} /> New Agreement
-          </button>
+          </button>}
         </header>
 
         {error && <div className="fee-message error"><AlertCircle size={17} />{error}</div>}
@@ -179,11 +203,12 @@ export function CaseBillingWorkspace({
                     <h4>{selected.title}</h4>
                     <p>{billingModels.find((model) => model.value === selected.billing_model)?.label} · {selected.vat_rate}% VAT · {selected.status}</p>
                   </div>
-                  {selected.status === 'draft' || selected.status === 'active' ? (
-                    <button className="fee-secondary-button" type="button" onClick={() => setShowInstallmentForm(true)}>
-                      <CalendarClock size={16} /> Add Installment
-                    </button>
-                  ) : null}
+                  {['draft', 'active'].includes(selected.status) && <div className="fee-agreement-actions">
+                    <button className="fee-secondary-button" type="button" onClick={() => setEditingAgreement(selected)}><Pencil size={15} /> Edit</button>
+                    <button className="fee-secondary-button" type="button" onClick={() => setShowInstallmentForm(true)}><CalendarClock size={16} /> Add Installment</button>
+                    <button className="fee-secondary-button" type="button" disabled={busyId === selected.id} onClick={() => void changeAgreementStatus('completed')}>Complete</button>
+                    <button className="fee-danger-button" type="button" disabled={busyId === selected.id} onClick={() => void changeAgreementStatus('cancelled')}>Cancel agreement</button>
+                  </div>}
                 </div>
 
                 <div className="fee-summary-grid">
@@ -192,6 +217,11 @@ export function CaseBillingWorkspace({
                   <FeeStat label="Invoiced" value={money(summary.invoicedTotal, selected.currency)} />
                   <FeeStat label="Unplanned balance" value={money(summary.unplannedBalance, selected.currency)} warning={summary.unplannedBalance > 0} />
                 </div>
+                {(summary.nextInstallment || summary.overdueInstallments.length > 0) && <div className={`fee-plan-alert${summary.overdueInstallments.length ? ' overdue' : ''}`}>
+                  <CalendarClock size={17} />
+                  <div><strong>{summary.overdueInstallments.length ? `${summary.overdueInstallments.length} overdue installment${summary.overdueInstallments.length === 1 ? '' : 's'}` : 'Next installment'}</strong>
+                  <span>{summary.overdueInstallments.length ? 'Review the overdue schedule before further billing.' : `${summary.nextInstallment?.title}${summary.nextInstallment?.due_date ? ` · ${formatDate(summary.nextInstallment.due_date)}` : ''}`}</span></div>
+                </div>}
 
                 <div className="fee-installments-heading">
                   <div><ReceiptText size={17} /><strong>Installment schedule</strong></div>
@@ -218,6 +248,7 @@ export function CaseBillingWorkspace({
                           {busyId === installment.id ? <LoaderCircle className="fee-spin" size={18} /> : (
                             <>
                               {installment.status === 'planned' && <button type="button" onClick={() => void changeStatus(installment, 'ready')}>Mark ready</button>}
+                              {installment.status === 'planned' && <button type="button" onClick={() => setEditingInstallment(installment)}><Pencil size={13} /> Edit</button>}
                               {installment.status === 'ready' && <button type="button" onClick={() => void invoiceInstallment(installment)}><FilePlus2 size={14} /> Generate invoice</button>}
                               {['planned', 'ready'].includes(installment.status) && <button type="button" onClick={() => void changeStatus(installment, 'waived')}>Waive</button>}
                               {['planned', 'ready'].includes(installment.status) && <button type="button" onClick={() => void changeStatus(installment, 'cancelled')}>Cancel</button>}
@@ -250,6 +281,7 @@ export function CaseBillingWorkspace({
           onSaved={async () => { setShowAgreementForm(false); await loadAgreements(); }}
         />
       )}
+      {editingAgreement && <AgreementModal caseId={caseId} clientId={clientId} agreement={editingAgreement} onClose={() => setEditingAgreement(null)} onSaved={async () => { setEditingAgreement(null); await loadAgreements(); }} />}
       {showInstallmentForm && selected && (
         <InstallmentModal
           agreement={selected}
@@ -257,6 +289,7 @@ export function CaseBillingWorkspace({
           onSaved={async () => { setShowInstallmentForm(false); await loadAgreements(); }}
         />
       )}
+      {editingInstallment && selected && <InstallmentModal agreement={selected} installment={editingInstallment} onClose={() => setEditingInstallment(null)} onSaved={async () => { setEditingInstallment(null); await loadAgreements(); }} />}
     </div>
   );
 }
@@ -265,13 +298,13 @@ function FeeStat({ label, value, warning = false }: { label: string; value: stri
   return <div className={`fee-summary-stat${warning ? ' warning' : ''}`}><span>{label}</span><strong>{value}</strong></div>;
 }
 
-function AgreementModal({ caseId, clientId, onClose, onSaved }: {
-  caseId: string; clientId: string; onClose: () => void; onSaved: () => Promise<void>;
+function AgreementModal({ caseId, clientId, agreement, onClose, onSaved }: {
+  caseId: string; clientId: string; agreement?: FeeAgreementWithInstallments; onClose: () => void; onSaved: () => Promise<void>;
 }) {
   const [form, setForm] = useState({
-    title: 'Professional Legal Fees', billing_model: 'installments' as FeeBillingModel,
-    agreed_fee: '', vat_rate: '5', currency: 'AED', agreement_date: today(),
-    valid_from: today(), valid_until: '', hourly_rate: '', success_fee_percentage: '', notes: '',
+    title: agreement?.title ?? 'Professional Legal Fees', billing_model: agreement?.billing_model ?? 'installments' as FeeBillingModel,
+    agreed_fee: agreement ? String(agreement.agreed_fee) : '', vat_rate: String(agreement?.vat_rate ?? 5), currency: agreement?.currency ?? 'AED', agreement_date: agreement?.agreement_date ?? today(),
+    valid_from: agreement?.valid_from ?? today(), valid_until: agreement?.valid_until ?? '', hourly_rate: agreement?.hourly_rate ? String(agreement.hourly_rate) : '', success_fee_percentage: agreement?.success_fee_percentage ? String(agreement.success_fee_percentage) : '', notes: agreement?.notes ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -289,12 +322,12 @@ function AgreementModal({ caseId, clientId, onClose, onSaved }: {
       agreement_date: form.agreement_date, valid_from: form.valid_from || null, valid_until: form.valid_until || null,
       notes: form.notes.trim() || null, status: 'active',
     };
-    try { setSaving(true); setError(null); await createFeeAgreement(payload); await onSaved(); }
+    try { setSaving(true); setError(null); if (agreement) { const { client_id, case_id, status, ...update } = payload; void client_id; void case_id; void status; await updateFeeAgreement(agreement.id, update); } else { await createFeeAgreement(payload); } await onSaved(); }
     catch (saveError) { setError(saveError instanceof Error ? saveError.message : 'Unable to create agreement.'); }
     finally { setSaving(false); }
   }
 
-  return <FeeModal title="New Fee Agreement" onClose={onClose} saving={saving} onSubmit={submit} error={error}>
+  return <FeeModal title={agreement ? 'Edit Fee Agreement' : 'New Fee Agreement'} onClose={onClose} saving={saving} onSubmit={submit} error={error}>
     <label className="fee-field fee-field-wide">Agreement title<input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></label>
     <label className="fee-field">Billing model<select value={form.billing_model} onChange={(e) => setForm({ ...form, billing_model: e.target.value as FeeBillingModel })}>{billingModels.map((model) => <option key={model.value} value={model.value}>{model.label}</option>)}</select></label>
     <label className="fee-field">Agreement date<input type="date" value={form.agreement_date} onChange={(e) => setForm({ ...form, agreement_date: e.target.value })} required /></label>
@@ -309,10 +342,10 @@ function AgreementModal({ caseId, clientId, onClose, onSaved }: {
   </FeeModal>;
 }
 
-function InstallmentModal({ agreement, onClose, onSaved }: {
-  agreement: FeeAgreementWithInstallments; onClose: () => void; onSaved: () => Promise<void>;
+function InstallmentModal({ agreement, installment, onClose, onSaved }: {
+  agreement: FeeAgreementWithInstallments; installment?: FeeInstallment; onClose: () => void; onSaved: () => Promise<void>;
 }) {
-  const [form, setForm] = useState({ title: '', planned_subtotal: '', vat_rate: String(agreement.vat_rate), due_date: '', milestone: '', description: '', status: 'planned' as 'planned' | 'ready' });
+  const [form, setForm] = useState({ title: installment?.title ?? '', planned_subtotal: installment ? String(installment.planned_subtotal) : '', vat_rate: String(installment?.vat_rate ?? agreement.vat_rate), due_date: installment?.due_date ?? '', milestone: installment?.milestone ?? '', description: installment?.description ?? '', status: 'planned' as 'planned' | 'ready' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function submit(event: React.FormEvent) {
@@ -323,16 +356,16 @@ function InstallmentModal({ agreement, onClose, onSaved }: {
       milestone: form.milestone.trim() || null, planned_subtotal: Number(form.planned_subtotal), vat_rate: Number(form.vat_rate),
       due_date: form.due_date || null, status: form.status,
     };
-    try { setSaving(true); setError(null); await createFeeInstallment(payload); await onSaved(); }
+    try { setSaving(true); setError(null); if (installment) { const { agreement_id, status, ...update } = payload; void agreement_id; void status; await updateFeeInstallment(installment.id, update); } else { await createFeeInstallment(payload); } await onSaved(); }
     catch (saveError) { setError(saveError instanceof Error ? saveError.message : 'Unable to create installment.'); }
     finally { setSaving(false); }
   }
-  return <FeeModal title="Add Installment" onClose={onClose} saving={saving} onSubmit={submit} error={error}>
+  return <FeeModal title={installment ? 'Edit Planned Installment' : 'Add Installment'} onClose={onClose} saving={saving} onSubmit={submit} error={error}>
     <label className="fee-field fee-field-wide">Title<input placeholder="e.g. Initial engagement payment" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></label>
     <label className="fee-field">Subtotal ({agreement.currency})<input type="number" min="0.01" step="0.01" value={form.planned_subtotal} onChange={(e) => setForm({ ...form, planned_subtotal: e.target.value })} required /></label>
     <label className="fee-field">VAT rate %<input type="number" min="0" max="100" step="0.01" value={form.vat_rate} onChange={(e) => setForm({ ...form, vat_rate: e.target.value })} required /></label>
     <label className="fee-field">Due date<input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} /></label>
-    <label className="fee-field">Initial state<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as 'planned' | 'ready' })}><option value="planned">Planned</option><option value="ready">Ready to invoice</option></select></label>
+    {!installment && <label className="fee-field">Initial state<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as 'planned' | 'ready' })}><option value="planned">Planned</option><option value="ready">Ready to invoice</option></select></label>}
     <label className="fee-field fee-field-wide">Milestone<input placeholder="Optional milestone or deliverable" value={form.milestone} onChange={(e) => setForm({ ...form, milestone: e.target.value })} /></label>
     <label className="fee-field fee-field-wide">Description<textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
   </FeeModal>;

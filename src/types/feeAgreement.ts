@@ -108,7 +108,9 @@ export type FeeAgreementInsert = Pick<
 
 export type FeeAgreementUpdate = Partial<
   Omit<FeeAgreementInsert, 'client_id' | 'case_id'>
->;
+> & {
+  cancellation_reason?: string | null;
+};
 
 export type FeeInstallmentInsert = Pick<
   FeeInstallment,
