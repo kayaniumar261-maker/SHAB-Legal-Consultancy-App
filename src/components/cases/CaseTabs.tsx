@@ -853,6 +853,7 @@ export function CaseTabs({
         return (
           <CaseBillingWorkspace
             caseId={caseRecord.id}
+            clientId={caseRecord.client_id}
           />
         );
 

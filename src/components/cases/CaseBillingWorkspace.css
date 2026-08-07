@@ -3,6 +3,230 @@
   gap: 18px;
 }
 
+.fee-agreement-panel {
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.fee-agreement-header,
+.fee-agreement-title-row,
+.fee-installments-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.fee-agreement-header {
+  padding: 20px;
+  border-bottom: 1px solid #eef2f7;
+  background: #fbfcfd;
+}
+
+.fee-agreement-header h3,
+.fee-agreement-title-row h4,
+.fee-modal h3 {
+  margin: 4px 0 5px;
+  color: #0f172a;
+}
+
+.fee-agreement-header p,
+.fee-agreement-title-row p {
+  margin: 0;
+  color: #64748b;
+  font-size: .78rem;
+}
+
+.fee-primary-button,
+.fee-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 13px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.fee-primary-button {
+  border: 1px solid #8b6a1f;
+  background: #9a7825;
+  color: #fff;
+}
+
+.fee-secondary-button {
+  border: 1px solid #d8dee8;
+  background: #fff;
+  color: #334155;
+}
+
+.fee-primary-button:disabled,
+.fee-secondary-button:disabled { opacity: .6; cursor: not-allowed; }
+
+.fee-message {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 14px 18px 0;
+  padding: 11px 13px;
+  border-radius: 11px;
+  font-size: .76rem;
+}
+
+.fee-message.error { background: #fff1f2; color: #be123c; }
+
+.fee-empty {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 36px 20px;
+  color: #64748b;
+  text-align: center;
+  font-size: .76rem;
+}
+
+.fee-empty strong { color: #1e293b; font-size: .88rem; }
+
+.fee-agreement-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px 0;
+  color: #64748b;
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.fee-agreement-picker select {
+  min-width: 280px;
+  padding: 9px 11px;
+  border: 1px solid #d8dee8;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.fee-agreement-content { display: grid; gap: 18px; padding: 20px; }
+.fee-agreement-title-row > div:first-child { min-width: 0; }
+.fee-agreement-title-row > div:first-child > span { color: #9a7825; font-size: .68rem; font-weight: 850; }
+
+.fee-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fee-summary-stat {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 13px;
+  background: #fafbfc;
+}
+
+.fee-summary-stat.warning { border-color: #fde68a; background: #fffbeb; }
+.fee-summary-stat span { color: #64748b; font-size: .64rem; font-weight: 800; text-transform: uppercase; }
+.fee-summary-stat strong { overflow: hidden; color: #0f172a; font-size: .94rem; text-overflow: ellipsis; white-space: nowrap; }
+
+.fee-installments-heading { align-items: center; }
+.fee-installments-heading > div { display: flex; align-items: center; gap: 8px; color: #1e293b; font-size: .82rem; }
+.fee-installments-heading > span { color: #64748b; font-size: .68rem; }
+.fee-installment-empty { padding: 20px; border: 1px dashed #d8dee8; border-radius: 12px; color: #64748b; text-align: center; font-size: .76rem; }
+.fee-installment-list { display: grid; border: 1px solid #e5e7eb; border-radius: 14px; overflow: hidden; }
+
+.fee-installment-row {
+  display: grid;
+  grid-template-columns: 32px minmax(180px, 1fr) minmax(120px, auto) auto minmax(160px, auto);
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.fee-installment-row:last-child { border-bottom: 0; }
+.fee-installment-sequence { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: #f3ead2; color: #806119; font-size: .72rem; font-weight: 850; }
+.fee-installment-main,
+.fee-installment-amount { display: grid; gap: 3px; min-width: 0; }
+.fee-installment-main strong,
+.fee-installment-amount strong { overflow: hidden; color: #1e293b; font-size: .77rem; text-overflow: ellipsis; white-space: nowrap; }
+.fee-installment-main span,
+.fee-installment-amount span { color: #94a3b8; font-size: .64rem; }
+.fee-installment-amount { text-align: right; }
+
+.fee-status { display: inline-flex; justify-content: center; padding: 5px 8px; border-radius: 999px; background: #f1f5f9; color: #475569; font-size: .58rem; font-weight: 850; text-transform: uppercase; }
+.fee-status.ready { background: #fef3c7; color: #a16207; }
+.fee-status.invoiced { background: #dbeafe; color: #1d4ed8; }
+.fee-status.paid { background: #dcfce7; color: #047857; }
+.fee-status.waived,
+.fee-status.cancelled { background: #f1f5f9; color: #64748b; }
+
+.fee-installment-actions { display: flex; justify-content: flex-end; align-items: center; gap: 6px; min-height: 28px; }
+.fee-installment-actions button { display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; border: 1px solid #d8dee8; border-radius: 8px; background: #fff; color: #475569; font: inherit; font-size: .61rem; font-weight: 750; cursor: pointer; }
+.fee-paid-icon { color: #059669; }
+.fee-spin { animation: fee-spin .8s linear infinite; }
+@keyframes fee-spin { to { transform: rotate(360deg); } }
+
+.fee-modal-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgb(15 23 42 / .62);
+  backdrop-filter: blur(3px);
+}
+
+.fee-modal { width: min(720px, 100%); max-height: calc(100vh - 44px); overflow-y: auto; border-radius: 18px; background: #fff; box-shadow: 0 24px 70px rgb(15 23 42 / .3); }
+.fee-modal > header,
+.fee-modal > footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 17px 20px; }
+.fee-modal > header { border-bottom: 1px solid #eef2f7; }
+.fee-modal > header > button { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid #e2e8f0; border-radius: 9px; background: #fff; color: #475569; cursor: pointer; }
+.fee-modal > footer { justify-content: flex-end; border-top: 1px solid #eef2f7; }
+.fee-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 20px; }
+.fee-field { display: grid; gap: 6px; color: #475569; font-size: .7rem; font-weight: 800; }
+.fee-field-wide { grid-column: 1 / -1; }
+.fee-field input,
+.fee-field select,
+.fee-field textarea { width: 100%; box-sizing: border-box; padding: 10px 11px; border: 1px solid #d8dee8; border-radius: 9px; background: #fff; color: #0f172a; font: inherit; font-size: .78rem; }
+.fee-field textarea { resize: vertical; }
+.fee-field input:focus,
+.fee-field select:focus,
+.fee-field textarea:focus { outline: 2px solid rgb(154 120 37 / .2); border-color: #9a7825; }
+
+@media (max-width: 980px) {
+  .fee-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fee-installment-row { grid-template-columns: 32px 1fr auto; }
+  .fee-installment-amount { text-align: left; }
+  .fee-status { justify-self: start; }
+  .fee-installment-actions { grid-column: 2 / -1; justify-content: flex-start; flex-wrap: wrap; }
+}
+
+@media (max-width: 640px) {
+  .fee-agreement-header,
+  .fee-agreement-title-row { align-items: stretch; flex-direction: column; }
+  .fee-primary-button,
+  .fee-secondary-button { width: 100%; }
+  .fee-summary-grid,
+  .fee-form-grid { grid-template-columns: 1fr; }
+  .fee-field-wide { grid-column: auto; }
+  .fee-agreement-picker { align-items: stretch; flex-direction: column; }
+  .fee-agreement-picker select { min-width: 0; width: 100%; }
+  .fee-installment-row { grid-template-columns: 28px 1fr; }
+  .fee-installment-amount,
+  .fee-status,
+  .fee-installment-actions { grid-column: 2; }
+  .fee-modal-overlay { padding: 10px; }
+  .fee-modal { max-height: calc(100vh - 20px); }
+}
+
 .case-billing-header {
   display: flex;
   align-items: flex-start;
