@@ -22,6 +22,7 @@ import {
   updateFeeAgreement,
   updateFeeInstallment,
 } from '../../services/feeAgreementService';
+import { getCompanySettings, type CompanySettings } from '../../services/companySettingsService';
 import {
   getFinancialLedger,
   type FinancialLedgerSummary,
@@ -81,17 +82,20 @@ export function CaseBillingWorkspace({
   const [editingInstallment, setEditingInstallment] = useState<FeeInstallment | null>(null);
   const [ledgerVersion, setLedgerVersion] = useState(0);
   const [ledgerSummary, setLedgerSummary] = useState<FinancialLedgerSummary>(emptyLedgerSummary);
+  const [companySettings, setCompanySettings] = useState<CompanySettings | null>(null);
 
   const loadAgreements = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const [rows, ledger] = await Promise.all([
+      const [rows, ledger, settings] = await Promise.all([
         getFeeAgreements({ caseId }),
         getFinancialLedger({ caseId }),
+        getCompanySettings(),
       ]);
       setAgreements(rows);
       setLedgerSummary(ledger.summary);
+      setCompanySettings(settings);
       setSelectedId((current) =>
         rows.some((item) => item.id === current) ? current : rows[0]?.id ?? null,
       );
@@ -117,6 +121,12 @@ export function CaseBillingWorkspace({
     [selected],
   );
   const hasOpenAgreement = agreements.some((item) => ['draft', 'active'].includes(item.status));
+  const vatEnabled = Boolean(
+    companySettings?.vat_registered &&
+    companySettings.tax_registration_number?.replace(/\D/g, '').length === 15 &&
+    companySettings.vat_effective_date,
+  );
+  const defaultVatRate = vatEnabled ? Number(companySettings?.default_vat_rate ?? 0) : 0;
   const netBillable = Math.max(0, ledgerSummary.totalBilled - ledgerSummary.totalCredited);
   const unbilledAgreementBalance = Math.max(0, (summary?.agreedFee ?? 0) - netBillable);
 
@@ -189,6 +199,12 @@ export function CaseBillingWorkspace({
         </header>
 
         {error && <div className="fee-message error"><AlertCircle size={17} />{error}</div>}
+        {!loading && !vatEnabled && (
+          <div className="fee-message vat-guard">
+            <AlertCircle size={17} />
+            Company VAT registration is pending. New fee agreements and installments are locked to 0% VAT.
+          </div>
+        )}
 
         {loading ? (
           <div className="fee-empty"><LoaderCircle className="fee-spin" size={23} /> Loading fee agreement…</div>
@@ -304,19 +320,23 @@ export function CaseBillingWorkspace({
         <AgreementModal
           caseId={caseId}
           clientId={clientId}
+          vatEnabled={vatEnabled}
+          defaultVatRate={defaultVatRate}
           onClose={() => setShowAgreementForm(false)}
           onSaved={async () => { setShowAgreementForm(false); await loadAgreements(); }}
         />
       )}
-      {editingAgreement && <AgreementModal caseId={caseId} clientId={clientId} agreement={editingAgreement} onClose={() => setEditingAgreement(null)} onSaved={async () => { setEditingAgreement(null); await loadAgreements(); }} />}
+      {editingAgreement && <AgreementModal caseId={caseId} clientId={clientId} agreement={editingAgreement} vatEnabled={vatEnabled} defaultVatRate={defaultVatRate} onClose={() => setEditingAgreement(null)} onSaved={async () => { setEditingAgreement(null); await loadAgreements(); }} />}
       {showInstallmentForm && selected && (
         <InstallmentModal
           agreement={selected}
+          vatEnabled={vatEnabled}
+          defaultVatRate={defaultVatRate}
           onClose={() => setShowInstallmentForm(false)}
           onSaved={async () => { setShowInstallmentForm(false); await loadAgreements(); }}
         />
       )}
-      {editingInstallment && selected && <InstallmentModal agreement={selected} installment={editingInstallment} onClose={() => setEditingInstallment(null)} onSaved={async () => { setEditingInstallment(null); await loadAgreements(); }} />}
+      {editingInstallment && selected && <InstallmentModal agreement={selected} installment={editingInstallment} vatEnabled={vatEnabled} defaultVatRate={defaultVatRate} onClose={() => setEditingInstallment(null)} onSaved={async () => { setEditingInstallment(null); await loadAgreements(); }} />}
     </div>
   );
 }
@@ -325,12 +345,12 @@ function FeeStat({ label, value, warning = false }: { label: string; value: stri
   return <div className={`fee-summary-stat${warning ? ' warning' : ''}`}><span>{label}</span><strong>{value}</strong></div>;
 }
 
-function AgreementModal({ caseId, clientId, agreement, onClose, onSaved }: {
-  caseId: string; clientId: string; agreement?: FeeAgreementWithInstallments; onClose: () => void; onSaved: () => Promise<void>;
+function AgreementModal({ caseId, clientId, agreement, vatEnabled, defaultVatRate, onClose, onSaved }: {
+  caseId: string; clientId: string; agreement?: FeeAgreementWithInstallments; vatEnabled: boolean; defaultVatRate: number; onClose: () => void; onSaved: () => Promise<void>;
 }) {
   const [form, setForm] = useState({
     title: agreement?.title ?? 'Professional Legal Fees', billing_model: agreement?.billing_model ?? 'installments' as FeeBillingModel,
-    agreed_fee: agreement ? String(agreement.agreed_fee) : '', vat_rate: String(agreement?.vat_rate ?? 5), currency: agreement?.currency ?? 'AED', agreement_date: agreement?.agreement_date ?? today(),
+    agreed_fee: agreement ? String(agreement.agreed_fee) : '', vat_rate: String(vatEnabled ? (agreement?.vat_rate ?? defaultVatRate) : 0), currency: agreement?.currency ?? 'AED', agreement_date: agreement?.agreement_date ?? today(),
     valid_from: agreement?.valid_from ?? today(), valid_until: agreement?.valid_until ?? '', hourly_rate: agreement?.hourly_rate ? String(agreement.hourly_rate) : '', success_fee_percentage: agreement?.success_fee_percentage ? String(agreement.success_fee_percentage) : '', notes: agreement?.notes ?? '',
   });
   const [saving, setSaving] = useState(false);
@@ -343,7 +363,7 @@ function AgreementModal({ caseId, clientId, agreement, onClose, onSaved }: {
     }
     const payload: FeeAgreementInsert = {
       client_id: clientId, case_id: caseId, title: form.title.trim(), billing_model: form.billing_model,
-      currency: form.currency.trim().toUpperCase(), agreed_fee: Number(form.agreed_fee), vat_rate: Number(form.vat_rate),
+      currency: form.currency.trim().toUpperCase(), agreed_fee: Number(form.agreed_fee), vat_rate: vatEnabled ? Number(form.vat_rate) : 0,
       hourly_rate: form.hourly_rate ? Number(form.hourly_rate) : null,
       success_fee_percentage: form.success_fee_percentage ? Number(form.success_fee_percentage) : null,
       agreement_date: form.agreement_date, valid_from: form.valid_from || null, valid_until: form.valid_until || null,
@@ -359,7 +379,7 @@ function AgreementModal({ caseId, clientId, agreement, onClose, onSaved }: {
     <label className="fee-field">Billing model<select value={form.billing_model} onChange={(e) => setForm({ ...form, billing_model: e.target.value as FeeBillingModel })}>{billingModels.map((model) => <option key={model.value} value={model.value}>{model.label}</option>)}</select></label>
     <label className="fee-field">Agreement date<input type="date" value={form.agreement_date} onChange={(e) => setForm({ ...form, agreement_date: e.target.value })} required /></label>
     <label className="fee-field">Agreed fee<input type="number" min="0" step="0.01" value={form.agreed_fee} onChange={(e) => setForm({ ...form, agreed_fee: e.target.value })} required /></label>
-    <label className="fee-field">VAT rate %<input type="number" min="0" max="100" step="0.01" value={form.vat_rate} onChange={(e) => setForm({ ...form, vat_rate: e.target.value })} required /></label>
+    <label className="fee-field">VAT rate %<input type="number" min="0" max="100" step="0.01" value={form.vat_rate} onChange={(e) => setForm({ ...form, vat_rate: e.target.value })} required disabled={!vatEnabled} />{!vatEnabled && <small className="fee-vat-note">Locked at 0% until FTA registration is active.</small>}</label>
     <label className="fee-field">Currency<input maxLength={3} value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} required /></label>
     <label className="fee-field">Valid from<input type="date" value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} /></label>
     <label className="fee-field">Valid until<input type="date" value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} /></label>
@@ -369,10 +389,10 @@ function AgreementModal({ caseId, clientId, agreement, onClose, onSaved }: {
   </FeeModal>;
 }
 
-function InstallmentModal({ agreement, installment, onClose, onSaved }: {
-  agreement: FeeAgreementWithInstallments; installment?: FeeInstallment; onClose: () => void; onSaved: () => Promise<void>;
+function InstallmentModal({ agreement, installment, vatEnabled, defaultVatRate, onClose, onSaved }: {
+  agreement: FeeAgreementWithInstallments; installment?: FeeInstallment; vatEnabled: boolean; defaultVatRate: number; onClose: () => void; onSaved: () => Promise<void>;
 }) {
-  const [form, setForm] = useState({ title: installment?.title ?? '', planned_subtotal: installment ? String(installment.planned_subtotal) : '', vat_rate: String(installment?.vat_rate ?? agreement.vat_rate), due_date: installment?.due_date ?? '', milestone: installment?.milestone ?? '', description: installment?.description ?? '', status: 'planned' as 'planned' | 'ready' });
+  const [form, setForm] = useState({ title: installment?.title ?? '', planned_subtotal: installment ? String(installment.planned_subtotal) : '', vat_rate: String(vatEnabled ? (installment?.vat_rate ?? agreement.vat_rate ?? defaultVatRate) : 0), due_date: installment?.due_date ?? '', milestone: installment?.milestone ?? '', description: installment?.description ?? '', status: 'planned' as 'planned' | 'ready' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function submit(event: React.FormEvent) {
@@ -380,7 +400,7 @@ function InstallmentModal({ agreement, installment, onClose, onSaved }: {
     if (!form.title.trim() || Number(form.planned_subtotal) <= 0) { setError('Enter a title and an amount greater than zero.'); return; }
     const payload: FeeInstallmentInsert = {
       agreement_id: agreement.id, title: form.title.trim(), description: form.description.trim() || null,
-      milestone: form.milestone.trim() || null, planned_subtotal: Number(form.planned_subtotal), vat_rate: Number(form.vat_rate),
+      milestone: form.milestone.trim() || null, planned_subtotal: Number(form.planned_subtotal), vat_rate: vatEnabled ? Number(form.vat_rate) : 0,
       due_date: form.due_date || null, status: form.status,
     };
     try { setSaving(true); setError(null); if (installment) { const { agreement_id, status, ...update } = payload; void agreement_id; void status; await updateFeeInstallment(installment.id, update); } else { await createFeeInstallment(payload); } await onSaved(); }
@@ -390,7 +410,7 @@ function InstallmentModal({ agreement, installment, onClose, onSaved }: {
   return <FeeModal title={installment ? 'Edit Planned Installment' : 'Add Installment'} onClose={onClose} saving={saving} onSubmit={submit} error={error}>
     <label className="fee-field fee-field-wide">Title<input placeholder="e.g. Initial engagement payment" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></label>
     <label className="fee-field">Subtotal ({agreement.currency})<input type="number" min="0.01" step="0.01" value={form.planned_subtotal} onChange={(e) => setForm({ ...form, planned_subtotal: e.target.value })} required /></label>
-    <label className="fee-field">VAT rate %<input type="number" min="0" max="100" step="0.01" value={form.vat_rate} onChange={(e) => setForm({ ...form, vat_rate: e.target.value })} required /></label>
+    <label className="fee-field">VAT rate %<input type="number" min="0" max="100" step="0.01" value={form.vat_rate} onChange={(e) => setForm({ ...form, vat_rate: e.target.value })} required disabled={!vatEnabled} />{!vatEnabled && <small className="fee-vat-note">Locked at 0% until FTA registration is active.</small>}</label>
     <label className="fee-field">Due date<input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} /></label>
     {!installment && <label className="fee-field">Initial state<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as 'planned' | 'ready' })}><option value="planned">Planned</option><option value="ready">Ready to invoice</option></select></label>}
     <label className="fee-field fee-field-wide">Milestone<input placeholder="Optional milestone or deliverable" value={form.milestone} onChange={(e) => setForm({ ...form, milestone: e.target.value })} /></label>
