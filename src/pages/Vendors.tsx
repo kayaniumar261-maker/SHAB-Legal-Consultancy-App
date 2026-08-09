@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
-import { AlertTriangle, CheckCircle2, LoaderCircle, Mail, MapPin, Pencil, Phone, Plus, Search, Store, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { AlertTriangle, CheckCircle2, CircleDollarSign, FileText, LoaderCircle, Mail, MapPin, Pencil, Phone, Plus, Search, Store, X } from 'lucide-react';
 
-import { createExpenseVendor, getExpenseVendors, updateExpenseVendor } from '../services/expenseService';
-import type { ExpenseVendor, ExpenseVendorInsert } from '../types/expense';
+import { createExpenseVendor, getExpenses, getExpenseVendors, updateExpenseVendor } from '../services/expenseService';
+import type { ExpenseVendor, ExpenseVendorInsert, ExpenseWithRelations } from '../types/expense';
 import './Vendors.css';
 
 const emptyForm = { name: '', trade_license_number: '', tax_registration_number: '', email: '', phone: '', address: '', notes: '', is_active: true };
@@ -16,6 +17,9 @@ export function Vendors() {
   const [status, setStatus] = useState<'active' | 'inactive' | 'all'>('active');
   const [editing, setEditing] = useState<ExpenseVendor | 'new' | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [historyVendor, setHistoryVendor] = useState<ExpenseVendor | null>(null);
+  const [history, setHistory] = useState<ExpenseWithRelations[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const load = useCallback(async () => {
     try { setLoading(true); setError(null); setVendors(await getExpenseVendors(true)); }
@@ -32,6 +36,13 @@ export function Vendors() {
       return matchesStatus && matchesSearch;
     });
   }, [search, status, vendors]);
+
+  async function openHistory(vendor: ExpenseVendor) {
+    setHistoryVendor(vendor); setHistoryLoading(true); setError(null);
+    try { setHistory(await getExpenses({ vendorId: vendor.id })); }
+    catch (historyError) { setError(historyError instanceof Error ? historyError.message : 'Unable to load vendor expenses.'); }
+    finally { setHistoryLoading(false); }
+  }
 
   async function toggleActive(vendor: ExpenseVendor) {
     const action = vendor.is_active ? 'deactivate' : 'reactivate';
@@ -53,12 +64,30 @@ export function Vendors() {
         <dl><div><dt>Trade licence</dt><dd>{vendor.trade_license_number || 'Not recorded'}</dd></div><div><dt>Tax registration no.</dt><dd>{vendor.tax_registration_number || 'Not recorded'}</dd></div></dl>
         <section className="vendor-contact">{vendor.email && <span><Mail size={14} />{vendor.email}</span>}{vendor.phone && <span><Phone size={14} />{vendor.phone}</span>}{vendor.address && <span><MapPin size={14} />{vendor.address}</span>}{!vendor.email && !vendor.phone && !vendor.address && <span>No contact details recorded</span>}</section>
         {vendor.notes && <p>{vendor.notes}</p>}
-        <footer><button type="button" onClick={() => setEditing(vendor)}><Pencil size={14} />Edit</button><button type="button" className={vendor.is_active ? 'deactivate' : 'reactivate'} disabled={busyId === vendor.id} onClick={() => void toggleActive(vendor)}>{busyId === vendor.id ? 'Saving…' : vendor.is_active ? 'Deactivate' : 'Reactivate'}</button></footer>
+        <footer><button type="button" onClick={() => void openHistory(vendor)}><FileText size={14} />Expenses</button><button type="button" onClick={() => setEditing(vendor)}><Pencil size={14} />Edit</button><button type="button" className={vendor.is_active ? 'deactivate' : 'reactivate'} disabled={busyId === vendor.id} onClick={() => void toggleActive(vendor)}>{busyId === vendor.id ? 'Saving…' : vendor.is_active ? 'Deactivate' : 'Reactivate'}</button></footer>
       </article>)}</div>}
     </section>
+    {historyVendor && <VendorHistory vendor={historyVendor} expenses={history} loading={historyLoading} onClose={() => setHistoryVendor(null)} />}
     {editing && <VendorEditor vendor={editing === 'new' ? undefined : editing} onClose={() => setEditing(null)} onSaved={async (vendor) => { setEditing(null); setSuccess(`${vendor.name} saved.`); await load(); }} />}
   </main>;
 }
+
+function VendorHistory({ vendor, expenses, loading, onClose }: { vendor: ExpenseVendor; expenses: ExpenseWithRelations[]; loading: boolean; onClose: () => void }) {
+  const active = expenses.filter((expense) => expense.status !== 'void');
+  const paid = active.filter((expense) => expense.status === 'paid');
+  const outstanding = active.filter((expense) => expense.status !== 'paid');
+  return createPortal(<div className="vendor-modal-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><section className="vendor-history-modal">
+    <header><div><span>Vendor financial history</span><h2>{vendor.name}</h2></div><button type="button" onClick={onClose}><X size={19} /></button></header>
+    {loading ? <div className="vendors-empty"><LoaderCircle className="vendors-spin" />Loading vendor expenses…</div> : <>
+      <div className="vendor-history-summary"><article><FileText size={18} /><div><span>Transactions</span><strong>{active.length}</strong></div></article><article><CircleDollarSign size={18} /><div><span>Total spend</span><strong>{totalsByCurrency(active, 'total_amount')}</strong></div></article><article><CheckCircle2 size={18} /><div><span>Paid</span><strong>{totalsByCurrency(paid, 'total_amount')}</strong></div></article><article><AlertTriangle size={18} /><div><span>Open / unpaid</span><strong>{totalsByCurrency(outstanding, 'total_amount')}</strong></div></article><article><FileText size={18} /><div><span>Supplier VAT</span><strong>{totalsByCurrency(active, 'input_vat_amount')}</strong></div></article></div>
+      {expenses.length === 0 ? <div className="vendors-empty"><FileText size={27} /><strong>No vendor expenses</strong><span>No expense has been linked to this vendor.</span></div> : <div className="vendor-history-table-wrap"><table><thead><tr><th>Date / Number</th><th>Category</th><th>Description</th><th>Client / Matter</th><th>Net</th><th>VAT</th><th>Total</th><th>Status</th></tr></thead><tbody>{expenses.map((expense) => <tr key={expense.id} className={expense.status === 'void' ? 'void' : ''}><td><strong>{formatDate(expense.expense_date)}</strong><small>{expense.expense_number}</small></td><td>{expense.category}</td><td>{expense.description}</td><td>{expense.client?.full_name ?? 'Firm expense'}<small>{expense.case?.matter_number ?? expense.case?.case_number ?? ''}</small></td><td>{money(Number(expense.net_amount), expense.currency)}</td><td>{money(Number(expense.input_vat_amount), expense.currency)}</td><td><strong>{money(Number(expense.total_amount), expense.currency)}</strong></td><td><span className={`vendor-expense-status ${expense.status}`}>{expense.status}</span></td></tr>)}</tbody></table></div>}
+    </>}
+  </section></div>, document.body);
+}
+
+function money(value: number, currency = 'AED') { const safe = /^[A-Za-z]{3}$/.test(currency) ? currency.toUpperCase() : 'AED'; return new Intl.NumberFormat('en-AE', { style: 'currency', currency: safe, maximumFractionDigits: 2 }).format(value); }
+function totalsByCurrency(expenses: ExpenseWithRelations[], field: 'total_amount' | 'input_vat_amount') { if (expenses.length === 0) return 'AED 0.00'; const totals = expenses.reduce<Record<string, number>>((result, expense) => { const currency = expense.currency || 'AED'; result[currency] = (result[currency] ?? 0) + Number(expense[field] ?? 0); return result; }, {}); return Object.entries(totals).map(([currency, total]) => money(total, currency)).join(' · '); }
+function formatDate(value: string) { return new Intl.DateTimeFormat('en-AE', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${value}T00:00:00`)); }
 
 function VendorEditor({ vendor, onClose, onSaved }: { vendor?: ExpenseVendor; onClose: () => void; onSaved: (vendor: ExpenseVendor) => Promise<void> }) {
   const [form, setForm] = useState({ ...emptyForm, ...(vendor ?? {}) });
@@ -72,10 +101,10 @@ function VendorEditor({ vendor, onClose, onSaved }: { vendor?: ExpenseVendor; on
     catch (saveError) { setError(saveError instanceof Error ? saveError.message : 'Unable to save vendor.'); }
     finally { setSaving(false); }
   }
-  return <div className="vendor-modal-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) onClose(); }}><form className="vendor-modal" onSubmit={submit}>
+  return createPortal(<div className="vendor-modal-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) onClose(); }}><form className="vendor-modal" onSubmit={submit}>
     <header><div><span>Supplier directory</span><h2>{vendor ? 'Edit Vendor' : 'Add Vendor'}</h2></div><button type="button" onClick={onClose} disabled={saving}><X size={19} /></button></header>
     {error && <div className="vendors-alert error"><AlertTriangle size={17} />{error}</div>}
     <div className="vendor-form-grid"><label className="wide">Vendor / supplier name<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required autoFocus /></label><label>Trade licence number<input value={form.trade_license_number ?? ''} onChange={(event) => setForm({ ...form, trade_license_number: event.target.value })} /></label><label>Tax registration number<input value={form.tax_registration_number ?? ''} onChange={(event) => setForm({ ...form, tax_registration_number: event.target.value })} /></label><label>Email<input type="email" value={form.email ?? ''} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label><label>Phone<input value={form.phone ?? ''} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></label><label className="wide">Address<input value={form.address ?? ''} onChange={(event) => setForm({ ...form, address: event.target.value })} /></label><label className="wide">Notes<textarea rows={3} value={form.notes ?? ''} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></label></div>
     <footer><button type="button" onClick={onClose} disabled={saving}>Cancel</button><button type="submit" disabled={saving}>{saving ? <LoaderCircle className="vendors-spin" size={16} /> : <CheckCircle2 size={16} />}{saving ? 'Saving…' : 'Save Vendor'}</button></footer>
-  </form></div>;
+  </form></div>, document.body);
 }

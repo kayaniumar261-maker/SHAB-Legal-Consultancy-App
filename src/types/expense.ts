@@ -115,6 +115,7 @@ export type ExpenseInsert = Pick<
 export type ExpenseUpdate = Partial<ExpenseInsert>;
 
 export type ExpenseFilters = {
+  vendorId?: string;
   clientId?: string;
   caseId?: string;
   status?: ExpenseStatus;

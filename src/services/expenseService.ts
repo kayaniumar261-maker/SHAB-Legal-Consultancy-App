@@ -35,6 +35,7 @@ export async function getExpenses(filters: ExpenseFilters = {}): Promise<Expense
     .order('expense_date', { ascending: false })
     .order('created_at', { ascending: false });
 
+  if (filters.vendorId) query = query.eq('vendor_id', filters.vendorId);
   if (filters.clientId) query = query.eq('client_id', filters.clientId);
   if (filters.caseId) query = query.eq('case_id', filters.caseId);
   if (filters.status) query = query.eq('status', filters.status);
