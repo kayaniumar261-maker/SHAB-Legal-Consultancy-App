@@ -1,4 +1,5 @@
 import {
+  BookOpenCheck,
   BriefcaseBusiness,
   CalendarDays,
   CheckSquare,
@@ -70,6 +71,11 @@ const navigationItems = [
     label: 'Payments',
     path: '/payments',
     icon: CreditCard,
+  },
+  {
+    label: 'Accounting',
+    path: '/accounting',
+    icon: BookOpenCheck,
   },
   {
     label: 'Staff',

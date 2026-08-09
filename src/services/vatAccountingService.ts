@@ -64,7 +64,9 @@ export async function getVatReport(dateFrom: string, dateTo: string): Promise<Va
   const credits = lines.filter((line) => line.documentType === 'credit_note');
   const sum = (rows: VatReportLine[], field: 'taxableAmount' | 'vatAmount') => rows.reduce((total, row) => total + row[field], 0);
   const currencies = new Set(lines.map((line) => line.currency));
-  const taxableSales = sum(invoices, 'taxableAmount'); const outputVat = sum(invoices, 'vatAmount');
-  const creditedTaxableSales = sum(credits, 'taxableAmount'); const creditedVat = sum(credits, 'vatAmount');
+  const taxableInvoices = invoices.filter((line) => line.treatment !== 'out_of_scope');
+  const taxableCredits = credits.filter((line) => line.treatment !== 'out_of_scope');
+  const taxableSales = sum(taxableInvoices, 'taxableAmount'); const outputVat = sum(taxableInvoices, 'vatAmount');
+  const creditedTaxableSales = sum(taxableCredits, 'taxableAmount'); const creditedVat = sum(taxableCredits, 'vatAmount');
   return { dateFrom, dateTo, currency: currencies.size === 1 ? [...currencies][0] : currencies.size ? null : 'AED', hasMixedCurrencies: currencies.size > 1, taxableSales, outputVat, creditedTaxableSales, creditedVat, netTaxableSales: taxableSales - creditedTaxableSales, netVat: outputVat - creditedVat, lines };
 }

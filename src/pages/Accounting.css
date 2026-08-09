@@ -1,0 +1,65 @@
+.accounting-page { display: grid; gap: 18px; }
+.accounting-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.accounting-heading h1 { margin: 3px 0 5px; color: #0f172a; font-size: clamp(1.65rem, 3vw, 2.25rem); }
+.accounting-heading p { margin: 0; color: #64748b; }
+.accounting-eyebrow { color: #9a7825 !important; font-size: .69rem; font-weight: 850; letter-spacing: .11em; text-transform: uppercase; }
+.accounting-registration { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; font-size: .76rem; font-weight: 850; white-space: nowrap; }
+.accounting-registration.pending { background: #fef3c7; color: #92400e; }
+.accounting-registration.ready { background: #dcfce7; color: #047857; }
+.accounting-notice, .accounting-alert { display: flex; align-items: center; gap: 10px; padding: 13px 15px; border-radius: 13px; font-size: .77rem; }
+.accounting-notice { border: 1px solid #fde68a; background: #fffbeb; color: #92400e; }
+.accounting-notice > div { display: grid; gap: 2px; }
+.accounting-notice span { font-size: .7rem; }
+.accounting-alert.error { border: 1px solid #fecaca; background: #fff1f2; color: #be123c; }
+.accounting-alert.success { border: 1px solid #bbf7d0; background: #f0fdf4; color: #047857; }
+.accounting-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.35fr); gap: 18px; align-items: start; }
+.accounting-card { overflow: hidden; border: 1px solid #e5e7eb; border-radius: 18px; background: #fff; box-shadow: 0 10px 28px rgb(15 23 42 / .04); }
+.accounting-card > header { display: flex; align-items: center; gap: 11px; padding: 18px 20px; border-bottom: 1px solid #eef2f7; background: #fbfcfd; }
+.accounting-card h2 { margin: 0 0 3px; color: #0f172a; font-size: 1rem; }
+.accounting-card header p { margin: 0; color: #64748b; font-size: .7rem; }
+.accounting-icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 11px; background: #f3ead2; color: #8b6a1f; }
+.period-form, .report-form { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 10px; padding: 16px 18px; border-bottom: 1px solid #eef2f7; }
+.period-form label, .report-form label { display: grid; gap: 5px; color: #475569; font-size: .65rem; font-weight: 800; }
+.period-form input, .report-form input { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #d8dee8; border-radius: 9px; background: #fff; color: #0f172a; font: inherit; }
+.period-form button, .report-form button { display: inline-flex; min-height: 37px; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; border: 1px solid #8b6a1f; border-radius: 9px; background: #9a7825; color: #fff; font: inherit; font-size: .68rem; font-weight: 850; cursor: pointer; }
+.period-form button:disabled, .report-form button:disabled, .period-action:disabled { opacity: .55; cursor: not-allowed; }
+.period-list { display: grid; }
+.period-row { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 13px 18px; border-bottom: 1px solid #eef2f7; }
+.period-row:last-child { border-bottom: 0; }
+.period-state { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; background: #ecfdf5; color: #047857; }
+.period-state.locked { background: #f1f5f9; color: #475569; }
+.period-row > div:nth-child(2) { display: grid; gap: 3px; min-width: 0; }
+.period-row strong { color: #1e293b; font-size: .72rem; }
+.period-row span { overflow: hidden; color: #64748b; font-size: .63rem; text-overflow: ellipsis; white-space: nowrap; }
+.period-badge { padding: 5px 8px; border-radius: 999px; background: #dcfce7; color: #047857 !important; font-size: .57rem !important; font-weight: 850; text-transform: uppercase; }
+.period-badge.locked { background: #e2e8f0; color: #475569 !important; }
+.period-action { padding: 7px 9px; border: 1px solid #d8dee8; border-radius: 8px; background: #fff; color: #475569; font: inherit; font-size: .62rem; font-weight: 800; cursor: pointer; }
+.accounting-empty { display: flex; min-height: 115px; align-items: center; justify-content: center; gap: 8px; padding: 22px; color: #64748b; text-align: center; font-size: .72rem; }
+.report-empty { flex-direction: column; }
+.vat-report { display: grid; gap: 14px; padding: 16px 18px 18px; }
+.vat-report-status { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.vat-report-status strong { color: #92400e; font-size: .74rem; }
+.vat-report-status span { color: #64748b; font-size: .65rem; }
+.vat-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+.report-stat { display: grid; gap: 5px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 11px; background: #fafbfc; }
+.report-stat.highlight { border-color: #fde68a; background: #fffbeb; }
+.report-stat span { color: #64748b; font-size: .58rem; font-weight: 850; text-transform: uppercase; }
+.report-stat strong { overflow: hidden; color: #0f172a; font-size: .82rem; text-overflow: ellipsis; white-space: nowrap; }
+.vat-lines-wrap { overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 12px; }
+.vat-lines { width: 100%; border-collapse: collapse; }
+.vat-lines th, .vat-lines td { padding: 10px 11px; border-bottom: 1px solid #eef2f7; text-align: left; white-space: nowrap; }
+.vat-lines th { color: #64748b; font-size: .57rem; letter-spacing: .04em; text-transform: uppercase; }
+.vat-lines td { color: #334155; font-size: .66rem; }
+.vat-lines tbody tr:last-child td { border-bottom: 0; }
+.vat-lines td:nth-child(2) { display: grid; gap: 2px; }
+.vat-lines small { color: #94a3b8; text-transform: capitalize; }
+@media (max-width: 1100px) { .accounting-grid { grid-template-columns: 1fr; } }
+@media (max-width: 700px) {
+  .accounting-heading { align-items: stretch; flex-direction: column; }
+  .accounting-registration { align-self: flex-start; }
+  .period-form, .report-form { grid-template-columns: 1fr; }
+  .vat-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .period-row { grid-template-columns: 36px 1fr auto; }
+  .period-action { grid-column: 2 / -1; }
+}
+@media (max-width: 460px) { .vat-summary { grid-template-columns: 1fr; } }
