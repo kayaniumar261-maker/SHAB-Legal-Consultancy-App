@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import type { Invoice } from '../types/invoice';
 import type {
   Expense,
+  ExpenseAttachment,
   ExpenseFilters,
   ExpenseInsert,
   ExpenseStatus,
@@ -80,6 +81,55 @@ export async function createInvoiceFromRecoverableExpense(
       p_due_date: dueDate,
     }),
   ) as Invoice;
+}
+
+export async function getExpenseAttachments(expenseId: string): Promise<ExpenseAttachment[]> {
+  const { data, error } = await supabase
+    .from('expense_attachments')
+    .select('*')
+    .eq('expense_id', expenseId)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ExpenseAttachment[];
+}
+
+export async function uploadExpenseAttachment(expenseId: string, file: File): Promise<ExpenseAttachment> {
+  const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+  if (!allowed.includes(file.type)) throw new Error('Upload a PDF, JPG, PNG or WebP file.');
+  if (file.size > 10 * 1024 * 1024) throw new Error('Supporting documents cannot exceed 10 MB.');
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'document';
+  const storagePath = `${expenseId}/${crypto.randomUUID()}-${safeName}`;
+  const upload = await supabase.storage.from('expense-documents').upload(storagePath, file, {
+    cacheControl: '3600',
+    contentType: file.type,
+    upsert: false,
+  });
+  if (upload.error) throw new Error(upload.error.message);
+  const result = await supabase.from('expense_attachments').insert({
+    expense_id: expenseId,
+    file_name: file.name,
+    storage_path: storagePath,
+    mime_type: file.type,
+    file_size: file.size,
+  }).select().single();
+  if (result.error) {
+    await supabase.storage.from('expense-documents').remove([storagePath]);
+    throw new Error(result.error.message);
+  }
+  return result.data as ExpenseAttachment;
+}
+
+export async function getExpenseAttachmentUrl(storagePath: string): Promise<string> {
+  const { data, error } = await supabase.storage.from('expense-documents').createSignedUrl(storagePath, 300);
+  if (error) throw new Error(error.message);
+  return data.signedUrl;
+}
+
+export async function deleteExpenseAttachment(attachment: ExpenseAttachment): Promise<void> {
+  const storage = await supabase.storage.from('expense-documents').remove([attachment.storage_path]);
+  if (storage.error) throw new Error(storage.error.message);
+  const metadata = await supabase.from('expense_attachments').delete().eq('id', attachment.id);
+  if (metadata.error) throw new Error(metadata.error.message);
 }
 
 export function summarizeExpenses(expenses: ExpenseWithRelations[]): ExpenseSummary {

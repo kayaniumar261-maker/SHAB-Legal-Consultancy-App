@@ -5,15 +5,18 @@ import {
   CheckCircle2,
   CircleDollarSign,
   CreditCard,
+  Download,
   FilePlus2,
   FileText,
   LoaderCircle,
+  Paperclip,
   Pencil,
   Plus,
   ReceiptText,
   Search,
   ShieldCheck,
   Trash2,
+  Upload,
   Users,
   X,
 } from 'lucide-react';
@@ -22,13 +25,18 @@ import {
   changeExpenseStatus,
   createExpense,
   createInvoiceFromRecoverableExpense,
+  deleteExpenseAttachment,
+  getExpenseAttachmentUrl,
+  getExpenseAttachments,
   getExpenseCaseOptions,
   getExpenseClientOptions,
   getExpenses,
   summarizeExpenses,
   updateExpense,
+  uploadExpenseAttachment,
 } from '../services/expenseService';
 import type {
+  ExpenseAttachment,
   ExpenseInsert,
   ExpenseStatus,
   ExpenseType,
@@ -75,6 +83,10 @@ export function Expenses() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | ExpenseType>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | ExpenseStatus>('all');
+  const [attachmentExpense, setAttachmentExpense] = useState<ExpenseWithRelations | null>(null);
+  const [attachments, setAttachments] = useState<ExpenseAttachment[]>([]);
+  const [attachmentsLoading, setAttachmentsLoading] = useState(false);
+  const [attachmentBusy, setAttachmentBusy] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -117,6 +129,56 @@ export function Expenses() {
   }, [expenses, search]);
 
   const summary = useMemo(() => summarizeExpenses(expenses), [expenses]);
+
+  async function openAttachments(expense: ExpenseWithRelations) {
+    setAttachmentExpense(expense);
+    setAttachmentsLoading(true);
+    setError(null);
+    try {
+      setAttachments(await getExpenseAttachments(expense.id));
+    } catch (attachmentError) {
+      setError(attachmentError instanceof Error ? attachmentError.message : 'Unable to load supporting documents.');
+    } finally {
+      setAttachmentsLoading(false);
+    }
+  }
+
+  async function uploadAttachment(file: File) {
+    if (!attachmentExpense) return;
+    try {
+      setAttachmentBusy(true);
+      setError(null);
+      await uploadExpenseAttachment(attachmentExpense.id, file);
+      setAttachments(await getExpenseAttachments(attachmentExpense.id));
+      setSuccess(`Supporting document added to ${attachmentExpense.expense_number}.`);
+    } catch (attachmentError) {
+      setError(attachmentError instanceof Error ? attachmentError.message : 'Unable to upload the supporting document.');
+    } finally {
+      setAttachmentBusy(false);
+    }
+  }
+
+  async function viewAttachment(attachment: ExpenseAttachment) {
+    try {
+      const url = await getExpenseAttachmentUrl(attachment.storage_path);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (attachmentError) {
+      setError(attachmentError instanceof Error ? attachmentError.message : 'Unable to open the supporting document.');
+    }
+  }
+
+  async function removeAttachment(attachment: ExpenseAttachment) {
+    if (!attachmentExpense || !window.confirm(`Delete ${attachment.file_name}?`)) return;
+    try {
+      setAttachmentBusy(true);
+      await deleteExpenseAttachment(attachment);
+      setAttachments(await getExpenseAttachments(attachmentExpense.id));
+    } catch (attachmentError) {
+      setError(attachmentError instanceof Error ? attachmentError.message : 'Unable to delete the supporting document.');
+    } finally {
+      setAttachmentBusy(false);
+    }
+  }
 
   async function billDisbursement(expense: ExpenseWithRelations) {
     const issueDate = localToday();
@@ -221,6 +283,7 @@ export function Expenses() {
                   <td><span className={`expense-status ${expense.status}`}>{expense.status}</span></td>
                   <td><div className="expense-actions">
                     {busyId === expense.id ? <LoaderCircle className="expense-spin" size={17} /> : <>
+                      <button type="button" title="Supporting documents" onClick={() => void openAttachments(expense)}><Paperclip size={14} />Docs</button>
                       {expense.status === 'draft' && <button type="button" title="Edit" onClick={() => setEditing(expense)}><Pencil size={14} /></button>}
                       {expense.status === 'draft' && <button type="button" onClick={() => void transition(expense, 'approved')}>Approve</button>}
                       {expense.status === 'approved' && <button type="button" onClick={() => void transition(expense, 'paid')}><CreditCard size={14} />Paid</button>}
@@ -243,6 +306,23 @@ export function Expenses() {
         onClose={() => { setShowForm(false); setEditing(null); }}
         onSaved={async () => { setShowForm(false); setEditing(null); setSuccess(editing ? 'Expense updated.' : 'Expense created as draft.'); await load(); }}
       />}
+
+      {attachmentExpense && <div className="expense-modal-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !attachmentBusy) setAttachmentExpense(null); }}>
+        <section className="expense-modal expense-documents-modal">
+          <header><div><span className="expenses-eyebrow">Supporting evidence</span><h2>{attachmentExpense.expense_number}</h2></div><button type="button" onClick={() => setAttachmentExpense(null)} disabled={attachmentBusy} aria-label="Close"><X size={19} /></button></header>
+          <div className="expense-documents-toolbar">
+            <div><strong>Receipts &amp; vouchers</strong><span>PDF, JPG, PNG or WebP - maximum 10 MB.</span></div>
+            <label className="expense-primary expense-upload-button"><Upload size={15} />{attachmentBusy ? 'Uploading…' : 'Add File'}<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" disabled={attachmentBusy} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadAttachment(file); event.currentTarget.value = ''; }} /></label>
+          </div>
+          <div className="expense-documents-list">
+            {attachmentsLoading ? <div className="expense-empty"><LoaderCircle className="expense-spin" size={22} />Loading documents…</div> : attachments.length === 0 ? <div className="expense-empty"><Paperclip size={25} /><strong>No supporting documents</strong><span>Add a receipt, invoice, court voucher or payment proof.</span></div> : attachments.map((attachment) => <article key={attachment.id}>
+              <FileText size={19} /><div><strong>{attachment.file_name}</strong><span>{formatFileSize(attachment.file_size)} · {formatDateTime(attachment.created_at)}</span></div>
+              <button type="button" onClick={() => void viewAttachment(attachment)}><Download size={14} />Open</button>
+              {attachmentExpense.status === 'draft' && <button type="button" className="danger" disabled={attachmentBusy} onClick={() => void removeAttachment(attachment)}><Trash2 size={14} /></button>}
+            </article>)}
+          </div>
+        </section>
+      </div>}
     </main>
   );
 }
@@ -347,3 +427,5 @@ function money(value: number, currency = 'AED') {
 }
 function label(value: string) { return value.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); }
 function formatDate(value: string) { const date = new Date(`${value}T00:00:00`); return new Intl.DateTimeFormat('en-AE', { day: '2-digit', month: 'short', year: 'numeric' }).format(date); }
+function formatDateTime(value: string) { return new Intl.DateTimeFormat('en-AE', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value)); }
+function formatFileSize(value: number) { return value < 1024 * 1024 ? `${Math.max(1, Math.round(value / 1024))} KB` : `${(value / 1024 / 1024).toFixed(1)} MB`; }
