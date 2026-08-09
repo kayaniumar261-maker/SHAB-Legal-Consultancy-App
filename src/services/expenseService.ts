@@ -166,14 +166,20 @@ export function summarizeExpenses(expenses: ExpenseWithRelations[]): ExpenseSumm
   };
 }
 
-export async function getExpenseVendors(): Promise<ExpenseVendor[]> {
-  const { data, error } = await supabase.from('expense_vendors').select('*').eq('is_active', true).order('name');
+export async function getExpenseVendors(includeInactive = false): Promise<ExpenseVendor[]> {
+  let query = supabase.from('expense_vendors').select('*').order('name');
+  if (!includeInactive) query = query.eq('is_active', true);
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data ?? []) as ExpenseVendor[];
 }
 
 export async function createExpenseVendor(input: ExpenseVendorInsert): Promise<ExpenseVendor> {
   return unwrap(await supabase.from('expense_vendors').insert(input).select().single()) as ExpenseVendor;
+}
+
+export async function updateExpenseVendor(id: string, input: Partial<ExpenseVendorInsert>): Promise<ExpenseVendor> {
+  return unwrap(await supabase.from('expense_vendors').update(input).eq('id', id).select().single()) as ExpenseVendor;
 }
 
 export async function getExpenseClientOptions(): Promise<Array<{ id: string; name: string }>> {

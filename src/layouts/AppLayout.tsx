@@ -11,6 +11,7 @@ import {
   Menu,
   ReceiptText,
   Settings,
+  Store,
   Users,
   X,
 } from 'lucide-react';
@@ -77,6 +78,11 @@ const navigationItems = [
     label: 'Expenses',
     path: '/expenses',
     icon: ReceiptText,
+  },
+  {
+    label: 'Vendors',
+    path: '/vendors',
+    icon: Store,
   },
   {
     label: 'Accounting',
