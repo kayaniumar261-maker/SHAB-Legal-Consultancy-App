@@ -8,6 +8,8 @@ import type {
   ExpenseAttachment,
   ExpenseFilters,
   ExpenseInsert,
+  ExpenseVendor,
+  ExpenseVendorInsert,
   ExpenseStatus,
   ExpenseSummary,
   ExpenseUpdate,
@@ -27,7 +29,8 @@ export async function getExpenses(filters: ExpenseFilters = {}): Promise<Expense
       *,
       client:clients(id, full_name),
       case:cases(id, case_number, matter_number),
-      billed_invoice:invoices(id, invoice_number)
+      billed_invoice:invoices(id, invoice_number),
+      vendor:expense_vendors(*)
     `)
     .order('expense_date', { ascending: false })
     .order('created_at', { ascending: false });
@@ -161,6 +164,16 @@ export function summarizeExpenses(expenses: ExpenseWithRelations[]): ExpenseSumm
       0,
     ),
   };
+}
+
+export async function getExpenseVendors(): Promise<ExpenseVendor[]> {
+  const { data, error } = await supabase.from('expense_vendors').select('*').eq('is_active', true).order('name');
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ExpenseVendor[];
+}
+
+export async function createExpenseVendor(input: ExpenseVendorInsert): Promise<ExpenseVendor> {
+  return unwrap(await supabase.from('expense_vendors').insert(input).select().single()) as ExpenseVendor;
 }
 
 export async function getExpenseClientOptions(): Promise<Array<{ id: string; name: string }>> {

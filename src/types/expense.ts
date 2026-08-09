@@ -6,6 +6,22 @@ export type ExpenseTaxClaimStatus =
   | 'claimable'
   | 'claimed'
   | 'non_recoverable';
+export interface ExpenseVendor {
+  id: string;
+  name: string;
+  trade_license_number: string | null;
+  tax_registration_number: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ExpenseVendorInsert = Omit<ExpenseVendor, 'id' | 'created_at' | 'updated_at'>;
+
 export interface ExpenseActivity {
   id: string;
   expense_id: string;
@@ -41,6 +57,7 @@ export interface Expense {
   expense_type: ExpenseType;
   category: string;
   description: string;
+  vendor_id: string | null;
   vendor_name: string | null;
   currency: string;
   net_amount: number;
@@ -71,6 +88,7 @@ export type ExpenseWithRelations = Expense & {
   client?: { id: string; full_name: string } | null;
   case?: { id: string; case_number: string | null; matter_number: string | null } | null;
   billed_invoice?: { id: string; invoice_number: string } | null;
+  vendor?: ExpenseVendor | null;
 };
 
 export type ExpenseInsert = Pick<
@@ -79,6 +97,7 @@ export type ExpenseInsert = Pick<
   | 'expense_type'
   | 'category'
   | 'description'
+  | 'vendor_id'
   | 'vendor_name'
   | 'currency'
   | 'net_amount'

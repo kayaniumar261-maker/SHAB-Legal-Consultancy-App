@@ -25,6 +25,7 @@ import {
 import {
   changeExpenseStatus,
   createExpense,
+  createExpenseVendor,
   createInvoiceFromRecoverableExpense,
   deleteExpenseAttachment,
   getExpenseActivity,
@@ -32,6 +33,7 @@ import {
   getExpenseAttachments,
   getExpenseCaseOptions,
   getExpenseClientOptions,
+  getExpenseVendors,
   getExpenses,
   summarizeExpenses,
   updateExpense,
@@ -43,6 +45,8 @@ import type {
   ExpenseInsert,
   ExpenseStatus,
   ExpenseType,
+  ExpenseVendor,
+  ExpenseVendorInsert,
   ExpenseWithRelations,
 } from '../types/expense';
 import './Expenses.css';
@@ -77,6 +81,8 @@ export function Expenses() {
   const [expenses, setExpenses] = useState<ExpenseWithRelations[]>([]);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [cases, setCases] = useState<CaseOption[]>([]);
+  const [vendors, setVendors] = useState<ExpenseVendor[]>([]);
+  const [showVendorForm, setShowVendorForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -103,17 +109,19 @@ export function Expenses() {
     try {
       setLoading(true);
       setError(null);
-      const [rows, clientRows, caseRows] = await Promise.all([
+      const [rows, clientRows, caseRows, vendorRows] = await Promise.all([
         getExpenses({
           expenseType: typeFilter === 'all' ? undefined : typeFilter,
           status: statusFilter === 'all' ? undefined : statusFilter,
         }),
         getExpenseClientOptions(),
         getExpenseCaseOptions(),
+        getExpenseVendors(),
       ]);
       setExpenses(rows);
       setClients(clientRows);
       setCases(caseRows);
+      setVendors(vendorRows);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load expenses.');
     } finally {
@@ -384,8 +392,15 @@ export function Expenses() {
         expense={editing ?? undefined}
         clients={clients}
         cases={cases}
+        vendors={vendors}
+        onAddVendor={() => setShowVendorForm(true)}
         onClose={() => { setShowForm(false); setEditing(null); }}
         onSaved={async () => { setShowForm(false); setEditing(null); setSuccess(editing ? 'Expense updated.' : 'Expense created as draft.'); await load(); }}
+      />}
+
+      {showVendorForm && <VendorModal
+        onClose={() => setShowVendorForm(false)}
+        onSaved={async (vendor) => { setVendors((current) => [...current, vendor].sort((a, b) => a.name.localeCompare(b.name))); setShowVendorForm(false); setSuccess(`Vendor ${vendor.name} added.`); }}
       />}
 
       {activityExpense && <div className="expense-modal-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setActivityExpense(null); }}>
@@ -420,10 +435,12 @@ export function Expenses() {
   );
 }
 
-function ExpenseModal({ expense, clients, cases, onClose, onSaved }: {
+function ExpenseModal({ expense, clients, cases, vendors, onAddVendor, onClose, onSaved }: {
   expense?: ExpenseWithRelations;
   clients: ClientOption[];
   cases: CaseOption[];
+  vendors: ExpenseVendor[];
+  onAddVendor: () => void;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
@@ -432,6 +449,7 @@ function ExpenseModal({ expense, clients, cases, onClose, onSaved }: {
     expense_type: expense?.expense_type ?? 'firm_overhead' as ExpenseType,
     category: expense?.category ?? categories[0],
     description: expense?.description ?? '',
+    vendor_id: expense?.vendor_id ?? '',
     vendor_name: expense?.vendor_name ?? '',
     currency: expense?.currency ?? 'AED',
     net_amount: expense ? String(expense.net_amount) : '',
@@ -462,6 +480,7 @@ function ExpenseModal({ expense, clients, cases, onClose, onSaved }: {
       expense_type: form.recoverable_from_client ? 'client_disbursement' : form.expense_type,
       category: form.category,
       description: form.description.trim(),
+      vendor_id: form.vendor_id || null,
       vendor_name: form.vendor_name.trim() || null,
       currency: form.currency.trim().toUpperCase(),
       net_amount: Number(form.net_amount),
@@ -492,7 +511,7 @@ function ExpenseModal({ expense, clients, cases, onClose, onSaved }: {
         <label>Expense date<input type="date" value={form.expense_date} onChange={(event) => setForm({ ...form, expense_date: event.target.value })} required /></label>
         <label>Expense type<select value={form.expense_type} onChange={(event) => { const expenseType = event.target.value as ExpenseType; setForm({ ...form, expense_type: expenseType, recoverable_from_client: expenseType === 'client_disbursement' ? form.recoverable_from_client : false, client_id: expenseType === 'firm_overhead' ? '' : form.client_id, case_id: expenseType === 'firm_overhead' ? '' : form.case_id }); }}><option value="firm_overhead">Firm overhead</option><option value="client_disbursement">Client disbursement</option></select></label>
         <label>Category<select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
-        <label>Vendor / payee<input value={form.vendor_name} onChange={(event) => setForm({ ...form, vendor_name: event.target.value })} /></label>
+        <label>Vendor / payee<div className="expense-vendor-control"><select value={form.vendor_id} onChange={(event) => { const vendor = vendors.find((item) => item.id === event.target.value); setForm({ ...form, vendor_id: event.target.value, vendor_name: vendor?.name ?? '' }); }}><option value="">No saved vendor</option>{vendors.map((vendor) => <option key={vendor.id} value={vendor.id}>{vendor.name}</option>)}</select><button type="button" onClick={onAddVendor}><Plus size={14} />Add</button></div>{!form.vendor_id && <input placeholder="Or enter a one-off payee" value={form.vendor_name} onChange={(event) => setForm({ ...form, vendor_name: event.target.value })} />}</label>
         <label className="wide">Description<input value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} required /></label>
         <label>Net amount<input type="number" min="0" step="0.01" value={form.net_amount} onChange={(event) => setForm({ ...form, net_amount: event.target.value })} required /></label>
         <label>Supplier VAT<input type="number" min="0" step="0.01" value={form.input_vat_amount} onChange={(event) => setForm({ ...form, input_vat_amount: event.target.value })} /><small>Recorded only; not claimed.</small></label>
@@ -507,6 +526,40 @@ function ExpenseModal({ expense, clients, cases, onClose, onSaved }: {
         <label className="wide">Notes<textarea rows={3} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></label>
       </div>
       <footer><button type="button" className="expense-secondary" onClick={onClose} disabled={saving}>Cancel</button><button type="submit" className="expense-primary" disabled={saving}>{saving ? <LoaderCircle className="expense-spin" size={16} /> : <Plus size={16} />}{saving ? 'Saving…' : 'Save Draft'}</button></footer>
+    </form>
+  </div>;
+}
+
+function VendorModal({ onClose, onSaved }: { onClose: () => void; onSaved: (vendor: ExpenseVendor) => Promise<void> }) {
+  const [form, setForm] = useState({ name: '', trade_license_number: '', tax_registration_number: '', email: '', phone: '', address: '', notes: '' });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (form.name.trim().length < 2) { setError('Enter the vendor or supplier name.'); return; }
+    const input: ExpenseVendorInsert = {
+      name: form.name.trim(), trade_license_number: form.trade_license_number.trim() || null,
+      tax_registration_number: form.tax_registration_number.trim() || null, email: form.email.trim() || null,
+      phone: form.phone.trim() || null, address: form.address.trim() || null, notes: form.notes.trim() || null, is_active: true,
+    };
+    try { setSaving(true); setError(null); await onSaved(await createExpenseVendor(input)); }
+    catch (saveError) { setError(saveError instanceof Error ? saveError.message : 'Unable to save vendor.'); }
+    finally { setSaving(false); }
+  }
+  return <div className="expense-modal-overlay expense-vendor-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) onClose(); }}>
+    <form className="expense-modal expense-vendor-modal" onSubmit={submit}>
+      <header><div><span className="expenses-eyebrow">Supplier directory</span><h2>Add Vendor</h2></div><button type="button" onClick={onClose} disabled={saving}><X size={19} /></button></header>
+      {error && <div className="expense-alert error"><AlertTriangle size={17} />{error}</div>}
+      <div className="expense-form-grid">
+        <label className="wide">Vendor / supplier name<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} autoFocus required /></label>
+        <label>Trade licence number<input value={form.trade_license_number} onChange={(event) => setForm({ ...form, trade_license_number: event.target.value })} /></label>
+        <label>Tax registration number<input value={form.tax_registration_number} onChange={(event) => setForm({ ...form, tax_registration_number: event.target.value })} /></label>
+        <label>Email<input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
+        <label>Phone<input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></label>
+        <label className="wide">Address<input value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} /></label>
+        <label className="wide">Notes<textarea rows={3} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></label>
+      </div>
+      <footer><button type="button" className="expense-secondary" onClick={onClose} disabled={saving}>Cancel</button><button type="submit" className="expense-primary" disabled={saving}>{saving ? <LoaderCircle className="expense-spin" size={16} /> : <Plus size={16} />}{saving ? 'Saving…' : 'Add Vendor'}</button></footer>
     </form>
   </div>;
 }

@@ -125,3 +125,9 @@
   .expense-date-filter { flex: 1 1 160px; }
   .expense-report-result { margin-left: 0; width: 100%; justify-content: center; }
 }
+
+/* Reusable expense vendors */
+.expense-vendor-control { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; }
+.expense-vendor-control button { display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; border: 1px solid #b9c8da; border-radius: 8px; background: #f7faff; color: #244b76; font-weight: 700; cursor: pointer; }
+.expense-vendor-modal { max-width: 690px; }
+.expense-vendor-overlay { z-index: 1200; }
