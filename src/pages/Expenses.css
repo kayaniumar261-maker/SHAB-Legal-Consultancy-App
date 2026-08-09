@@ -106,3 +106,22 @@
 .expense-activity-list strong { color: #1e293b; font-size: .74rem; }
 .expense-activity-list span { color: #475569; font-size: .67rem; }
 .expense-activity-list small { color: #94a3b8; font-size: .59rem; }
+
+
+/* Expense reporting and CSV export */
+.expense-heading-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.expense-heading-actions .expense-secondary { display: inline-flex; align-items: center; gap: 7px; }
+.expense-heading-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.expense-toolbar { flex-wrap: wrap; }
+.expense-date-filter { display: flex; align-items: center; gap: 7px; min-height: 38px; padding: 0 10px; border: 1px solid var(--border-color, #d8dee8); border-radius: 8px; background: #fff; }
+.expense-date-filter span { font-size: 11px; font-weight: 700; color: #697386; text-transform: uppercase; }
+.expense-date-filter input { border: 0; outline: 0; background: transparent; font: inherit; }
+.expense-clear-filters { display: inline-flex; align-items: center; gap: 5px; min-height: 38px; padding: 0 11px; border: 1px solid #f0b8b8; border-radius: 8px; color: #a12c2c; background: #fff7f7; font-weight: 700; cursor: pointer; }
+.expense-report-result { margin-left: auto; display: flex; align-items: baseline; gap: 6px; min-height: 38px; padding: 8px 12px; border-radius: 8px; background: #f4f7fb; color: #667085; font-size: 12px; }
+.expense-report-result strong { color: #182230; font-size: 13px; }
+@media (max-width: 760px) {
+  .expense-heading-actions { width: 100%; }
+  .expense-heading-actions button { flex: 1; justify-content: center; }
+  .expense-date-filter { flex: 1 1 160px; }
+  .expense-report-result { margin-left: 0; width: 100%; justify-content: center; }
+}

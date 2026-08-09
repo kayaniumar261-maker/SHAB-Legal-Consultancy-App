@@ -86,6 +86,11 @@ export function Expenses() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | ExpenseType>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | ExpenseStatus>('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [clientFilter, setClientFilter] = useState('all');
+  const [recoveryFilter, setRecoveryFilter] = useState<'all' | 'recoverable' | 'non_recoverable' | 'unbilled' | 'billed'>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [attachmentExpense, setAttachmentExpense] = useState<ExpenseWithRelations | null>(null);
   const [attachments, setAttachments] = useState<ExpenseAttachment[]>([]);
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
@@ -122,17 +127,55 @@ export function Expenses() {
 
   const visibleExpenses = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return expenses;
-    return expenses.filter((expense) => [
-      expense.expense_number,
-      expense.category,
-      expense.description,
-      expense.vendor_name,
-      expense.client?.full_name,
-      expense.case?.matter_number,
-      expense.case?.case_number,
-    ].some((value) => String(value ?? '').toLowerCase().includes(term)));
-  }, [expenses, search]);
+    return expenses.filter((expense) => {
+      const matchesSearch = !term || [
+        expense.expense_number,
+        expense.category,
+        expense.description,
+        expense.vendor_name,
+        expense.client?.full_name,
+        expense.case?.matter_number,
+        expense.case?.case_number,
+      ].some((value) => String(value ?? '').toLowerCase().includes(term));
+      const matchesCategory = categoryFilter === 'all' || expense.category === categoryFilter;
+      const matchesClient = clientFilter === 'all' || expense.client_id === clientFilter;
+      const matchesDate = (!dateFrom || expense.expense_date >= dateFrom) && (!dateTo || expense.expense_date <= dateTo);
+      const matchesRecovery = recoveryFilter === 'all'
+        || (recoveryFilter === 'recoverable' && expense.recoverable_from_client)
+        || (recoveryFilter === 'non_recoverable' && !expense.recoverable_from_client)
+        || (recoveryFilter === 'unbilled' && expense.recoverable_from_client && expense.reimbursement_status === 'unbilled')
+        || (recoveryFilter === 'billed' && expense.reimbursement_status === 'billed');
+      return matchesSearch && matchesCategory && matchesClient && matchesDate && matchesRecovery;
+    });
+  }, [categoryFilter, clientFilter, dateFrom, dateTo, expenses, recoveryFilter, search]);
+
+  const filteredSummary = useMemo(() => summarizeExpenses(visibleExpenses), [visibleExpenses]);
+  const filtersActive = Boolean(search || dateFrom || dateTo || categoryFilter !== 'all' || clientFilter !== 'all' || recoveryFilter !== 'all' || typeFilter !== 'all' || statusFilter !== 'all');
+
+  function clearFilters() {
+    setSearch(''); setTypeFilter('all'); setStatusFilter('all'); setCategoryFilter('all');
+    setClientFilter('all'); setRecoveryFilter('all'); setDateFrom(''); setDateTo('');
+  }
+
+  function exportCsv() {
+    if (visibleExpenses.length === 0) return;
+    const headers = ['Date', 'Expense Number', 'Category', 'Description', 'Vendor / Payee', 'Type', 'Client', 'Matter', 'Net Amount', 'VAT', 'Total', 'Currency', 'Status', 'Recoverable', 'Reimbursement Status', 'Invoice'];
+    const rows = visibleExpenses.map((expense) => [
+      expense.expense_date, expense.expense_number, expense.category, expense.description,
+      expense.vendor_name ?? '', label(expense.expense_type), expense.client?.full_name ?? '',
+      expense.case?.matter_number ?? expense.case?.case_number ?? '', Number(expense.net_amount).toFixed(2),
+      Number(expense.input_vat_amount).toFixed(2), Number(expense.total_amount).toFixed(2), expense.currency,
+      label(expense.status), expense.recoverable_from_client ? 'Yes' : 'No',
+      label(expense.reimbursement_status), expense.billed_invoice?.invoice_number ?? '',
+    ]);
+    const csv = [headers, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n');
+    const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `SHAB-expenses-${dateFrom || 'all'}-to-${dateTo || localToday()}.csv`;
+    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+  }
 
   const summary = useMemo(() => summarizeExpenses(expenses), [expenses]);
 
@@ -252,9 +295,14 @@ export function Expenses() {
           <h1>Expenses &amp; Client Disbursements</h1>
           <p>Record firm costs, case expenses and amounts recoverable from clients.</p>
         </div>
-        <button type="button" className="expense-primary" onClick={() => setShowForm(true)}>
-          <Plus size={17} /> New Expense
-        </button>
+        <div className="expense-heading-actions">
+          <button type="button" className="expense-secondary" onClick={exportCsv} disabled={visibleExpenses.length === 0}>
+            <Download size={17} /> Export CSV
+          </button>
+          <button type="button" className="expense-primary" onClick={() => setShowForm(true)}>
+            <Plus size={17} /> New Expense
+          </button>
+        </div>
       </section>
 
       <div className="expense-tax-notice">
@@ -282,6 +330,19 @@ export function Expenses() {
           <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'all' | ExpenseStatus)}>
             <option value="all">All statuses</option><option value="draft">Draft</option><option value="approved">Approved</option><option value="paid">Paid</option><option value="void">Void</option>
           </select>
+          <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
+            <option value="all">All categories</option>{categories.map((category) => <option key={category} value={category}>{category}</option>)}
+          </select>
+          <select value={clientFilter} onChange={(event) => setClientFilter(event.target.value)}>
+            <option value="all">All clients</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}
+          </select>
+          <select value={recoveryFilter} onChange={(event) => setRecoveryFilter(event.target.value as typeof recoveryFilter)}>
+            <option value="all">All recoverability</option><option value="recoverable">Recoverable</option><option value="non_recoverable">Non-recoverable</option><option value="unbilled">Recoverable unbilled</option><option value="billed">Billed to client</option>
+          </select>
+          <label className="expense-date-filter"><span>From</span><input type="date" value={dateFrom} max={dateTo || undefined} onChange={(event) => setDateFrom(event.target.value)} /></label>
+          <label className="expense-date-filter"><span>To</span><input type="date" value={dateTo} min={dateFrom || undefined} onChange={(event) => setDateTo(event.target.value)} /></label>
+          {filtersActive && <button type="button" className="expense-clear-filters" onClick={clearFilters}><X size={14} />Clear filters</button>}
+          <div className="expense-report-result"><strong>{visibleExpenses.length}</strong><span>records</span><strong>{money(filteredSummary.totalExpenses)}</strong><span>filtered total</span></div>
         </div>
 
         {loading ? <div className="expense-empty"><LoaderCircle className="expense-spin" size={23} />Loading expenses…</div> : visibleExpenses.length === 0 ? (
@@ -460,6 +521,7 @@ function money(value: number, currency = 'AED') {
 function label(value: string) { return value.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); }
 function formatDate(value: string) { const date = new Date(`${value}T00:00:00`); return new Intl.DateTimeFormat('en-AE', { day: '2-digit', month: 'short', year: 'numeric' }).format(date); }
 function formatDateTime(value: string) { return new Intl.DateTimeFormat('en-AE', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value)); }
+function csvCell(value: unknown) { const text = String(value ?? ''); return /[\",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text; }
 function formatFileSize(value: number) { return value < 1024 * 1024 ? `${Math.max(1, Math.round(value / 1024))} KB` : `${(value / 1024 / 1024).toFixed(1)} MB`; }
 function activityLabel(action: string) { const labels: Record<string, string> = { created: 'Expense created', updated: 'Expense updated', approved: 'Expense approved', paid: 'Expense marked paid', voided: 'Expense voided', billed: 'Draft invoice created', billing_released: 'Returned to unbilled', attachment_added: 'Supporting document added', attachment_removed: 'Supporting document removed' }; return labels[action] ?? label(action); }
 function activityDescription(event: ExpenseActivity) { const details = event.details ?? {}; if (event.action === 'attachment_added' || event.action === 'attachment_removed') return String(details.file_name ?? 'Supporting document'); if (event.action === 'billed') return details.invoice_number ? `Invoice ${String(details.invoice_number)}` : 'Recoverable disbursement billed'; if (event.action === 'voided') return String(details.reason ?? 'Expense voided'); if (event.action === 'created') return `${String(details.category ?? 'Expense')} · ${String(details.currency ?? 'AED')} ${Number(details.total ?? 0).toFixed(2)}`; return String(details.summary ?? 'Expense record updated'); }
