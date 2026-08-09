@@ -199,10 +199,10 @@ const emptyInvoiceForm: InvoiceFormState = {
   status: 'draft',
   currency: 'AED',
   subtotal: '',
-  vat_rate: '5',
-  vat_treatment: 'exclusive',
+  vat_rate: '0',
+  vat_treatment: 'out_of_scope',
   supply_date: getTodayDate(),
-  is_tax_invoice: true,
+  is_tax_invoice: false,
   discount_amount: '0',
   description: '',
   notes: '',
@@ -1924,9 +1924,19 @@ export function Payments() {
           <button
             type="button"
             className="primary-action-button"
-            onClick={() =>
-              setInvoiceModalOpen(true)
-            }
+            onClick={() => {
+              setInvoiceForm({
+                ...emptyInvoiceForm,
+                vat_rate: companySettings?.vat_registered
+                  ? String(companySettings.default_vat_rate)
+                  : '0',
+                vat_treatment: companySettings?.vat_registered
+                  ? 'exclusive'
+                  : 'out_of_scope',
+                is_tax_invoice: Boolean(companySettings?.vat_registered),
+              });
+              setInvoiceModalOpen(true);
+            }}
           >
             <Plus size={18} />
             New Invoice
@@ -3139,7 +3149,7 @@ export function Payments() {
 
               <label>
                 <span>VAT Treatment</span>
-                <select value={invoiceForm.vat_treatment} onChange={(event) => setInvoiceForm((current) => ({ ...current, vat_treatment: event.target.value as VatTreatment, vat_rate: ['zero_rated', 'out_of_scope'].includes(event.target.value) ? '0' : current.vat_rate === '0' ? String(companySettings?.default_vat_rate ?? 5) : current.vat_rate }))}>
+                <select disabled={!companySettings?.vat_registered} value={invoiceForm.vat_treatment} onChange={(event) => setInvoiceForm((current) => ({ ...current, vat_treatment: event.target.value as VatTreatment, vat_rate: ['zero_rated', 'out_of_scope'].includes(event.target.value) ? '0' : current.vat_rate === '0' ? String(companySettings?.default_vat_rate ?? 5) : current.vat_rate }))}>
                   <option value="exclusive">VAT Exclusive</option>
                   <option value="inclusive">VAT Inclusive</option>
                   <option value="zero_rated">Zero Rated</option>
@@ -3154,7 +3164,7 @@ export function Payments() {
 
               <label className="finance-checkbox-field">
                 <span>Tax document</span>
-                <input type="checkbox" checked={invoiceForm.is_tax_invoice} onChange={(event) => setInvoiceForm((current) => ({ ...current, is_tax_invoice: event.target.checked }))} />
+                <input type="checkbox" disabled={!companySettings?.vat_registered} checked={invoiceForm.is_tax_invoice} onChange={(event) => setInvoiceForm((current) => ({ ...current, is_tax_invoice: event.target.checked }))} />
               </label>
 
               <label>

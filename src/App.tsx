@@ -88,6 +88,11 @@ const Documents = lazyNamed(
   'Documents',
 );
 
+const Settings = lazyNamed(
+  () => import('./pages/Settings'),
+  'Settings',
+);
+
 const Imports = lazyNamed(
   () => import('./pages/Imports'),
   'Imports',
@@ -218,9 +223,7 @@ function App() {
 
             <Route
               path="/settings"
-              element={
-                <PlaceholderPage title="Settings" />
-              }
+              element={<Settings />}
             />
           </Route>
         </Route>
