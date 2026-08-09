@@ -1,6 +1,7 @@
 import type { PostgrestError } from '@supabase/supabase-js';
 
 import { supabase } from '../lib/supabase';
+import type { Invoice } from '../types/invoice';
 import type {
   Expense,
   ExpenseFilters,
@@ -65,6 +66,20 @@ export async function changeExpenseStatus(
       p_reason: reason ?? null,
     }),
   ) as Expense;
+}
+
+export async function createInvoiceFromRecoverableExpense(
+  expenseId: string,
+  issueDate: string,
+  dueDate: string,
+): Promise<Invoice> {
+  return unwrap(
+    await supabase.rpc('shab_bill_recoverable_disbursement', {
+      p_expense_id: expenseId,
+      p_issue_date: issueDate,
+      p_due_date: dueDate,
+    }),
+  ) as Invoice;
 }
 
 export function summarizeExpenses(expenses: ExpenseWithRelations[]): ExpenseSummary {

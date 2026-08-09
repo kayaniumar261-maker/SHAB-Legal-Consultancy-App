@@ -94,7 +94,7 @@ export function InvoiceDocument({
           <thead>
             <tr>
               <th>Services</th>
-              <th>Professional Fee</th>
+              <th>Amount</th>
             </tr>
           </thead>
 

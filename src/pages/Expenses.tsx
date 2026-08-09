@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   CircleDollarSign,
   CreditCard,
+  FilePlus2,
   FileText,
   LoaderCircle,
   Pencil,
@@ -20,6 +21,7 @@ import {
 import {
   changeExpenseStatus,
   createExpense,
+  createInvoiceFromRecoverableExpense,
   getExpenseCaseOptions,
   getExpenseClientOptions,
   getExpenses,
@@ -39,7 +41,8 @@ type CaseOption = { id: string; clientId: string; label: string };
 
 const categories = [
   'Court Fees',
-  'Translation',
+  'Translation Charges',
+  'Certified True Copy (CTC)',
   'Expert Fees',
   'Government Fees',
   'Notary & Attestation',
@@ -114,6 +117,26 @@ export function Expenses() {
   }, [expenses, search]);
 
   const summary = useMemo(() => summarizeExpenses(expenses), [expenses]);
+
+  async function billDisbursement(expense: ExpenseWithRelations) {
+    const issueDate = localToday();
+    const due = new Date();
+    due.setDate(due.getDate() + 14);
+    const dueDate = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(due.getDate()).padStart(2, '0')}`;
+    if (!window.confirm(`Create a draft invoice for ${expense.expense_number} totalling ${money(Number(expense.total_amount), expense.currency)}?`)) return;
+    try {
+      setBusyId(expense.id);
+      setError(null);
+      setSuccess(null);
+      const invoice = await createInvoiceFromRecoverableExpense(expense.id, issueDate, dueDate);
+      setSuccess(`${expense.expense_number} added to draft invoice ${invoice.invoice_number}.`);
+      await load();
+    } catch (billingError) {
+      setError(billingError instanceof Error ? billingError.message : 'Unable to create the disbursement invoice.');
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   async function transition(expense: ExpenseWithRelations, status: ExpenseStatus) {
     let reason: string | undefined;
@@ -201,6 +224,8 @@ export function Expenses() {
                       {expense.status === 'draft' && <button type="button" title="Edit" onClick={() => setEditing(expense)}><Pencil size={14} /></button>}
                       {expense.status === 'draft' && <button type="button" onClick={() => void transition(expense, 'approved')}>Approve</button>}
                       {expense.status === 'approved' && <button type="button" onClick={() => void transition(expense, 'paid')}><CreditCard size={14} />Paid</button>}
+                      {expense.recoverable_from_client && expense.reimbursement_status === 'unbilled' && ['approved', 'paid'].includes(expense.status) && <button type="button" className="bill" onClick={() => void billDisbursement(expense)}><FilePlus2 size={14} />Bill</button>}
+                      {expense.reimbursement_status === 'billed' && <span className="expense-billed-chip" title={expense.billed_invoice?.invoice_number ?? 'Draft invoice'}>{expense.billed_invoice?.invoice_number ?? 'Billed'}</span>}
                       {['draft', 'approved'].includes(expense.status) && <button type="button" className="danger" title="Void" onClick={() => void transition(expense, 'void')}><Trash2 size={14} /></button>}
                     </>}
                   </div></td>
