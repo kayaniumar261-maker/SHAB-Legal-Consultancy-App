@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import type { Invoice } from '../types/invoice';
 import type {
   Expense,
+  ExpenseActivity,
   ExpenseAttachment,
   ExpenseFilters,
   ExpenseInsert,
@@ -81,6 +82,16 @@ export async function createInvoiceFromRecoverableExpense(
       p_due_date: dueDate,
     }),
   ) as Invoice;
+}
+
+export async function getExpenseActivity(expenseId: string): Promise<ExpenseActivity[]> {
+  const { data, error } = await supabase
+    .from('expense_activity')
+    .select('*')
+    .eq('expense_id', expenseId)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ExpenseActivity[];
 }
 
 export async function getExpenseAttachments(expenseId: string): Promise<ExpenseAttachment[]> {

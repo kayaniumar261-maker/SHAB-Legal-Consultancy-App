@@ -6,6 +6,16 @@ export type ExpenseTaxClaimStatus =
   | 'claimable'
   | 'claimed'
   | 'non_recoverable';
+export interface ExpenseActivity {
+  id: string;
+  expense_id: string;
+  action: string;
+  actor_id: string | null;
+  actor_email: string | null;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
 export interface ExpenseAttachment {
   id: string;
   expense_id: string;

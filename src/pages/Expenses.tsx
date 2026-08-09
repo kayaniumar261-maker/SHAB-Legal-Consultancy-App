@@ -8,6 +8,7 @@ import {
   Download,
   FilePlus2,
   FileText,
+  History,
   LoaderCircle,
   Paperclip,
   Pencil,
@@ -26,6 +27,7 @@ import {
   createExpense,
   createInvoiceFromRecoverableExpense,
   deleteExpenseAttachment,
+  getExpenseActivity,
   getExpenseAttachmentUrl,
   getExpenseAttachments,
   getExpenseCaseOptions,
@@ -36,6 +38,7 @@ import {
   uploadExpenseAttachment,
 } from '../services/expenseService';
 import type {
+  ExpenseActivity,
   ExpenseAttachment,
   ExpenseInsert,
   ExpenseStatus,
@@ -87,6 +90,9 @@ export function Expenses() {
   const [attachments, setAttachments] = useState<ExpenseAttachment[]>([]);
   const [attachmentsLoading, setAttachmentsLoading] = useState(false);
   const [attachmentBusy, setAttachmentBusy] = useState(false);
+  const [activityExpense, setActivityExpense] = useState<ExpenseWithRelations | null>(null);
+  const [activity, setActivity] = useState<ExpenseActivity[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -129,6 +135,19 @@ export function Expenses() {
   }, [expenses, search]);
 
   const summary = useMemo(() => summarizeExpenses(expenses), [expenses]);
+
+  async function openActivity(expense: ExpenseWithRelations) {
+    setActivityExpense(expense);
+    setActivityLoading(true);
+    setError(null);
+    try {
+      setActivity(await getExpenseActivity(expense.id));
+    } catch (activityError) {
+      setError(activityError instanceof Error ? activityError.message : 'Unable to load expense history.');
+    } finally {
+      setActivityLoading(false);
+    }
+  }
 
   async function openAttachments(expense: ExpenseWithRelations) {
     setAttachmentExpense(expense);
@@ -283,6 +302,7 @@ export function Expenses() {
                   <td><span className={`expense-status ${expense.status}`}>{expense.status}</span></td>
                   <td><div className="expense-actions">
                     {busyId === expense.id ? <LoaderCircle className="expense-spin" size={17} /> : <>
+                      <button type="button" title="Audit history" onClick={() => void openActivity(expense)}><History size={14} />History</button>
                       <button type="button" title="Supporting documents" onClick={() => void openAttachments(expense)}><Paperclip size={14} />Docs</button>
                       {expense.status === 'draft' && <button type="button" title="Edit" onClick={() => setEditing(expense)}><Pencil size={14} /></button>}
                       {expense.status === 'draft' && <button type="button" onClick={() => void transition(expense, 'approved')}>Approve</button>}
@@ -306,6 +326,18 @@ export function Expenses() {
         onClose={() => { setShowForm(false); setEditing(null); }}
         onSaved={async () => { setShowForm(false); setEditing(null); setSuccess(editing ? 'Expense updated.' : 'Expense created as draft.'); await load(); }}
       />}
+
+      {activityExpense && <div className="expense-modal-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setActivityExpense(null); }}>
+        <section className="expense-modal expense-activity-modal">
+          <header><div><span className="expenses-eyebrow">Audit trail</span><h2>{activityExpense.expense_number}</h2></div><button type="button" onClick={() => setActivityExpense(null)} aria-label="Close"><X size={19} /></button></header>
+          <div className="expense-activity-list">
+            {activityLoading ? <div className="expense-empty"><LoaderCircle className="expense-spin" size={22} />Loading history…</div> : activity.length === 0 ? <div className="expense-empty"><History size={25} /><strong>No activity recorded</strong></div> : activity.map((event) => <article key={event.id}>
+              <div className={`expense-activity-icon ${event.action}`}><History size={15} /></div>
+              <section><strong>{activityLabel(event.action)}</strong><span>{activityDescription(event)}</span><small>{event.actor_email || (event.actor_id ? `User ${event.actor_id.slice(0, 8)}` : 'System record')} · {formatDateTime(event.created_at)}</small></section>
+            </article>)}
+          </div>
+        </section>
+      </div>}
 
       {attachmentExpense && <div className="expense-modal-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !attachmentBusy) setAttachmentExpense(null); }}>
         <section className="expense-modal expense-documents-modal">
@@ -429,3 +461,5 @@ function label(value: string) { return value.replace(/_/g, ' ').replace(/\b\w/g,
 function formatDate(value: string) { const date = new Date(`${value}T00:00:00`); return new Intl.DateTimeFormat('en-AE', { day: '2-digit', month: 'short', year: 'numeric' }).format(date); }
 function formatDateTime(value: string) { return new Intl.DateTimeFormat('en-AE', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value)); }
 function formatFileSize(value: number) { return value < 1024 * 1024 ? `${Math.max(1, Math.round(value / 1024))} KB` : `${(value / 1024 / 1024).toFixed(1)} MB`; }
+function activityLabel(action: string) { const labels: Record<string, string> = { created: 'Expense created', updated: 'Expense updated', approved: 'Expense approved', paid: 'Expense marked paid', voided: 'Expense voided', billed: 'Draft invoice created', billing_released: 'Returned to unbilled', attachment_added: 'Supporting document added', attachment_removed: 'Supporting document removed' }; return labels[action] ?? label(action); }
+function activityDescription(event: ExpenseActivity) { const details = event.details ?? {}; if (event.action === 'attachment_added' || event.action === 'attachment_removed') return String(details.file_name ?? 'Supporting document'); if (event.action === 'billed') return details.invoice_number ? `Invoice ${String(details.invoice_number)}` : 'Recoverable disbursement billed'; if (event.action === 'voided') return String(details.reason ?? 'Expense voided'); if (event.action === 'created') return `${String(details.category ?? 'Expense')} · ${String(details.currency ?? 'AED')} ${Number(details.total ?? 0).toFixed(2)}`; return String(details.summary ?? 'Expense record updated'); }
