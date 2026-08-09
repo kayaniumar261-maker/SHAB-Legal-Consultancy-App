@@ -45,7 +45,7 @@ export function CreditNoteDocument({
 
   return (
     <BrandedDocument
-      documentTitle="Credit Note"
+      documentTitle={companySettings?.tax_registration_number && invoice.is_tax_invoice !== false ? 'Tax Credit Note' : 'Credit Note'}
       referenceNumber={
         creditNote.credit_note_number
       }
@@ -64,6 +64,14 @@ export function CreditNoteDocument({
           value: formatDocumentDate(
             creditNote.issue_date,
           ),
+        },
+        {
+          label: 'Tax Point Date',
+          value: formatDocumentDate(creditNote.tax_point_date || creditNote.issue_date),
+        },
+        {
+          label: 'VAT Treatment',
+          value: formatDocumentLabel(creditNote.vat_treatment || invoice.vat_treatment || 'exclusive'),
         },
         {
           label: 'Original Invoice',
@@ -183,6 +191,13 @@ function formatDocumentDate(
     month: 'short',
     year: 'numeric',
   }).format(date);
+}
+
+function formatDocumentLabel(value: string): string {
+  return value
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 }
 
 function formatRate(

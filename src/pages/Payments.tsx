@@ -93,6 +93,8 @@ import {
 import type {
   CreditNote,
 } from '../types/creditNote';
+import type { VatTreatment } from '../types/vatAccounting';
+import { calculateVatAmounts, invoiceEnteredAmount } from '../utils/vatCalculations';
 
 import type {
   PaymentReversal,
@@ -155,6 +157,9 @@ type InvoiceFormState = {
   currency: string;
   subtotal: string;
   vat_rate: string;
+  vat_treatment: VatTreatment;
+  supply_date: string;
+  is_tax_invoice: boolean;
   discount_amount: string;
   description: string;
   notes: string;
@@ -195,6 +200,9 @@ const emptyInvoiceForm: InvoiceFormState = {
   currency: 'AED',
   subtotal: '',
   vat_rate: '5',
+  vat_treatment: 'exclusive',
+  supply_date: getTodayDate(),
+  is_tax_invoice: true,
   discount_amount: '0',
   description: '',
   notes: '',
@@ -1229,13 +1237,16 @@ export function Payments() {
       return;
     }
 
-    const vatAmount =
-      subtotal * (vatRate / 100);
-
-    const totalAmount =
-      subtotal +
-      vatAmount -
-      discountAmount;
+    const amounts = calculateVatAmounts({
+      enteredAmount: subtotal,
+      vatRate,
+      treatment: invoiceForm.vat_treatment,
+      discountAmount,
+    });
+    const taxableSubtotal = amounts.subtotal;
+    const normalizedVatRate = amounts.vatRate;
+    const vatAmount = amounts.vatAmount;
+    const totalAmount = amounts.totalAmount;
 
     if (totalAmount < 0) {
       setError(
@@ -1312,22 +1323,19 @@ export function Payments() {
             currency:
               invoiceForm.currency || 'AED',
 
-            subtotal,
+            subtotal: taxableSubtotal,
             vat_rate:
-              vatRate,
+              normalizedVatRate,
             vat_amount:
               vatAmount,
+            vat_treatment: invoiceForm.vat_treatment,
+            supply_date: invoiceForm.supply_date || invoiceForm.issue_date,
+            is_tax_invoice: invoiceForm.is_tax_invoice,
             discount_amount:
               discountAmount,
 
             total_amount:
               totalAmount,
-
-            paid_amount:
-              existingPaidAmount,
-
-            balance_amount:
-              balanceAmount,
 
             description:
               invoiceForm.description.trim() ||
@@ -1365,11 +1373,14 @@ export function Payments() {
           currency:
             invoiceForm.currency || 'AED',
 
-          subtotal,
+          subtotal: taxableSubtotal,
           vat_rate:
-            vatRate,
+            normalizedVatRate,
           vat_amount:
             vatAmount,
+          vat_treatment: invoiceForm.vat_treatment,
+          supply_date: invoiceForm.supply_date || invoiceForm.issue_date,
+          is_tax_invoice: invoiceForm.is_tax_invoice,
           discount_amount:
             discountAmount,
 
@@ -2353,14 +2364,14 @@ export function Payments() {
                                           invoice.status,
                                         currency:
                                           invoice.currency,
-                                        subtotal:
-                                          String(
-                                            invoice.subtotal ?? 0,
-                                          ),
+                                        subtotal: String(invoiceEnteredAmount(Number(invoice.subtotal ?? 0), Number(invoice.vat_amount ?? 0), invoice.vat_treatment)),
                                         vat_rate:
                                           String(
                                             invoice.vat_rate ?? 0,
                                           ),
+                                        vat_treatment: invoice.vat_treatment ?? 'exclusive',
+                                        supply_date: invoice.supply_date ?? invoice.issue_date,
+                                        is_tax_invoice: invoice.is_tax_invoice ?? Number(invoice.vat_rate ?? 0) > 0,
                                         discount_amount:
                                           String(
                                             invoice
@@ -3113,6 +3124,7 @@ export function Payments() {
                   value={
                     invoiceForm.vat_rate
                   }
+                  disabled={invoiceForm.vat_treatment === 'zero_rated' || invoiceForm.vat_treatment === 'out_of_scope'}
                   onChange={(event) =>
                     setInvoiceForm(
                       (current) => ({
@@ -3123,6 +3135,26 @@ export function Payments() {
                     )
                   }
                 />
+              </label>
+
+              <label>
+                <span>VAT Treatment</span>
+                <select value={invoiceForm.vat_treatment} onChange={(event) => setInvoiceForm((current) => ({ ...current, vat_treatment: event.target.value as VatTreatment, vat_rate: ['zero_rated', 'out_of_scope'].includes(event.target.value) ? '0' : current.vat_rate === '0' ? String(companySettings?.default_vat_rate ?? 5) : current.vat_rate }))}>
+                  <option value="exclusive">VAT Exclusive</option>
+                  <option value="inclusive">VAT Inclusive</option>
+                  <option value="zero_rated">Zero Rated</option>
+                  <option value="out_of_scope">Out of Scope</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Supply Date</span>
+                <input type="date" value={invoiceForm.supply_date} onChange={(event) => setInvoiceForm((current) => ({ ...current, supply_date: event.target.value }))} required />
+              </label>
+
+              <label className="finance-checkbox-field">
+                <span>Tax document</span>
+                <input type="checkbox" checked={invoiceForm.is_tax_invoice} onChange={(event) => setInvoiceForm((current) => ({ ...current, is_tax_invoice: event.target.checked }))} />
               </label>
 
               <label>

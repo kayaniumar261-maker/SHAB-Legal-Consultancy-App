@@ -44,7 +44,7 @@ export function InvoiceDocument({
     companyProfile.taxRegistrationNumber;
 
   const documentTitle =
-    taxRegistrationNumber
+    taxRegistrationNumber && invoice.is_tax_invoice !== false
       ? 'Tax Invoice'
       : 'Invoice';
 
@@ -64,6 +64,14 @@ export function InvoiceDocument({
           value: formatDocumentDate(
             invoice.issue_date,
           ),
+        },
+        {
+          label: 'Supply Date',
+          value: formatDocumentDate(invoice.supply_date || invoice.issue_date),
+        },
+        {
+          label: 'VAT Treatment',
+          value: formatDocumentLabel(invoice.vat_treatment || 'exclusive'),
         },
         {
           label: 'Due Date',
@@ -135,7 +143,7 @@ export function InvoiceDocument({
 
         <div>
           <span>
-            VAT ({formatRate(invoice.vat_rate)}%)
+            {invoice.vat_treatment === 'out_of_scope' ? 'VAT (Out of Scope)' : invoice.vat_treatment === 'zero_rated' ? 'VAT (Zero Rated)' : `VAT (${formatRate(invoice.vat_rate)}%)`}
           </span>
           <strong>
             {formatDocumentCurrency(

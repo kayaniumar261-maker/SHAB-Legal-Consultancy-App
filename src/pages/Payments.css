@@ -1708,3 +1708,74 @@ grid-template-columns:1fr;
     width: 220px;
   }
 }
+
+/* SHAB finance modal scrolling */
+.finance-modal-layer {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  align-items: flex-start;
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.finance-modal {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  margin: auto;
+}
+
+@media (max-width: 720px) {
+  .finance-modal-layer {
+    padding: 0.5rem;
+  }
+
+  .finance-modal {
+    width: 100%;
+    max-height: calc(100dvh - 1rem);
+  }
+}
+
+/* SHAB credit-note preview scrolling */
+.finance-view-modal {
+  height: calc(100dvh - 40px) !important;
+  max-height: calc(100dvh - 40px) !important;
+  overflow: hidden !important;
+}
+
+.finance-document-preview,
+.finance-view-content {
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
+  overflow-x: hidden !important;
+  overflow-y: scroll !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.finance-view-actions {
+  flex: 0 0 auto !important;
+  background: #ffffff !important;
+}
+
+.finance-document-preview::-webkit-scrollbar,
+.finance-view-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.finance-document-preview::-webkit-scrollbar-thumb,
+.finance-view-content::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: #94a3b8;
+  background-clip: padding-box;
+}
+
+@media (max-width: 760px) {
+  .finance-view-modal {
+    height: calc(100dvh - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+  }
+}
