@@ -9,6 +9,7 @@ import {
   Gavel,
   LayoutDashboard,
   Menu,
+  ReceiptText,
   Settings,
   Users,
   X,
@@ -71,6 +72,11 @@ const navigationItems = [
     label: 'Payments',
     path: '/payments',
     icon: CreditCard,
+  },
+  {
+    label: 'Expenses',
+    path: '/expenses',
+    icon: ReceiptText,
   },
   {
     label: 'Accounting',
