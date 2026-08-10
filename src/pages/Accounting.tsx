@@ -4,6 +4,7 @@ import {
   BookOpenCheck,
   CalendarRange,
   CheckCircle2,
+  Download,
   FileSpreadsheet,
   Lock,
   LockOpen,
@@ -12,6 +13,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
+import { getAccountingPayablesReport, type AccountingPayablesReport } from '../services/accountingPayablesService';
 import { getCompanySettings, type CompanySettings } from '../services/companySettingsService';
 import {
   getAccountingPeriods,
@@ -45,6 +47,7 @@ export function Accounting() {
   const [periodForm, setPeriodForm] = useState({ start: quarter.from, end: quarter.to });
   const [reportForm, setReportForm] = useState({ from: quarter.from, to: quarter.to });
   const [report, setReport] = useState<VatReport | null>(null);
+  const [payablesReport, setPayablesReport] = useState<AccountingPayablesReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -124,7 +127,12 @@ export function Accounting() {
       setBusy('report');
       setError(null);
       setSuccess(null);
-      setReport(await getVatReport(reportForm.from, reportForm.to));
+      const [vatReview, payablesReview] = await Promise.all([
+        getVatReport(reportForm.from, reportForm.to),
+        getAccountingPayablesReport(reportForm.from, reportForm.to),
+      ]);
+      setReport(vatReview);
+      setPayablesReport(payablesReview);
     } catch (reportError) {
       setError(reportError instanceof Error ? reportError.message : 'Unable to generate the internal VAT review.');
     } finally {
@@ -138,7 +146,7 @@ export function Accounting() {
         <div>
           <p className="accounting-eyebrow">Financial governance</p>
           <h1>Accounting Control Centre</h1>
-          <p>Control accounting periods and review VAT-related documents without changing the financial ledger.</p>
+          <p>Control accounting periods, VAT documents, vendor bills and supplier payments without changing the financial ledger.</p>
         </div>
         <span className={`accounting-registration ${vatReady ? 'ready' : 'pending'}`}>
           {vatReady ? <CheckCircle2 size={18} /> : <ShieldCheck size={18} />}
@@ -207,8 +215,43 @@ export function Accounting() {
           )}
         </article>
       </section>
+
+      {payablesReport && <PayablesReportView report={payablesReport} vatReady={vatReady} />}
     </main>
   );
+}
+
+
+function PayablesReportView({ report, vatReady }: { report: AccountingPayablesReport; vatReady: boolean }) {
+  const currency = report.currency ?? 'AED';
+  function exportCsv() {
+    const rows = [
+      ['Transaction Type', 'Date', 'Expense Number', 'Supplier Invoice', 'Vendor', 'Category / Method', 'Reference', 'Net', 'Input VAT', 'Total / Payment', 'Paid', 'Balance', 'Currency'],
+      ...report.bills.map((line) => ['Vendor Bill', line.date, line.expenseNumber, line.supplierInvoice ?? '', line.vendor, line.category, '', line.netAmount.toFixed(2), line.vatAmount.toFixed(2), line.totalAmount.toFixed(2), line.paidAmount.toFixed(2), line.balance.toFixed(2), line.currency]),
+      ...report.payments.map((line) => ['Vendor Payment', line.date, line.expenseNumber, line.supplierInvoice ?? '', line.vendor, line.method, line.reference, '', '', line.amount.toFixed(2), '', '', line.currency]),
+    ];
+    const csv = rows.map((row) => row.map(csvCell).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a'); link.href = url; link.download = `SHAB-payables-${report.dateFrom}-to-${report.dateTo}.csv`;
+    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+  }
+  return <section className="accounting-card payables-report-card">
+    <header><div className="accounting-icon"><BookOpenCheck size={21} /></div><div><h2>Accounts payable &amp; expense reconciliation</h2><p>Vendor bills and actual supplier-payment transactions for {formatDate(report.dateFrom)} — {formatDate(report.dateTo)}.</p></div><button type="button" className="payables-export" onClick={exportCsv}><Download size={15} />Export CSV</button></header>
+    {report.hasMixedCurrencies && <div className="accounting-alert error payables-warning"><AlertTriangle size={17} />Mixed currencies detected. Review each currency separately; combined figures are informational only.</div>}
+    <div className="payables-summary">
+      <ReportStat label="Vendor bills" value={money(report.totalBills, currency)} />
+      <ReportStat label="Firm overheads" value={money(report.firmOverheads, currency)} />
+      <ReportStat label="Client disbursements" value={money(report.clientDisbursements, currency)} />
+      <ReportStat label={vatReady ? 'Supplier input VAT' : 'Input VAT · informational'} value={money(report.informationalInputVat, currency)} />
+      <ReportStat label="Payments made" value={money(report.paymentsMade, currency)} />
+      <ReportStat label="Outstanding payables" value={money(report.outstanding, currency)} highlight />
+      <ReportStat label="Overdue payables" value={money(report.overdue, currency)} highlight={report.overdue > 0} />
+    </div>
+    <div className="payables-tables">
+      <section><h3>Vendor bills <span>{report.bills.length}</span></h3><div className="vat-lines-wrap"><table className="vat-lines payables-lines"><thead><tr><th>Date</th><th>Supplier invoice</th><th>Vendor</th><th>Category</th><th>Total</th><th>Paid</th><th>Balance</th></tr></thead><tbody>{report.bills.length === 0 ? <tr><td colSpan={7}>No vendor bills in this period.</td></tr> : report.bills.map((line) => <tr key={line.id}><td>{formatDate(line.date)}</td><td><strong>{line.supplierInvoice || line.expenseNumber}</strong><small>{line.expenseNumber}</small></td><td>{line.vendor}</td><td>{line.category}</td><td>{money(line.totalAmount, line.currency)}</td><td>{money(line.paidAmount, line.currency)}</td><td><strong>{money(line.balance, line.currency)}</strong></td></tr>)}</tbody></table></div></section>
+      <section><h3>Vendor payments <span>{report.payments.length}</span></h3><div className="vat-lines-wrap"><table className="vat-lines payables-lines"><thead><tr><th>Date</th><th>Supplier invoice</th><th>Vendor</th><th>Method</th><th>Reference</th><th>Amount</th></tr></thead><tbody>{report.payments.length === 0 ? <tr><td colSpan={6}>No vendor payments in this period.</td></tr> : report.payments.map((line) => <tr key={line.id}><td>{formatDate(line.date)}</td><td><strong>{line.supplierInvoice || line.expenseNumber}</strong><small>{line.expenseNumber}</small></td><td>{line.vendor}</td><td>{line.method}</td><td>{line.reference}</td><td><strong>{money(line.amount, line.currency)}</strong></td></tr>)}</tbody></table></div></section>
+    </div>
+  </section>;
 }
 
 function ReportView({ report, vatReady }: { report: VatReport; vatReady: boolean }) {
@@ -244,6 +287,8 @@ function ReportStat({ label, value, highlight = false }: { label: string; value:
 function money(value: number, currency: string) {
   return new Intl.NumberFormat('en-AE', { style: 'currency', currency, maximumFractionDigits: 2 }).format(value);
 }
+
+function csvCell(value: unknown) { const text = String(value ?? ''); return /[\",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text; }
 
 function formatDate(value: string) {
   const date = new Date(`${value.slice(0, 10)}T00:00:00`);
