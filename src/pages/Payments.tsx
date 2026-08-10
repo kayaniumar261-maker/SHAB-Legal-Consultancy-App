@@ -27,6 +27,7 @@ import {
 } from 'react';
 
 import {
+  Link,
   useSearchParams,
 } from 'react-router-dom';
 
@@ -1978,6 +1979,11 @@ export function Payments() {
           <WalletCards size={17} />
           Payments
         </button>
+
+        <Link to="/payments/vendor-bills" className="finance-vendor-bills-tab">
+          <FileText size={17} />
+          Vendor Bills
+        </Link>
 
         <button
           type="button"

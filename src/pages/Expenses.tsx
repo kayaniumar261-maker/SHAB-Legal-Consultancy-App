@@ -167,10 +167,10 @@ export function Expenses() {
 
   function exportCsv() {
     if (visibleExpenses.length === 0) return;
-    const headers = ['Date', 'Expense Number', 'Category', 'Description', 'Vendor / Payee', 'Type', 'Client', 'Matter', 'Net Amount', 'VAT', 'Total', 'Currency', 'Status', 'Recoverable', 'Reimbursement Status', 'Invoice'];
+    const headers = ['Date', 'Expense Number', 'Category', 'Description', 'Vendor / Payee', 'Supplier Invoice', 'Supplier Invoice Date', 'Due Date', 'Payment Terms', 'Type', 'Client', 'Matter', 'Net Amount', 'VAT', 'Total', 'Currency', 'Status', 'Recoverable', 'Reimbursement Status', 'Invoice'];
     const rows = visibleExpenses.map((expense) => [
       expense.expense_date, expense.expense_number, expense.category, expense.description,
-      expense.vendor_name ?? '', label(expense.expense_type), expense.client?.full_name ?? '',
+      expense.vendor_name ?? '', expense.supplier_invoice_number ?? '', expense.supplier_invoice_date ?? '', expense.due_date ?? '', expense.payment_terms ?? '', label(expense.expense_type), expense.client?.full_name ?? '',
       expense.case?.matter_number ?? expense.case?.case_number ?? '', Number(expense.net_amount).toFixed(2),
       Number(expense.input_vat_amount).toFixed(2), Number(expense.total_amount).toFixed(2), expense.currency,
       label(expense.status), expense.recoverable_from_client ? 'Yes' : 'No',
@@ -451,6 +451,10 @@ function ExpenseModal({ expense, clients, cases, vendors, onAddVendor, onClose, 
     description: expense?.description ?? '',
     vendor_id: expense?.vendor_id ?? '',
     vendor_name: expense?.vendor_name ?? '',
+    supplier_invoice_number: expense?.supplier_invoice_number ?? '',
+    supplier_invoice_date: expense?.supplier_invoice_date ?? '',
+    due_date: expense?.due_date ?? '',
+    payment_terms: expense?.payment_terms ?? '',
     currency: expense?.currency ?? 'AED',
     net_amount: expense ? String(expense.net_amount) : '',
     input_vat_amount: expense ? String(expense.input_vat_amount) : '0',
@@ -482,6 +486,10 @@ function ExpenseModal({ expense, clients, cases, vendors, onAddVendor, onClose, 
       description: form.description.trim(),
       vendor_id: form.vendor_id || null,
       vendor_name: form.vendor_name.trim() || null,
+      supplier_invoice_number: form.supplier_invoice_number.trim() || null,
+      supplier_invoice_date: form.supplier_invoice_date || null,
+      due_date: form.due_date || null,
+      payment_terms: form.payment_terms.trim() || null,
       currency: form.currency.trim().toUpperCase(),
       net_amount: Number(form.net_amount),
       input_vat_amount: Number(form.input_vat_amount || 0),
@@ -513,6 +521,10 @@ function ExpenseModal({ expense, clients, cases, vendors, onAddVendor, onClose, 
         <label>Category<select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
         <label>Vendor / payee<div className="expense-vendor-control"><select value={form.vendor_id} onChange={(event) => { const vendor = vendors.find((item) => item.id === event.target.value); setForm({ ...form, vendor_id: event.target.value, vendor_name: vendor?.name ?? '' }); }}><option value="">No saved vendor</option>{vendors.map((vendor) => <option key={vendor.id} value={vendor.id}>{vendor.name}</option>)}</select><button type="button" onClick={onAddVendor}><Plus size={14} />Add</button></div>{!form.vendor_id && <input placeholder="Or enter a one-off payee" value={form.vendor_name} onChange={(event) => setForm({ ...form, vendor_name: event.target.value })} />}</label>
         <label className="wide">Description<input value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} required /></label>
+        <label>Supplier invoice number<input value={form.supplier_invoice_number} onChange={(event) => setForm({ ...form, supplier_invoice_number: event.target.value })} /></label>
+        <label>Supplier invoice date<input type="date" value={form.supplier_invoice_date} onChange={(event) => setForm({ ...form, supplier_invoice_date: event.target.value })} /></label>
+        <label>Payment terms<input placeholder="Due on receipt, Net 30…" value={form.payment_terms} onChange={(event) => setForm({ ...form, payment_terms: event.target.value })} /></label>
+        <label>Due date<input type="date" min={form.supplier_invoice_date || undefined} value={form.due_date} onChange={(event) => setForm({ ...form, due_date: event.target.value })} /></label>
         <label>Net amount<input type="number" min="0" step="0.01" value={form.net_amount} onChange={(event) => setForm({ ...form, net_amount: event.target.value })} required /></label>
         <label>Supplier VAT<input type="number" min="0" step="0.01" value={form.input_vat_amount} onChange={(event) => setForm({ ...form, input_vat_amount: event.target.value })} /><small>Recorded only; not claimed.</small></label>
         <label>Currency<input maxLength={3} value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value })} required /></label>

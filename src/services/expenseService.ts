@@ -48,6 +48,17 @@ export async function getExpenses(filters: ExpenseFilters = {}): Promise<Expense
   return (data ?? []) as ExpenseWithRelations[];
 }
 
+export async function getVendorBills(): Promise<ExpenseWithRelations[]> {
+  const { data, error } = await supabase
+    .from('expenses')
+    .select(`*, client:clients(id, full_name), case:cases(id, case_number, matter_number), billed_invoice:invoices(id, invoice_number), vendor:expense_vendors(*)`)
+    .not('vendor_id', 'is', null)
+    .order('due_date', { ascending: true, nullsFirst: false })
+    .order('expense_date', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ExpenseWithRelations[];
+}
+
 export async function createExpense(input: ExpenseInsert): Promise<Expense> {
   return unwrap(
     await supabase.from('expenses').insert(input).select().single(),

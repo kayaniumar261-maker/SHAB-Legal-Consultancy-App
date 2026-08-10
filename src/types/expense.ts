@@ -59,6 +59,10 @@ export interface Expense {
   description: string;
   vendor_id: string | null;
   vendor_name: string | null;
+  supplier_invoice_number: string | null;
+  supplier_invoice_date: string | null;
+  due_date: string | null;
+  payment_terms: string | null;
   currency: string;
   net_amount: number;
   input_vat_amount: number;
@@ -99,6 +103,10 @@ export type ExpenseInsert = Pick<
   | 'description'
   | 'vendor_id'
   | 'vendor_name'
+  | 'supplier_invoice_number'
+  | 'supplier_invoice_date'
+  | 'due_date'
+  | 'payment_terms'
   | 'currency'
   | 'net_amount'
   | 'input_vat_amount'

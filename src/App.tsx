@@ -103,6 +103,11 @@ const Payments = lazyNamed(
   'Payments',
 );
 
+const VendorBills = lazyNamed(
+  () => import('./pages/VendorBills'),
+  'VendorBills',
+);
+
 const Expenses = lazyNamed(
   () => import('./pages/Expenses'),
   'Expenses',
@@ -224,6 +229,11 @@ function App() {
             <Route
               path="/payments"
               element={<Payments />}
+            />
+
+            <Route
+              path="/payments/vendor-bills"
+              element={<VendorBills />}
             />
 
             <Route

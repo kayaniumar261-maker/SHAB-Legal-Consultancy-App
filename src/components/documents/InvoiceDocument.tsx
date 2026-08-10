@@ -88,6 +88,7 @@ export function InvoiceDocument({
       ]}
       notes={invoice.notes}
       companySettings={companySettings}
+      referenceNote={null}
     >
       <section className="shab-invoice-services">
         <table>
