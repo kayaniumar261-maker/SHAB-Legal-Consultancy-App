@@ -20,6 +20,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { CaseTabs } from '../components/cases/CaseTabs';
+import { useAccessProfile } from '../hooks/useAccessProfile';
 import { deleteCase, getCaseById } from '../services/caseService';
 import {
   getFinancialLedger,
@@ -31,6 +32,8 @@ import './CaseDetails.css';
 export function CaseDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { profile } = useAccessProfile();
+  const administrator = profile?.access_role === 'administrator' && profile.is_active;
 
   const [caseRecord, setCaseRecord] = useState<Case | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,7 +94,7 @@ export function CaseDetails() {
   }, [id]);
 
   useEffect(() => {
-    if (!id) {
+    if (!id || !administrator) {
       setFinancialSummary(null);
       return;
     }
@@ -126,7 +129,7 @@ export function CaseDetails() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [administrator, id]);
 
   const progress = useMemo(() => {
     const value = Number(caseRecord?.completion_percentage ?? 0);
@@ -341,26 +344,30 @@ export function CaseDetails() {
               : 'Not scheduled'
           }
         />
-        <KpiCard
-          icon={<CircleDollarSign size={20} />}
-          label="Claim Amount"
-          value={formatCurrency(
-            caseRecord.claim_amount ?? caseRecord.case_value,
-            caseRecord.currency,
-          )}
-        />
-        <KpiCard
-          icon={<CircleDollarSign size={20} />}
-          label="Outstanding"
-          value={
-            financialSummary
-              ? formatCurrency(
-                  financialSummary.outstanding,
-                  caseRecord.currency,
-                )
-              : '—'
-          }
-        />
+        {administrator && (
+          <>
+            <KpiCard
+              icon={<CircleDollarSign size={20} />}
+              label="Claim Amount"
+              value={formatCurrency(
+                caseRecord.claim_amount ?? caseRecord.case_value,
+                caseRecord.currency,
+              )}
+            />
+            <KpiCard
+              icon={<CircleDollarSign size={20} />}
+              label="Outstanding"
+              value={
+                financialSummary
+                  ? formatCurrency(
+                      financialSummary.outstanding,
+                      caseRecord.currency,
+                    )
+                  : '—'
+              }
+            />
+          </>
+        )}
       </section>
 
       <section className="case-details-overview-grid">
@@ -579,6 +586,7 @@ export function CaseDetails() {
       <CaseTabs
         caseRecord={caseRecord}
         clientName={clientName}
+        isAdministrator={administrator}
       />
     </div>
   );

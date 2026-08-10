@@ -27,6 +27,7 @@ import {
 } from 'react-router-dom';
 
 import { KPICard } from '../components/dashboard/KPICard';
+import { useAccessProfile } from '../hooks/useAccessProfile';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { RecentCases } from '../components/dashboard/RecentCases';
 import { UpcomingHearings } from '../components/dashboard/UpcomingHearings';
@@ -164,6 +165,9 @@ function ExecutiveAlert({
 }
 
 export function Dashboard() {
+  const { profile } = useAccessProfile();
+  const administrator = profile?.access_role === 'administrator' && profile.is_active;
+
   const [dashboardData, setDashboardData] =
     useState<DashboardKPIData>(emptyDashboardData);
 
@@ -183,7 +187,7 @@ export function Dashboard() {
       }
 
       try {
-        const summary = await getDashboardSummary();
+        const summary = await getDashboardSummary(administrator);
 
         setDashboardData(summary.data);
         setDashboardErrors(summary.errors);
@@ -208,7 +212,7 @@ export function Dashboard() {
         setIsRefreshing(false);
       }
     },
-    [],
+    [administrator],
   );
 
   useEffect(() => {
@@ -392,8 +396,8 @@ export function Dashboard() {
 
           <p className="page-intro">
             A centralized command centre for cases,
-            clients, hearings, tasks, documents and
-            financial performance.
+            clients, hearings, tasks and documents
+            across the practice.
           </p>
         </div>
 
@@ -446,7 +450,7 @@ export function Dashboard() {
       )}
 
       <section className="kpi-grid">
-        {kpis.slice(0, 8).map((item) => (
+        {(administrator ? kpis.slice(0, 8) : kpis.slice(0, 4)).map((item) => (
           <KPICard
             key={item.label}
             icon={item.icon}
@@ -478,13 +482,15 @@ export function Dashboard() {
         </div>
 
         <div className="executive-alerts-grid">
-          <ExecutiveAlert
-            label="Overdue invoices"
-            value={dashboardData.overdueInvoices}
-            message="Invoices require collection follow-up."
-            to="/payments"
-            clearMessage="No overdue invoices."
-          />
+          {administrator && (
+            <ExecutiveAlert
+              label="Overdue invoices"
+              value={dashboardData.overdueInvoices}
+              message="Invoices require collection follow-up."
+              to="/payments"
+              clearMessage="No overdue invoices."
+            />
+          )}
 
           <ExecutiveAlert
             label="Overdue tasks"
@@ -502,22 +508,25 @@ export function Dashboard() {
             clearMessage="No hearings scheduled tomorrow."
           />
 
-          <ExecutiveAlert
-            label="Outstanding receivables"
-            value={dashboardData.outstandingPayments}
-            formattedValue={formatCurrency(
-              dashboardData.outstandingPayments,
-            )}
-            message="Outstanding professional fees remain unpaid."
-            to="/payments"
-            clearMessage="No outstanding receivables."
-          />
+          {administrator && (
+            <ExecutiveAlert
+              label="Outstanding receivables"
+              value={dashboardData.outstandingPayments}
+              formattedValue={formatCurrency(
+                dashboardData.outstandingPayments,
+              )}
+              message="Outstanding professional fees remain unpaid."
+              to="/payments"
+              clearMessage="No outstanding receivables."
+            />
+          )}
         </div>
       </section>
 
-      <QuickActions />
+      <QuickActions isAdministrator={administrator} />
 
-      <section className="dashboard-finance-summary">
+      {administrator && (
+        <section className="dashboard-finance-summary">
         <div className="dashboard-finance-heading">
           <div>
             <span className="page-eyebrow">
@@ -636,7 +645,8 @@ export function Dashboard() {
             />
           </div>
         </div>
-      </section>
+        </section>
+      )}
 
       <section className="dashboard-workspace">
         <div className="dashboard-work-row dashboard-work-row-primary">
@@ -644,7 +654,7 @@ export function Dashboard() {
 
           <div className="dashboard-side-stack">
             <TaskWidget />
-            <RevenueChart />
+            {administrator && <RevenueChart />}
             <RecentDocuments />
           </div>
         </div>

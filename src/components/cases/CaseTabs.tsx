@@ -49,11 +49,13 @@ const tabs = [
 type CaseTabsProps = {
   caseRecord: Case;
   clientName: string;
+  isAdministrator: boolean;
 };
 
 export function CaseTabs({
   caseRecord,
   clientName,
+  isAdministrator,
 }: CaseTabsProps) {
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>('Workspace');
   const [hearings, setHearings] = useState<Hearing[]>([]);
@@ -850,6 +852,10 @@ export function CaseTabs({
         );
 
       case 'Billing':
+        if (!isAdministrator) {
+          return null;
+        }
+
         return (
           <CaseBillingWorkspace
             caseId={caseRecord.id}
@@ -882,6 +888,7 @@ export function CaseTabs({
     activeTab,
     caseRecord,
     clientName,
+    isAdministrator,
     hearings,
     loadingHearings,
     hearingError,
@@ -896,7 +903,7 @@ export function CaseTabs({
   return (
     <div className="case-tabs">
       <div className="case-tabs-navigation">
-        {tabs.map((tab) => (
+        {tabs.filter((tab) => isAdministrator || tab !== 'Billing').map((tab) => (
           <button
             key={tab}
             type="button"

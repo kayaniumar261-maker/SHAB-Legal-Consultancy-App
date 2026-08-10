@@ -177,6 +177,7 @@ function getClientName(
 export async function getCalendarEventsForMonth(
   year: number,
   monthIndex: number,
+  includeFinancial = false,
 ): Promise<CalendarEvent[]> {
   const range =
     getMonthRange(
@@ -252,8 +253,9 @@ export async function getCalendarEventsForMonth(
         },
       ),
 
-    supabase
-      .from('invoices')
+    includeFinancial
+      ? supabase
+          .from('invoices')
       .select(`
         id,
         client_id,
@@ -284,12 +286,13 @@ export async function getCalendarEventsForMonth(
           10,
         ),
       )
-      .order(
-        'due_date',
-        {
-          ascending: true,
-        },
-      ),
+          .order(
+            'due_date',
+            {
+              ascending: true,
+            },
+          )
+      : Promise.resolve({ data: [], error: null }),
 
     supabase
       .from('cases')

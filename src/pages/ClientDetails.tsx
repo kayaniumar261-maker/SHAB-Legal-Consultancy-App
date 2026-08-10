@@ -38,6 +38,8 @@ import {
   useParams,
 } from 'react-router-dom';
 
+import { useAccessProfile } from '../hooks/useAccessProfile';
+
 import {
   getClientById,
   type ClientOverview,
@@ -118,6 +120,8 @@ const tabs: Array<{
 export function ClientDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { profile } = useAccessProfile();
+  const administrator = profile?.access_role === 'administrator' && profile.is_active;
 
   const [client, setClient] =
     useState<ClientOverview | null>(null);
@@ -411,7 +415,7 @@ export function ClientDetails() {
         className="client-profile-tabs"
         aria-label="Client profile sections"
       >
-        {tabs.map((tab) => (
+        {tabs.filter((tab) => administrator || tab.id !== 'finance').map((tab) => (
           <button
             key={tab.id}
             type="button"
@@ -436,12 +440,14 @@ export function ClientDetails() {
           'workspace' && (
           <ClientWorkspace
             client={client}
+            isAdministrator={administrator}
           />
         )}
 
         {activeTab === 'cases' && (
           <ClientCasesTab
             clientId={client.id}
+            isAdministrator={administrator}
           />
         )}
 
@@ -464,7 +470,7 @@ export function ClientDetails() {
           />
         )}
 
-        {activeTab === 'finance' && (
+        {administrator && activeTab === 'finance' && (
           <div className="client-finance-workspace">
             <ClientFundsWorkspace clientId={client.id} />
             <ClientStatementWorkspace clientId={client.id} clientName={client.full_name} />
@@ -498,8 +504,10 @@ export function ClientDetails() {
 
 function ClientCasesTab({
   clientId,
+  isAdministrator,
 }: {
   clientId: string;
+  isAdministrator: boolean;
 }) {
   const [cases, setCases] =
     useState<
@@ -537,9 +545,11 @@ function ClientCasesTab({
           });
 
         if (active) {
-          const summaries = await getCaseFinanceSummaries(
-            result.data.map((caseItem) => caseItem.id),
-          );
+          const summaries = isAdministrator
+            ? await getCaseFinanceSummaries(
+                result.data.map((caseItem) => caseItem.id),
+              )
+            : {};
 
           if (active) {
             setCases(result.data);
@@ -566,7 +576,7 @@ function ClientCasesTab({
     return () => {
       active = false;
     };
-  }, [clientId]);
+  }, [clientId, isAdministrator]);
 
   if (loading) {
     return (
@@ -657,7 +667,7 @@ function ClientCasesTab({
               <th>Priority</th>
               <th>Next Hearing</th>
               <th>Lawyer</th>
-              <th>Outstanding</th>
+              {isAdministrator && <th>Outstanding</th>}
               <th />
             </tr>
           </thead>
@@ -735,13 +745,15 @@ function ClientCasesTab({
                       'Unassigned'}
                   </td>
 
-                  <td>
-                    <strong>
-                      {formatCaseOutstanding(
-                        financeSummaries[caseItem.id],
-                      )}
-                    </strong>
-                  </td>
+                  {isAdministrator && (
+                    <td>
+                      <strong>
+                        {formatCaseOutstanding(
+                          financeSummaries[caseItem.id],
+                        )}
+                      </strong>
+                    </td>
+                  )}
 
                   <td>
                     <Link

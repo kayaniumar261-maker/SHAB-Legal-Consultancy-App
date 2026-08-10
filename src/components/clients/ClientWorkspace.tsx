@@ -85,6 +85,7 @@ type ClientWorkspaceClient = {
 
 type ClientWorkspaceProps = {
   client: ClientWorkspaceClient;
+  isAdministrator: boolean;
 };
 
 type ClientHearingRecord =
@@ -96,6 +97,7 @@ type ClientHearingRecord =
 
 export function ClientWorkspace({
   client,
+  isAdministrator,
 }: ClientWorkspaceProps) {
   const [cases, setCases] =
     useState<CaseWithRelations[]>([]);
@@ -153,9 +155,9 @@ export function ClientWorkspace({
             client.id,
           ),
 
-          getFinancialLedger({
-            clientId: client.id,
-          }),
+          isAdministrator
+            ? getFinancialLedger({ clientId: client.id })
+            : Promise.resolve(null),
         ]);
 
       if (!active) {
@@ -210,7 +212,8 @@ export function ClientWorkspace({
 
       if (
         financialLedgerResult.status ===
-        'fulfilled'
+        'fulfilled' &&
+        financialLedgerResult.value
       ) {
         setInvoices(
           financialLedgerResult.value.invoices,
@@ -249,7 +252,7 @@ export function ClientWorkspace({
     return () => {
       active = false;
     };
-  }, [client.id]);
+  }, [client.id, isAdministrator]);
 
   const activeCases = useMemo(
     () =>
@@ -515,7 +518,7 @@ export function ClientWorkspace({
             </h3>
 
             <p>
-              Matters, financial exposure and immediate actions for this client.
+              Matters and immediate operational actions for this client.
             </p>
           </div>
 
@@ -602,7 +605,8 @@ export function ClientWorkspace({
             to={`/hearings?clientId=${client.id}`}
           />
 
-          <CommandMetric
+          {isAdministrator && (
+            <CommandMetric
             icon={
               <BadgeDollarSign
                 size={18}
@@ -626,6 +630,7 @@ export function ClientWorkspace({
             }
             to={`/payments?clientId=${client.id}`}
           />
+          )}
         </div>
       </section>
 
@@ -892,6 +897,8 @@ export function ClientWorkspace({
         </div>
 
         <aside className="client-workspace-side-column">
+          {isAdministrator && (
+            <>
           <WorkspaceCard
             icon={
               <TrendingUp
@@ -1060,6 +1067,9 @@ export function ClientWorkspace({
             )}
           </WorkspaceCard>
 
+            </>
+          )}
+
           <WorkspaceCard
             icon={
               <UserRoundCheck
@@ -1131,7 +1141,8 @@ export function ClientWorkspace({
           to={`/cases/new?clientId=${client.id}`}
         />
 
-        <QuickAction
+        {isAdministrator && (
+          <QuickAction
           icon={
             <ReceiptText
               size={17}
@@ -1140,6 +1151,7 @@ export function ClientWorkspace({
           label="Create Invoice"
           to={`/payments?clientId=${client.id}&tab=invoices&createInvoice=1`}
         />
+        )}
 
         <QuickAction
           icon={
@@ -1167,7 +1179,8 @@ export function ClientWorkspace({
           to={`/tasks?clientId=${client.id}&create=1`}
         />
 
-        <QuickAction
+        {isAdministrator && (
+          <QuickAction
           icon={
             <BadgeDollarSign
               size={17}
@@ -1176,6 +1189,7 @@ export function ClientWorkspace({
           label="Record Payment"
           to={`/payments?clientId=${client.id}&tab=payments&createPayment=1`}
         />
+        )}
       </section>
     </div>
   );

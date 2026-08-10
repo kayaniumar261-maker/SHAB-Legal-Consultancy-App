@@ -163,7 +163,7 @@ async function countHearingsTomorrow(
   return result.count;
 }
 
-export async function getDashboardSummary(): Promise<DashboardSummary> {
+export async function getDashboardSummary(includeFinancial = false): Promise<DashboardSummary> {
   const now = new Date();
 
   const results = await Promise.allSettled([
@@ -182,12 +182,14 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
 
     getTasksForToday(),
 
-    getFinanceSummary(),
+    includeFinancial ? getFinanceSummary() : Promise.resolve(null),
 
-    getRevenueForMonth(
-      now.getFullYear(),
-      now.getMonth() + 1,
-    ),
+    includeFinancial
+      ? getRevenueForMonth(
+          now.getFullYear(),
+          now.getMonth() + 1,
+        )
+      : Promise.resolve(null),
 
     getTaskDashboardStats(),
 
@@ -256,7 +258,7 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     });
   }
 
-  if (financeResult.status === 'fulfilled') {
+  if (includeFinancial && financeResult.status === 'fulfilled' && financeResult.value) {
     data.outstandingPayments = Number(
       financeResult.value.outstanding ?? 0,
     );
@@ -268,7 +270,7 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     data.overdueInvoices = Number(
       financeResult.value.overdueInvoiceCount ?? 0,
     );
-  } else {
+  } else if (includeFinancial && financeResult.status === 'rejected') {
     errors.push({
       section: 'outstandingPayments',
       message: getErrorMessage(
@@ -277,11 +279,11 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     });
   }
 
-  if (revenueResult.status === 'fulfilled') {
+  if (includeFinancial && revenueResult.status === 'fulfilled' && revenueResult.value !== null) {
     data.monthlyRevenue = Number(
       revenueResult.value ?? 0,
     );
-  } else {
+  } else if (includeFinancial && revenueResult.status === 'rejected') {
     errors.push({
       section: 'monthlyRevenue',
       message: getErrorMessage(revenueResult.reason),

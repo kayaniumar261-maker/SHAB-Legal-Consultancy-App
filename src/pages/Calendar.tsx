@@ -22,6 +22,8 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 
+import { useAccessProfile } from '../hooks/useAccessProfile';
+
 import {
   getCalendarEventsForMonth,
   type CalendarEvent,
@@ -53,6 +55,9 @@ const eventLabels: Record<
 };
 
 export function Calendar() {
+  const { profile } = useAccessProfile();
+  const administrator = profile?.access_role === 'administrator' && profile.is_active;
+
   const [searchParams, setSearchParams] =
     useSearchParams();
 
@@ -126,6 +131,7 @@ export function Calendar() {
           await getCalendarEventsForMonth(
             visibleMonth.getFullYear(),
             visibleMonth.getMonth(),
+            administrator,
           );
 
         if (active) {
@@ -151,7 +157,7 @@ export function Calendar() {
     return () => {
       active = false;
     };
-  }, [visibleMonth]);
+  }, [administrator, visibleMonth]);
 
   const filteredEvents =
     useMemo(
@@ -439,7 +445,7 @@ export function Calendar() {
           </h2>
 
           <p className="page-intro">
-            Hearings, tasks, invoice due dates and critical matter deadlines in one workspace.
+            Hearings, tasks and critical matter deadlines in one workspace.
           </p>
         </div>
 
@@ -485,12 +491,14 @@ export function Calendar() {
           type="task"
         />
 
-        <SummaryCard
-          icon={<CreditCard size={18} />}
-          label="Invoice Due"
-          value={summary.invoice}
-          type="invoice"
-        />
+        {administrator && (
+          <SummaryCard
+            icon={<CreditCard size={18} />}
+            label="Invoice Due"
+            value={summary.invoice}
+            type="invoice"
+          />
+        )}
 
         <SummaryCard
           icon={<FileWarning size={18} />}

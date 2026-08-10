@@ -52,7 +52,7 @@ const actions = [
   },
 ];
 
-export function QuickActions() {
+export function QuickActions({ isAdministrator }: { isAdministrator: boolean }) {
   const navigate =
     useNavigate();
 
@@ -73,7 +73,7 @@ export function QuickActions() {
       </div>
 
       <div className="quick-actions-grid">
-        {actions.map((action) => {
+        {actions.filter((action) => isAdministrator || action.path !== '/payments').map((action) => {
           const Icon =
             action.icon;
 
