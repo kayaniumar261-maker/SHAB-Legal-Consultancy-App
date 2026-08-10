@@ -919,3 +919,65 @@
   }
 }
 
+/* SHAB OPERATIONS CLIENT DENSITY V1 */
+@media (min-width: 900px) {
+  .operations-shell .clients-page {
+    gap: 14px;
+  }
+
+  .operations-shell .clients-heading,
+  .operations-shell .clients-toolbar,
+  .operations-shell .clients-status-row {
+    gap: 14px;
+  }
+
+  .operations-shell .client-summary-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .operations-shell .client-summary-card {
+    min-height: 0;
+    padding: 14px;
+  }
+
+  .operations-shell .clients-table th,
+  .operations-shell .clients-table td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+
+/* SHAB OPERATIONS CLIENT POLISH V2 */
+.operations-shell .clients-heading .page-intro {
+  max-width: 720px;
+}
+
+.operations-shell .clients-toolbar,
+.operations-shell .clients-status-row,
+.operations-shell .clients-table-wrap,
+.operations-shell .pagination-controls {
+  border-radius: 14px;
+}
+
+@media (max-width: 760px) {
+  .operations-shell .clients-page {
+    gap: 12px;
+  }
+
+  .operations-shell .clients-heading,
+  .operations-shell .clients-heading-actions,
+  .operations-shell .clients-toolbar,
+  .operations-shell .clients-filters {
+    width: 100%;
+  }
+
+  .operations-shell .clients-heading-actions > *,
+  .operations-shell .clients-filters > * {
+    min-width: 0;
+  }
+
+  .operations-shell .clients-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

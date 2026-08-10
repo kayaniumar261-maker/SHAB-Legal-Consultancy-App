@@ -1105,3 +1105,430 @@ a {
     display: none;
   }
 }
+
+/* =========================================================
+   OPERATIONS RESPONSIVE APP SHELL
+========================================================= */
+
+html,
+body,
+#root {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.top-header {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+}
+
+.sidebar-mobile-account {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 16px 6px 0;
+}
+
+.sidebar-mobile-avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--shab-gold);
+  color: var(--shab-black);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.sidebar-mobile-account > div:nth-child(2) {
+  min-width: 0;
+}
+
+.sidebar-mobile-account strong,
+.sidebar-mobile-account span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-mobile-account strong {
+  font-size: 12px;
+}
+
+.sidebar-mobile-account span {
+  margin-top: 3px;
+  color: #9ca3af;
+  font-size: 10px;
+}
+
+.sidebar-mobile-account button {
+  grid-column: 1 / -1;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.operations-mobile-nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 60;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  min-height: 68px;
+  border-top: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.98);
+  padding: 5px max(6px, env(safe-area-inset-right)) calc(5px + env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+  box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.09);
+  backdrop-filter: blur(16px);
+}
+
+.operations-mobile-link {
+  display: flex;
+  min-width: 0;
+  min-height: 54px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.operations-mobile-link.active {
+  background: rgba(201, 168, 76, 0.16);
+  color: #7c5f18;
+}
+
+.operations-mobile-link span {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 559px) {
+  .top-header {
+    min-height: 62px;
+    gap: 9px;
+    padding: 9px 12px;
+  }
+
+  .mobile-menu-button,
+  .mobile-menu-close {
+    width: 44px;
+    height: 44px;
+  }
+
+  .header-eyebrow {
+    display: none;
+  }
+
+  .header-title {
+    max-width: 132px;
+    overflow: hidden;
+    font-size: 15px;
+    text-overflow: ellipsis;
+  }
+
+  .page-content {
+    padding: 14px 12px calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .page-heading {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .page-heading h2 {
+    font-size: 25px;
+  }
+
+  .page-heading p:not(.page-eyebrow) {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  button,
+  a,
+  input,
+  select {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  .primary-action-button,
+  .secondary-action-button,
+  .action-link {
+    min-height: 44px;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th,
+  td {
+    padding: 10px 9px;
+  }
+}
+
+@media (min-width: 560px) and (max-width: 959px) {
+  .operations-mobile-nav {
+    left: 50%;
+    width: min(560px, calc(100% - 24px));
+    transform: translateX(-50%);
+    border: 1px solid #e2e8f0;
+    border-bottom: 0;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .page-content {
+    padding-bottom: 100px;
+  }
+}
+
+@media (min-width: 960px) {
+  .operations-mobile-nav,
+  .sidebar-mobile-account {
+    display: none;
+  }
+
+  .top-header {
+    min-height: 72px;
+  }
+
+  .page-content {
+    max-width: 1720px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1440px) {
+  .page-content {
+    padding-right: 48px;
+    padding-left: 48px;
+  }
+}
+
+/* SHAB OPERATIONS COMPACT MODALS V1 */
+.operations-shell :where(
+  .modal-overlay,
+  .form-modal-overlay,
+  .dialog-overlay,
+  [class$="-modal-overlay"]
+) {
+  padding: clamp(10px, 2vw, 24px) !important;
+  overflow-y: auto;
+}
+
+.operations-shell :where(
+  .modal,
+  .modal-card,
+  .modal-content,
+  .form-modal,
+  .dialog,
+  [class$="-modal"],
+  [class$="-modal-card"],
+  [class$="-modal-content"]
+) {
+  width: min(680px, 100%) !important;
+  max-width: min(680px, calc(100vw - 24px)) !important;
+  max-height: min(84vh, 760px) !important;
+  overflow-y: auto !important;
+  border-radius: 16px !important;
+}
+
+.operations-shell :where(
+  .modal,
+  .modal-card,
+  .modal-content,
+  .form-modal,
+  .dialog,
+  [class$="-modal"],
+  [class$="-modal-card"],
+  [class$="-modal-content"]
+) :where(input, select, textarea) {
+  min-height: 42px;
+}
+
+.operations-shell :where(
+  .modal,
+  .modal-card,
+  .modal-content,
+  .form-modal,
+  .dialog,
+  [class$="-modal"],
+  [class$="-modal-card"],
+  [class$="-modal-content"]
+) textarea {
+  min-height: 84px;
+}
+
+@media (max-width: 640px) {
+  .operations-shell :where(
+    .modal-overlay,
+    .form-modal-overlay,
+    .dialog-overlay,
+    [class$="-modal-overlay"]
+  ) {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+
+  .operations-shell :where(
+    .modal,
+    .modal-card,
+    .modal-content,
+    .form-modal,
+    .dialog,
+    [class$="-modal"],
+    [class$="-modal-card"],
+    [class$="-modal-content"]
+  ) {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: 90dvh !important;
+    margin: 0 !important;
+    border-radius: 18px 18px 0 0 !important;
+    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  }
+
+  .operations-shell .page-content {
+    padding-inline: 12px;
+  }
+
+  .operations-shell :where(button, a, input, select) {
+    touch-action: manipulation;
+  }
+}
+
+/* SHAB OPERATIONS FORM AND MODAL POLISH V2 */
+.operations-shell :where(
+  .modal-header,
+  .form-modal-header,
+  [class$="-modal-header"]
+) {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 16px 18px 12px !important;
+  background: #ffffff;
+}
+
+.operations-shell :where(
+  .modal-body,
+  .form-modal-body,
+  [class$="-modal-body"]
+) {
+  padding: 14px 18px !important;
+}
+
+.operations-shell :where(
+  .modal-footer,
+  .modal-actions,
+  .form-modal-footer,
+  [class$="-modal-footer"],
+  [class$="-modal-actions"]
+) {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 18px 16px !important;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.operations-shell :where(
+  .modal-form,
+  .form-grid,
+  [class$="-form-grid"]
+) {
+  gap: 12px !important;
+}
+
+.operations-shell :where(
+  .modal,
+  .modal-card,
+  .modal-content,
+  .form-modal,
+  .dialog,
+  [class$="-modal"],
+  [class$="-modal-card"],
+  [class$="-modal-content"]
+) :where(label) {
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.operations-shell :where(
+  .modal,
+  .modal-card,
+  .modal-content,
+  .form-modal,
+  .dialog,
+  [class$="-modal"],
+  [class$="-modal-card"],
+  [class$="-modal-content"]
+) :where(input, select) {
+  min-height: 40px !important;
+  padding-block: 8px !important;
+}
+
+@media (max-width: 640px) {
+  .operations-shell :where(
+    .modal-header,
+    .form-modal-header,
+    [class$="-modal-header"]
+  ) {
+    padding: 14px 16px 10px !important;
+  }
+
+  .operations-shell :where(
+    .modal-body,
+    .form-modal-body,
+    [class$="-modal-body"]
+  ) {
+    padding: 12px 16px !important;
+  }
+
+  .operations-shell :where(
+    .modal-footer,
+    .modal-actions,
+    .form-modal-footer,
+    [class$="-modal-footer"],
+    [class$="-modal-actions"]
+  ) {
+    padding: 10px 16px max(12px, env(safe-area-inset-bottom)) !important;
+  }
+
+  .operations-shell :where(
+    .modal-footer,
+    .modal-actions,
+    .form-modal-footer,
+    [class$="-modal-footer"],
+    [class$="-modal-actions"]
+  ) > :where(button, a) {
+    min-height: 44px;
+    flex: 1 1 0;
+  }
+}

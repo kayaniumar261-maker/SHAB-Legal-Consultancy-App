@@ -19,6 +19,7 @@ import { useState } from 'react';
 import {
   NavLink,
   Outlet,
+  useLocation,
   useNavigate,
 } from 'react-router-dom';
 
@@ -115,6 +116,7 @@ export function AppLayout() {
     setIsMobileMenuOpen,
   ] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { signOut, user } = useAuth();
   const { profile } = useAccessProfile();
   const administrator = profile?.access_role === 'administrator' && profile.is_active;
@@ -126,10 +128,19 @@ export function AppLayout() {
     setIsMobileMenuOpen(false);
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  };
+
   return (
     <div className="app-shell">
       <aside className="desktop-sidebar">
-        <SidebarContent isAdministrator={administrator} />
+        <SidebarContent
+          isAdministrator={administrator}
+          displayName={displayName}
+          onSignOut={handleSignOut}
+        />
       </aside>
 
       {isMobileMenuOpen && (
@@ -154,6 +165,8 @@ export function AppLayout() {
             <SidebarContent
               onNavigate={closeMobileMenu}
               isAdministrator={administrator}
+              displayName={displayName}
+              onSignOut={handleSignOut}
             />
           </aside>
         </div>
@@ -178,7 +191,7 @@ export function AppLayout() {
             </p>
 
             <h1 className="header-title">
-              Practice Management
+              {administrator ? 'Practice Management' : 'Operations Workspace'}
             </h1>
           </div>
 
@@ -215,10 +228,7 @@ export function AppLayout() {
             <button
               type="button"
               className="signout-button"
-              onClick={async () => {
-                await signOut();
-                navigate('/login', { replace: true });
-              }}
+              onClick={handleSignOut}
             >
               Sign Out
             </button>
@@ -228,6 +238,42 @@ export function AppLayout() {
         <main className="page-content">
           <Outlet />
         </main>
+
+        {!administrator && (
+          <nav className="operations-mobile-nav" aria-label="Operations shortcuts">
+            {navigationItems
+              .filter((item) => ['/', '/clients', '/cases', '/tasks'].includes(item.path))
+              .map(({ label, path, icon: Icon }) => (
+                <NavLink
+                  key={path}
+                  to={path}
+                  end={path === '/'}
+                  className={({ isActive }) =>
+                    isActive ? 'operations-mobile-link active' : 'operations-mobile-link'
+                  }
+                >
+                  <Icon size={20} />
+                  <span>{label}</span>
+                </NavLink>
+              ))}
+
+            <button
+              type="button"
+              className={
+                ['/hearings', '/calendar', '/documents'].some((path) =>
+                  location.pathname.startsWith(path),
+                )
+                  ? 'operations-mobile-link active'
+                  : 'operations-mobile-link'
+              }
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Open all operations modules"
+            >
+              <Menu size={20} />
+              <span>More</span>
+            </button>
+          </nav>
+        )}
       </div>
     </div>
   );
@@ -236,11 +282,15 @@ export function AppLayout() {
 type SidebarContentProps = {
   onNavigate?: () => void;
   isAdministrator: boolean;
+  displayName: string;
+  onSignOut: () => Promise<void>;
 };
 
 function SidebarContent({
   onNavigate,
   isAdministrator,
+  displayName,
+  onSignOut,
 }: SidebarContentProps) {
   return (
     <div className="sidebar-content">
@@ -284,6 +334,17 @@ function SidebarContent({
           ),
         )}
       </nav>
+
+      <div className="sidebar-mobile-account">
+        <div className="sidebar-mobile-avatar">{getInitials(displayName)}</div>
+        <div>
+          <strong>{displayName}</strong>
+          <span>{isAdministrator ? 'Administrator' : 'Operations Staff'}</span>
+        </div>
+        <button type="button" onClick={() => void onSignOut()}>
+          Sign Out
+        </button>
+      </div>
 
       <div className="sidebar-footer">
         <p>

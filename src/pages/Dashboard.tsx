@@ -385,11 +385,17 @@ export function Dashboard() {
   );
 
   return (
-    <div className="dashboard-page">
+    <div
+      className={
+        administrator
+          ? 'dashboard-page'
+          : 'dashboard-page operations-dashboard'
+      }
+    >
       <section className="dashboard-header">
         <div>
           <p className="page-eyebrow">
-            Executive overview
+            {administrator ? 'Executive overview' : 'Daily operations'}
           </p>
 
           <h2>SHAB Legal Consultants FZC</h2>
@@ -471,10 +477,12 @@ export function Dashboard() {
               Management attention
             </span>
 
-            <h3>Executive Alerts</h3>
+            <h3>{administrator ? 'Executive Alerts' : 'Work Alerts'}</h3>
 
             <p>
-              Operational and financial items requiring review.
+              {administrator
+                ? 'Operational and financial items requiring review.'
+                : 'Tasks and hearings requiring attention.'}
             </p>
           </div>
 

@@ -2675,3 +2675,185 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* SHAB OPERATIONS DASHBOARD DENSITY V1 */
+.operations-dashboard {
+  gap: 14px;
+}
+
+.operations-dashboard .dashboard-work-row-secondary {
+  grid-template-columns: 1fr;
+}
+
+.operations-dashboard .dashboard-work-row-secondary > .dashboard-side-stack {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.operations-dashboard .dashboard-panel,
+.operations-dashboard .dashboard-widget,
+.operations-dashboard .widget-card {
+  min-height: 0 !important;
+}
+
+.operations-dashboard .dashboard-widget-state,
+.operations-dashboard .case-distribution-state,
+.operations-dashboard .staff-workload-state {
+  min-height: 64px;
+}
+
+@media (max-width: 1180px) {
+  .operations-dashboard .dashboard-work-row-secondary > .dashboard-side-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .operations-dashboard .dashboard-work-row-secondary > .dashboard-side-stack > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .operations-dashboard .dashboard-work-row-primary,
+  .operations-dashboard .dashboard-work-row-secondary,
+  .operations-dashboard .dashboard-work-row-bottom,
+  .operations-dashboard .dashboard-side-stack,
+  .operations-dashboard .dashboard-work-row-secondary > .dashboard-side-stack {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-dashboard .dashboard-work-row-secondary > .dashboard-side-stack > :last-child {
+    grid-column: auto;
+  }
+}
+
+/* SHAB OPERATIONS DASHBOARD POLISH V2 */
+.operations-dashboard {
+  width: min(100%, 1480px);
+  margin-inline: auto;
+}
+
+.operations-dashboard .executive-alerts-panel,
+.operations-dashboard .quick-actions {
+  padding: 16px 18px !important;
+}
+
+.operations-dashboard .executive-alerts-panel {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.42fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+}
+
+.operations-dashboard .executive-alerts-header {
+  min-width: 0;
+  padding: 0 !important;
+}
+
+.operations-dashboard .executive-alerts-grid {
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px;
+}
+
+.operations-dashboard .executive-alert,
+.operations-dashboard [class*="executive-alert-card"] {
+  min-height: 92px !important;
+}
+
+.operations-dashboard .quick-actions-grid,
+.operations-dashboard .dashboard-quick-actions-grid {
+  width: 100%;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+
+.operations-dashboard .quick-actions-grid > *,
+.operations-dashboard .dashboard-quick-actions-grid > * {
+  width: 100%;
+  max-width: none !important;
+}
+
+.operations-dashboard .dashboard-work-row-primary > .dashboard-side-stack {
+  height: 100%;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.operations-dashboard .dashboard-work-row-primary > .dashboard-side-stack > * {
+  height: 100% !important;
+}
+
+.operations-dashboard .dashboard-work-row-secondary > .upcoming-hearings-panel {
+  min-height: 0 !important;
+}
+
+.operations-dashboard .dashboard-work-row-secondary > .dashboard-side-stack {
+  align-items: stretch;
+}
+
+.operations-dashboard .dashboard-work-row-secondary > .dashboard-side-stack > * {
+  height: 100% !important;
+}
+
+.operations-dashboard .dashboard-work-row-bottom > * {
+  height: 100% !important;
+}
+
+.operations-dashboard .panel-heading-row h3,
+.operations-dashboard .widget-header h3,
+.operations-dashboard .dashboard-widget-header h3,
+.operations-dashboard .card-header h3,
+.operations-dashboard .section-header h3 {
+  font-size: 0.95rem !important;
+}
+
+.operations-dashboard .panel-heading-row p,
+.operations-dashboard .widget-header p,
+.operations-dashboard .dashboard-widget-header p,
+.operations-dashboard .card-header p,
+.operations-dashboard .section-header p {
+  font-size: 0.72rem !important;
+  line-height: 1.4;
+}
+
+.operations-dashboard table td,
+.operations-dashboard .staff-workload-row,
+.operations-dashboard .case-distribution-row {
+  font-size: 0.74rem !important;
+}
+
+@media (max-width: 1100px) {
+  .operations-dashboard .executive-alerts-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-dashboard .quick-actions-grid,
+  .operations-dashboard .dashboard-quick-actions-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .operations-dashboard {
+    gap: 12px;
+  }
+
+  .operations-dashboard .executive-alerts-panel,
+  .operations-dashboard .quick-actions {
+    padding: 14px !important;
+  }
+
+  .operations-dashboard .executive-alerts-grid,
+  .operations-dashboard .quick-actions-grid,
+  .operations-dashboard .dashboard-quick-actions-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .operations-dashboard .dashboard-work-row-primary > .dashboard-side-stack {
+    height: auto;
+    grid-template-rows: auto;
+  }
+}
+
+@media (max-width: 430px) {
+  .operations-dashboard .executive-alerts-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

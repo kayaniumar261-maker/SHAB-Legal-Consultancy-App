@@ -24,6 +24,8 @@ import {
 } from 'react';
 import { Link } from 'react-router-dom';
 
+import { useAccessProfile } from '../hooks/useAccessProfile';
+
 import {
   createClient,
   deleteClient,
@@ -58,6 +60,9 @@ type ProfessionalClient = Client & {
 const PAGE_SIZE = 12;
 
 export function Clients() {
+  const { profile } = useAccessProfile();
+  const administrator =
+    profile?.access_role === 'administrator' && profile.is_active;
   const [clients, setClients] = useState<ProfessionalClient[]>([]);
   const [financeSummaries, setFinanceSummaries] = useState<
     Record<string, AuthoritativeFinanceSummary>
@@ -90,9 +95,11 @@ export function Clients() {
       });
 
       const nextClients = result.data as ProfessionalClient[];
-      const nextFinanceSummaries = await getClientFinanceSummaries(
-        nextClients.map((client) => client.id),
-      );
+      const nextFinanceSummaries = administrator
+        ? await getClientFinanceSummaries(
+            nextClients.map((client) => client.id),
+          )
+        : {};
 
       setClients(nextClients);
       setFinanceSummaries(nextFinanceSummaries);
@@ -106,7 +113,7 @@ export function Clients() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, statusFilter, clientTypeFilter, page]);
+  }, [administrator, searchTerm, statusFilter, clientTypeFilter, page]);
 
   useEffect(() => {
     void fetchClients();
@@ -266,8 +273,9 @@ export function Clients() {
           <p className="page-eyebrow">Client relationship management</p>
           <h2>Clients</h2>
           <p className="page-intro">
-            Manage client profiles, linked matters, identification,
-            communication details, risk indicators, and outstanding balances.
+            {administrator
+              ? 'Manage client profiles, linked matters, identification, communication details, risk indicators, and outstanding balances.'
+              : 'Manage client profiles, linked matters, identification and communication details.'}
           </p>
         </div>
 
@@ -280,14 +288,16 @@ export function Clients() {
             onChange={handleImportFile}
           />
 
-          <button
-            type="button"
-            className="secondary-action-button"
-            onClick={handleImportClick}
-          >
-            <FileSpreadsheet size={18} />
-            Import Excel
-          </button>
+          {administrator && (
+            <button
+              type="button"
+              className="secondary-action-button"
+              onClick={handleImportClick}
+            >
+              <FileSpreadsheet size={18} />
+              Import Excel
+            </button>
+          )}
 
           <button
             type="button"
@@ -325,16 +335,18 @@ export function Clients() {
           value={formatNumber(summary.cases)}
           detail="Displayed page"
         />
-        <SummaryCard
-          icon={<CircleDollarSign size={20} />}
-          label="Outstanding"
-          value={
-            summary.hasMixedCurrencies
-              ? 'Mixed currencies'
-              : formatCurrency(summary.outstanding)
-          }
-          detail="Live ledger · displayed page"
-        />
+        {administrator && (
+          <SummaryCard
+            icon={<CircleDollarSign size={20} />}
+            label="Outstanding"
+            value={
+              summary.hasMixedCurrencies
+                ? 'Mixed currencies'
+                : formatCurrency(summary.outstanding)
+            }
+            detail="Live ledger · displayed page"
+          />
+        )}
       </section>
 
       <section className="clients-toolbar">
@@ -426,7 +438,7 @@ export function Clients() {
               <th>Contact</th>
               <th>Type</th>
               <th>Cases</th>
-              <th>Outstanding</th>
+              {administrator && <th>Outstanding</th>}
               <th>Status</th>
               <th>Risk</th>
               <th>Actions</th>
@@ -436,13 +448,13 @@ export function Clients() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} className="clients-loading-cell">
+                <td colSpan={administrator ? 8 : 7} className="clients-loading-cell">
                   Loading clients…
                 </td>
               </tr>
             ) : clients.length === 0 ? (
               <tr>
-                <td colSpan={8} className="clients-empty-cell">
+                <td colSpan={administrator ? 8 : 7} className="clients-empty-cell">
                   <UserRound size={30} />
                   <strong>No clients found</strong>
                   <span>
@@ -511,13 +523,15 @@ export function Clients() {
                     </div>
                   </td>
 
-                  <td>
-                    <strong className="balance-value">
-                      {formatFinanceAmount(
-                        financeSummaries[client.id],
-                      )}
-                    </strong>
-                  </td>
+                  {administrator && (
+                    <td>
+                      <strong className="balance-value">
+                        {formatFinanceAmount(
+                          financeSummaries[client.id],
+                        )}
+                      </strong>
+                    </td>
+                  )}
 
                   <td>
                     <span className={`status-badge ${client.status}`}>
