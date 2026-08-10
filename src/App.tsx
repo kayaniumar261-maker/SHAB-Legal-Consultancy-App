@@ -10,6 +10,7 @@ import {
   Routes,
 } from 'react-router-dom';
 
+import { AdministratorRoute } from './components/AdministratorRoute';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AppLayout } from './layouts/AppLayout';
 
@@ -221,50 +222,17 @@ function App() {
               element={<Documents />}
             />
 
-            <Route
-              path="/imports"
-              element={<Imports />}
-            />
-
-            <Route
-              path="/payments"
-              element={<Payments />}
-            />
-
-            <Route
-              path="/payments/vendor-bills"
-              element={<VendorBills />}
-            />
-
-            <Route
-              path="/expenses"
-              element={<Expenses />}
-            />
-
-            <Route
-              path="/vendors"
-              element={<Vendors />}
-            />
-
-            <Route
-              path="/accounting"
-              element={<Accounting />}
-            />
-
-            <Route
-              path="/staff"
-              element={<Staff />}
-            />
-
-            <Route
-              path="/staff/:id"
-              element={<StaffDetails />}
-            />
-
-            <Route
-              path="/settings"
-              element={<Settings />}
-            />
+            <Route element={<AdministratorRoute />}>
+              <Route path="/imports" element={<Imports />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/payments/vendor-bills" element={<VendorBills />} />
+              <Route path="/expenses" element={<Expenses />} />
+              <Route path="/vendors" element={<Vendors />} />
+              <Route path="/accounting" element={<Accounting />} />
+              <Route path="/staff" element={<Staff />} />
+              <Route path="/staff/:id" element={<StaffDetails />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
           </Route>
         </Route>
 

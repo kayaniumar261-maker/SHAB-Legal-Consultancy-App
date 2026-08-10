@@ -22,6 +22,7 @@ import {
   useNavigate,
 } from 'react-router-dom';
 
+import { useAccessProfile } from '../hooks/useAccessProfile';
 import { useAuth } from '../hooks/useAuth';
 import { shabLogoUrl } from '../constants/branding';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
@@ -66,36 +67,43 @@ const navigationItems = [
   },
   {
     label: 'Import Centre',
+    adminOnly: true,
     path: '/imports',
     icon: FileUp,
   },
   {
     label: 'Payments',
+    adminOnly: true,
     path: '/payments',
     icon: CreditCard,
   },
   {
     label: 'Expenses',
+    adminOnly: true,
     path: '/expenses',
     icon: ReceiptText,
   },
   {
     label: 'Vendors',
+    adminOnly: true,
     path: '/vendors',
     icon: Store,
   },
   {
     label: 'Accounting',
+    adminOnly: true,
     path: '/accounting',
     icon: BookOpenCheck,
   },
   {
     label: 'Staff',
+    adminOnly: true,
     path: '/staff',
     icon: Users,
   },
   {
     label: 'Settings',
+    adminOnly: true,
     path: '/settings',
     icon: Settings,
   },
@@ -107,7 +115,10 @@ export function AppLayout() {
     setIsMobileMenuOpen,
   ] = useState(false);
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const { profile } = useAccessProfile();
+  const administrator = profile?.access_role === 'administrator' && profile.is_active;
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email || 'SHAB User';
 
   const isOnline = useOnlineStatus();
 
@@ -118,7 +129,7 @@ export function AppLayout() {
   return (
     <div className="app-shell">
       <aside className="desktop-sidebar">
-        <SidebarContent />
+        <SidebarContent isAdministrator={administrator} />
       </aside>
 
       {isMobileMenuOpen && (
@@ -142,6 +153,7 @@ export function AppLayout() {
 
             <SidebarContent
               onNavigate={closeMobileMenu}
+              isAdministrator={administrator}
             />
           </aside>
         </div>
@@ -192,12 +204,12 @@ export function AppLayout() {
 
           <div className="header-profile">
             <div className="profile-avatar">
-              UK
+              {getInitials(displayName)}
             </div>
 
             <div className="profile-details">
-              <strong>Umar Kayani</strong>
-              <span>Administrator</span>
+              <strong>{displayName}</strong>
+              <span>{administrator ? 'Administrator' : 'Operations Staff'}</span>
             </div>
 
             <button
@@ -223,10 +235,12 @@ export function AppLayout() {
 
 type SidebarContentProps = {
   onNavigate?: () => void;
+  isAdministrator: boolean;
 };
 
 function SidebarContent({
   onNavigate,
+  isAdministrator,
 }: SidebarContentProps) {
   return (
     <div className="sidebar-content">
@@ -239,7 +253,7 @@ function SidebarContent({
       </div>
 
       <nav className="sidebar-navigation">
-        {navigationItems.map(
+        {navigationItems.filter((item) => !item.adminOnly || isAdministrator).map(
           ({
             label,
             path,
@@ -280,4 +294,8 @@ function SidebarContent({
       </div>
     </div>
   );
+}
+
+function getInitials(value: string) {
+  return value.trim().split(/\s+/).slice(0, 2).map((part) => part.charAt(0)).join('').toUpperCase() || 'SH';
 }
