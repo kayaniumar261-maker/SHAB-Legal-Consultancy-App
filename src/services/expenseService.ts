@@ -14,6 +14,8 @@ import type {
   ExpenseSummary,
   ExpenseUpdate,
   ExpenseWithRelations,
+  VendorPayment,
+  VendorPaymentInput,
 } from '../types/expense';
 
 function unwrap<T>(result: { data: T | null; error: PostgrestError | null }): T {
@@ -57,6 +59,54 @@ export async function getVendorBills(): Promise<ExpenseWithRelations[]> {
     .order('expense_date', { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []) as ExpenseWithRelations[];
+}
+
+export async function getVendorPayments(expenseId: string): Promise<VendorPayment[]> {
+  const { data, error } = await supabase
+    .from('expense_vendor_payments')
+    .select('*')
+    .eq('expense_id', expenseId)
+    .order('payment_date', { ascending: false })
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as VendorPayment[];
+}
+
+export async function recordVendorPayment(input: VendorPaymentInput): Promise<VendorPayment> {
+  return unwrap(await supabase.rpc('shab_record_vendor_payment', {
+    p_expense_id: input.expense_id,
+    p_payment_date: input.payment_date,
+    p_amount: input.amount,
+    p_payment_method: input.payment_method,
+    p_payment_reference: input.payment_reference,
+    p_notes: input.notes ?? null,
+    p_proof_file_name: input.proof_file_name ?? null,
+    p_proof_storage_path: input.proof_storage_path ?? null,
+  })) as VendorPayment;
+}
+
+export async function uploadVendorPaymentProof(expenseId: string, file: File): Promise<string> {
+  const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+  if (!allowed.includes(file.type)) throw new Error('Upload a PDF, JPG, PNG or WebP file.');
+  if (file.size > 10 * 1024 * 1024) throw new Error('Payment proof cannot exceed 10 MB.');
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'payment-proof';
+  const storagePath = `${expenseId}/payments/${crypto.randomUUID()}-${safeName}`;
+  const { error } = await supabase.storage.from('expense-documents').upload(storagePath, file, {
+    cacheControl: '3600', contentType: file.type, upsert: false,
+  });
+  if (error) throw new Error(error.message);
+  return storagePath;
+}
+
+export async function removeVendorPaymentProof(storagePath: string): Promise<void> {
+  const { error } = await supabase.storage.from('expense-documents').remove([storagePath]);
+  if (error) throw new Error(error.message);
+}
+
+export async function getVendorPaymentProofUrl(storagePath: string): Promise<string> {
+  const { data, error } = await supabase.storage.from('expense-documents').createSignedUrl(storagePath, 300);
+  if (error) throw new Error(error.message);
+  return data.signedUrl;
 }
 
 export async function createExpense(input: ExpenseInsert): Promise<Expense> {

@@ -22,6 +22,31 @@ export interface ExpenseVendor {
 
 export type ExpenseVendorInsert = Omit<ExpenseVendor, 'id' | 'created_at' | 'updated_at'>;
 
+export interface VendorPayment {
+  id: string;
+  expense_id: string;
+  payment_date: string;
+  amount: number;
+  payment_method: string;
+  payment_reference: string;
+  notes: string | null;
+  proof_file_name: string | null;
+  proof_storage_path: string | null;
+  recorded_by: string | null;
+  created_at: string;
+}
+
+export interface VendorPaymentInput {
+  expense_id: string;
+  payment_date: string;
+  amount: number;
+  payment_method: string;
+  payment_reference: string;
+  notes?: string | null;
+  proof_file_name?: string | null;
+  proof_storage_path?: string | null;
+}
+
 export interface ExpenseActivity {
   id: string;
   expense_id: string;
@@ -67,6 +92,7 @@ export interface Expense {
   net_amount: number;
   input_vat_amount: number;
   total_amount: number;
+  paid_amount: number;
   tax_claim_status: ExpenseTaxClaimStatus;
   client_id: string | null;
   case_id: string | null;
