@@ -56,6 +56,20 @@ jobs:
       - name: Build Windows installer
         run: npm run desktop:pack
 
+      - name: Verify local updater artifacts
+        shell: pwsh
+        run: |
+          $package = Get-Content package.json -Raw | ConvertFrom-Json
+          $installer = "release/SHAB-Legal-Consultants-FZC-Setup-$($package.version).exe"
+          $blockmap = "$installer.blockmap"
+          foreach ($file in @($installer, $blockmap, 'release/latest.yml')) {
+            if (-not (Test-Path $file)) { throw "Required updater artifact is missing: $file" }
+          }
+          $metadata = Get-Content 'release/latest.yml' -Raw
+          if ($metadata -notmatch "version:\s+$([regex]::Escape($package.version))") {
+            throw 'latest.yml version does not match package.json.'
+          }
+
       - name: Upload test installer
         uses: actions/upload-artifact@v4
         with:
@@ -63,64 +77,76 @@ jobs:
           path: |
             release/*.exe
             release/*.blockmap
-            release/latest*.yml
-          if-no-files-found: warn
+            release/latest.yml
+          if-no-files-found: error
           retention-days: 30
 
   publish-prerelease:
     name: Publish updater prerelease
     if: ${{ inputs.publish_prerelease }}
     needs: build-windows
-    runs-on: windows-latest
-    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
 
     env:
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      CSC_IDENTITY_AUTO_DISCOVERY: "false"
       GH_TOKEN: ${{ github.token }}
 
     steps:
-      - name: Check out repository
+      - name: Check out exact source commit
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Download verified Windows artifacts
+        uses: actions/download-artifact@v4
         with:
-          node-version: 22
-          cache: npm
+          name: SHAB-Legal-Consultants-FZC-Windows-${{ github.sha }}
+          path: release
 
-      - name: Verify release does not already exist
-        shell: pwsh
+      - name: Validate release target and artifacts
+        shell: bash
         run: |
-          $package = Get-Content package.json -Raw | ConvertFrom-Json
-          $tag = "v$($package.version)"
-          gh release view $tag 2>$null
-          if ($LASTEXITCODE -eq 0) {
-            throw "Release $tag already exists. Refusing to overwrite it."
-          }
-          $global:LASTEXITCODE = 0
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          tag="v${version}"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists. Refusing to overwrite it." >&2
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists. Refusing to reuse it." >&2
+            exit 1
+          fi
+          test -f "release/SHAB-Legal-Consultants-FZC-Setup-${version}.exe"
+          test -f "release/SHAB-Legal-Consultants-FZC-Setup-${version}.exe.blockmap"
+          test -f "release/latest.yml"
+          grep -Eq "^version: ${version}$" release/latest.yml
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build and publish updater assets
-        run: npm run desktop:release
-
-      - name: Verify updater assets
-        shell: pwsh
+      - name: Create prerelease at exact commit
+        shell: bash
         run: |
-          $package = Get-Content package.json -Raw | ConvertFrom-Json
-          $tag = "v$($package.version)"
-          $release = gh release view $tag --json isPrerelease,isDraft,tagName
-          if ($LASTEXITCODE -ne 0) { throw "Release $tag was not created." }
-          $data = $release | ConvertFrom-Json
-          if (-not $data.isPrerelease -or $data.isDraft) {
-            throw "Release $tag is not a published prerelease."
-          }
-          $assets = gh release view $tag --json assets --jq '.assets[].name'
-          if (-not ($assets -contains 'latest.yml')) { throw 'latest.yml is missing.' }
-          if (-not ($assets -match '\.exe$')) { throw 'Windows installer is missing.' }
-          if (-not ($assets -match '\.blockmap$')) { throw 'Block-map asset is missing.' }
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          tag="v${version}"
+          gh release create "$tag" \
+            "release/SHAB-Legal-Consultants-FZC-Setup-${version}.exe" \
+            "release/SHAB-Legal-Consultants-FZC-Setup-${version}.exe.blockmap" \
+            "release/latest.yml" \
+            --target "${GITHUB_SHA}" \
+            --prerelease \
+            --title "SHAB Legal Consultants FZC â€“ Windows ${tag}" \
+            --notes "Updater-enabled Windows test release. Install manually for controlled v2.0.2 automatic-update validation."
+
+      - name: Verify published prerelease
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          tag="v${version}"
+          test "$(git rev-list -n 1 "$tag")" = "${GITHUB_SHA}"
+          test "$(gh release view "$tag" --json isPrerelease --jq '.isPrerelease')" = "true"
+          assets="$(gh release view "$tag" --json assets --jq '.assets[].name')"
+          grep -Fxq "SHAB-Legal-Consultants-FZC-Setup-${version}.exe" <<< "$assets"
+          grep -Fxq "SHAB-Legal-Consultants-FZC-Setup-${version}.exe.blockmap" <<< "$assets"
+          grep -Fxq 'latest.yml' <<< "$assets"
