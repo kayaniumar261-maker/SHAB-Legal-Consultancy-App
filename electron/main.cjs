@@ -1,5 +1,6 @@
 const { app, BrowserWindow, shell } = require('electron');
 const path = require('node:path');
+const { startDesktopUpdater } = require('./updater.cjs');
 
 const createMainWindow = () => {
   const mainWindow = new BrowserWindow({
@@ -20,6 +21,7 @@ const createMainWindow = () => {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    startDesktopUpdater(mainWindow);
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {

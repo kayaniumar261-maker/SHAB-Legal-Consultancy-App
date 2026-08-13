@@ -2,15 +2,24 @@ name: Build Windows Installer
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_prerelease:
+        description: Publish this version as a GitHub prerelease
+        required: true
+        type: boolean
+        default: false
 
-permissions:
-  contents: read
+concurrency:
+  group: windows-installer-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build-windows:
-    name: Build Windows installer
+    name: Validate and build Windows installer
     runs-on: windows-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
 
     env:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
@@ -33,9 +42,12 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($env:VITE_SUPABASE_URL)) {
             throw "Missing GitHub secret: VITE_SUPABASE_URL"
           }
-
           if ([string]::IsNullOrWhiteSpace($env:VITE_SUPABASE_ANON_KEY)) {
             throw "Missing GitHub secret: VITE_SUPABASE_ANON_KEY"
+          }
+          $package = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($package.version -notmatch '^2\.0\.[1-9][0-9]*$') {
+            throw "Unexpected release version: $($package.version)"
           }
 
       - name: Install dependencies
@@ -44,10 +56,71 @@ jobs:
       - name: Build Windows installer
         run: npm run desktop:pack
 
-      - name: Upload Windows installer
+      - name: Upload test installer
         uses: actions/upload-artifact@v4
         with:
-          name: SHAB-Legal-Consultants-FZC-Windows
-          path: release/*.exe
-          if-no-files-found: error
+          name: SHAB-Legal-Consultants-FZC-Windows-${{ github.sha }}
+          path: |
+            release/*.exe
+            release/*.blockmap
+            release/latest*.yml
+          if-no-files-found: warn
           retention-days: 30
+
+  publish-prerelease:
+    name: Publish updater prerelease
+    if: ${{ inputs.publish_prerelease }}
+    needs: build-windows
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify release does not already exist
+        shell: pwsh
+        run: |
+          $package = Get-Content package.json -Raw | ConvertFrom-Json
+          $tag = "v$($package.version)"
+          gh release view $tag 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            throw "Release $tag already exists. Refusing to overwrite it."
+          }
+          $global:LASTEXITCODE = 0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and publish updater assets
+        run: npm run desktop:release
+
+      - name: Verify updater assets
+        shell: pwsh
+        run: |
+          $package = Get-Content package.json -Raw | ConvertFrom-Json
+          $tag = "v$($package.version)"
+          $release = gh release view $tag --json isPrerelease,isDraft,tagName
+          if ($LASTEXITCODE -ne 0) { throw "Release $tag was not created." }
+          $data = $release | ConvertFrom-Json
+          if (-not $data.isPrerelease -or $data.isDraft) {
+            throw "Release $tag is not a published prerelease."
+          }
+          $assets = gh release view $tag --json assets --jq '.assets[].name'
+          if (-not ($assets -contains 'latest.yml')) { throw 'latest.yml is missing.' }
+          if (-not ($assets -match '\.exe$')) { throw 'Windows installer is missing.' }
+          if (-not ($assets -match '\.blockmap$')) { throw 'Block-map asset is missing.' }
