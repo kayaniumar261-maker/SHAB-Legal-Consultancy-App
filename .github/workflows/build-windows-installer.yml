@@ -144,7 +144,7 @@ jobs:
           set -euo pipefail
           version="$(node -p "require('./package.json').version")"
           tag="v${version}"
-          test "$(git rev-list -n 1 "$tag")" = "${GITHUB_SHA}"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag}" --jq '.object.sha')" = "${GITHUB_SHA}"
           test "$(gh release view "$tag" --json isPrerelease --jq '.isPrerelease')" = "true"
           assets="$(gh release view "$tag" --json assets --jq '.assets[].name')"
           grep -Fxq "SHAB-Legal-Consultants-FZC-Setup-${version}.exe" <<< "$assets"
