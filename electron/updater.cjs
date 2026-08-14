@@ -18,7 +18,7 @@ const showMessage = async (options) => {
 const registerUpdaterEvents = () => {
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = false;
-  autoUpdater.allowPrerelease = true;
+  autoUpdater.allowPrerelease = false;
 
   autoUpdater.on('checking-for-update', () => log('Checking for updates.'));
   autoUpdater.on('update-not-available', ({ version }) => {

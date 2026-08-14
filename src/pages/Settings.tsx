@@ -201,7 +201,7 @@ export function Settings() {
           <dl className="application-info-list">
             <div><dt>Installed version</dt><dd>v{__APP_VERSION__}</dd></div>
             <div><dt>Platform</dt><dd>{isDesktop ? 'Windows desktop' : 'Web browser'}</dd></div>
-            <div><dt>Update channel</dt><dd>{isDesktop ? 'Controlled prerelease testing' : 'Browser deployment'}</dd></div>
+            <div><dt>Update channel</dt><dd>{isDesktop ? 'Stable releases' : 'Browser deployment'}</dd></div>
             <div><dt>Automatic updates</dt><dd>{isDesktop ? 'Enabled' : 'Desktop only'}</dd></div>
           </dl>
           <div className="version-proof-note">

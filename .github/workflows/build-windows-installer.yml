@@ -3,11 +3,15 @@ name: Build Windows Installer
 on:
   workflow_dispatch:
     inputs:
-      publish_prerelease:
-        description: Publish this version as a GitHub prerelease
+      publish_mode:
+        description: Choose build-only, controlled prerelease, or stable release publishing
         required: true
-        type: boolean
-        default: false
+        type: choice
+        options:
+          - build-only
+          - prerelease
+          - stable
+        default: build-only
 
 concurrency:
   group: windows-installer-${{ github.ref }}
@@ -70,7 +74,7 @@ jobs:
             throw 'latest.yml version does not match package.json.'
           }
 
-      - name: Upload test installer
+      - name: Upload verified installer artifacts
         uses: actions/upload-artifact@v4
         with:
           name: SHAB-Legal-Consultants-FZC-Windows-${{ github.sha }}
@@ -81,9 +85,9 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-  publish-prerelease:
-    name: Publish updater prerelease
-    if: ${{ inputs.publish_prerelease }}
+  publish-release:
+    name: Publish updater release
+    if: ${{ inputs.publish_mode != 'build-only' }}
     needs: build-windows
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -92,6 +96,7 @@ jobs:
 
     env:
       GH_TOKEN: ${{ github.token }}
+      PUBLISH_MODE: ${{ inputs.publish_mode }}
 
     steps:
       - name: Check out exact source commit
@@ -110,6 +115,10 @@ jobs:
           version="$(node -p "require('./package.json').version")"
           tag="v${version}"
           test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          if [[ "$PUBLISH_MODE" == "stable" && "$GITHUB_REF_NAME" != "shab-2.0" ]]; then
+            echo "Stable releases may only be published from shab-2.0." >&2
+            exit 1
+          fi
           if gh release view "$tag" >/dev/null 2>&1; then
             echo "Release $tag already exists. Refusing to overwrite it." >&2
             exit 1
@@ -123,29 +132,35 @@ jobs:
           test -f "release/latest.yml"
           grep -Eq "^version: ${version}$" release/latest.yml
 
-      - name: Create prerelease at exact commit
+      - name: Create release at exact commit
         shell: bash
         run: |
           set -euo pipefail
           version="$(node -p "require('./package.json').version")"
           tag="v${version}"
-          gh release create "$tag" \
-            "release/SHAB-Legal-Consultants-FZC-Setup-${version}.exe" \
-            "release/SHAB-Legal-Consultants-FZC-Setup-${version}.exe.blockmap" \
-            "release/latest.yml" \
-            --target "${GITHUB_SHA}" \
-            --prerelease \
-            --title "SHAB Legal Consultants FZC â€“ Windows ${tag}" \
-            --notes "Updater-enabled Windows test release. Install manually for controlled v2.0.2 automatic-update validation."
+          release_args=(
+            "release/SHAB-Legal-Consultants-FZC-Setup-${version}.exe"
+            "release/SHAB-Legal-Consultants-FZC-Setup-${version}.exe.blockmap"
+            "release/latest.yml"
+            --target "${GITHUB_SHA}"
+            --title "SHAB Legal Consultants FZC - Windows ${tag}"
+            --notes "Updater-enabled Windows ${PUBLISH_MODE} release ${tag}."
+          )
+          if [[ "$PUBLISH_MODE" == "prerelease" ]]; then
+            release_args+=(--prerelease)
+          fi
+          gh release create "$tag" "${release_args[@]}"
 
-      - name: Verify published prerelease
+      - name: Verify published release
         shell: bash
         run: |
           set -euo pipefail
           version="$(node -p "require('./package.json').version")"
           tag="v${version}"
+          expected_prerelease=false
+          if [[ "$PUBLISH_MODE" == "prerelease" ]]; then expected_prerelease=true; fi
           test "$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag}" --jq '.object.sha')" = "${GITHUB_SHA}"
-          test "$(gh release view "$tag" --json isPrerelease --jq '.isPrerelease')" = "true"
+          test "$(gh release view "$tag" --json isPrerelease --jq '.isPrerelease')" = "$expected_prerelease"
           assets="$(gh release view "$tag" --json assets --jq '.assets[].name')"
           grep -Fxq "SHAB-Legal-Consultants-FZC-Setup-${version}.exe" <<< "$assets"
           grep -Fxq "SHAB-Legal-Consultants-FZC-Setup-${version}.exe.blockmap" <<< "$assets"
