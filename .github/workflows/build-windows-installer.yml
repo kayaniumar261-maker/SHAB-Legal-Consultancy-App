@@ -2,15 +2,28 @@ name: Build Windows Installer
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_mode:
+        description: Choose build-only, controlled prerelease, or stable release publishing
+        required: true
+        type: choice
+        options:
+          - build-only
+          - prerelease
+          - stable
+        default: build-only
 
-permissions:
-  contents: read
+concurrency:
+  group: windows-installer-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build-windows:
-    name: Build Windows installer
+    name: Validate and build Windows installer
     runs-on: windows-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
 
     env:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
@@ -33,9 +46,12 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($env:VITE_SUPABASE_URL)) {
             throw "Missing GitHub secret: VITE_SUPABASE_URL"
           }
-
           if ([string]::IsNullOrWhiteSpace($env:VITE_SUPABASE_ANON_KEY)) {
             throw "Missing GitHub secret: VITE_SUPABASE_ANON_KEY"
+          }
+          $package = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($package.version -notmatch '^2\.0\.[1-9][0-9]*$') {
+            throw "Unexpected release version: $($package.version)"
           }
 
       - name: Install dependencies
@@ -44,10 +60,108 @@ jobs:
       - name: Build Windows installer
         run: npm run desktop:pack
 
-      - name: Upload Windows installer
+      - name: Verify local updater artifacts
+        shell: pwsh
+        run: |
+          $package = Get-Content package.json -Raw | ConvertFrom-Json
+          $installer = "release/SHAB-Legal-Consultants-FZC-Setup-$($package.version).exe"
+          $blockmap = "$installer.blockmap"
+          foreach ($file in @($installer, $blockmap, 'release/latest.yml')) {
+            if (-not (Test-Path $file)) { throw "Required updater artifact is missing: $file" }
+          }
+          $metadata = Get-Content 'release/latest.yml' -Raw
+          if ($metadata -notmatch "version:\s+$([regex]::Escape($package.version))") {
+            throw 'latest.yml version does not match package.json.'
+          }
+
+      - name: Upload verified installer artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SHAB-Legal-Consultants-FZC-Windows
-          path: release/*.exe
+          name: SHAB-Legal-Consultants-FZC-Windows-${{ github.sha }}
+          path: |
+            release/*.exe
+            release/*.blockmap
+            release/latest.yml
           if-no-files-found: error
           retention-days: 30
+
+  publish-release:
+    name: Publish updater release
+    if: ${{ inputs.publish_mode != 'build-only' }}
+    needs: build-windows
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PUBLISH_MODE: ${{ inputs.publish_mode }}
+
+    steps:
+      - name: Check out exact source commit
+        uses: actions/checkout@v4
+
+      - name: Download verified Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: SHAB-Legal-Consultants-FZC-Windows-${{ github.sha }}
+          path: release
+
+      - name: Validate release target and artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          tag="v${version}"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          if [[ "$PUBLISH_MODE" == "stable" && "$GITHUB_REF_NAME" != "shab-2.0" ]]; then
+            echo "Stable releases may only be published from shab-2.0." >&2
+            exit 1
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists. Refusing to overwrite it." >&2
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists. Refusing to reuse it." >&2
+            exit 1
+          fi
+          test -f "release/SHAB-Legal-Consultants-FZC-Setup-${version}.exe"
+          test -f "release/SHAB-Legal-Consultants-FZC-Setup-${version}.exe.blockmap"
+          test -f "release/latest.yml"
+          grep -Eq "^version: ${version}$" release/latest.yml
+
+      - name: Create release at exact commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          tag="v${version}"
+          release_args=(
+            "release/SHAB-Legal-Consultants-FZC-Setup-${version}.exe"
+            "release/SHAB-Legal-Consultants-FZC-Setup-${version}.exe.blockmap"
+            "release/latest.yml"
+            --target "${GITHUB_SHA}"
+            --title "SHAB Legal Consultants FZC - Windows ${tag}"
+            --notes "Updater-enabled Windows ${PUBLISH_MODE} release ${tag}."
+          )
+          if [[ "$PUBLISH_MODE" == "prerelease" ]]; then
+            release_args+=(--prerelease)
+          fi
+          gh release create "$tag" "${release_args[@]}"
+
+      - name: Verify published release
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          tag="v${version}"
+          expected_prerelease=false
+          if [[ "$PUBLISH_MODE" == "prerelease" ]]; then expected_prerelease=true; fi
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag}" --jq '.object.sha')" = "${GITHUB_SHA}"
+          test "$(gh release view "$tag" --json isPrerelease --jq '.isPrerelease')" = "$expected_prerelease"
+          assets="$(gh release view "$tag" --json assets --jq '.assets[].name')"
+          grep -Fxq "SHAB-Legal-Consultants-FZC-Setup-${version}.exe" <<< "$assets"
+          grep -Fxq "SHAB-Legal-Consultants-FZC-Setup-${version}.exe.blockmap" <<< "$assets"
+          grep -Fxq 'latest.yml' <<< "$assets"

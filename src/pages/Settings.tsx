@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { AlertTriangle, CheckCircle2, ReceiptText, Save, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Info, ReceiptText, Save, ShieldCheck } from 'lucide-react';
 
 import { getCompanySettings } from '../services/companySettingsService';
 import { updateTaxSettings } from '../services/vatAccountingService';
@@ -21,6 +21,7 @@ const EMPTY_FORM: TaxForm = {
 };
 
 export function Settings() {
+  const isDesktop = navigator.userAgent.includes('Electron');
   const [form, setForm] = useState<TaxForm>(EMPTY_FORM);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -190,6 +191,23 @@ export function Settings() {
               <p>Leave this mode active until the FTA approves SHAB's VAT application.</p>
             </div>
           ) : null}
+        </aside>
+
+        <aside className="settings-card application-info-card">
+          <header>
+            <div className="settings-icon info"><Info size={22} /></div>
+            <div><h2>Application information</h2><p>Build and update details for support.</p></div>
+          </header>
+          <dl className="application-info-list">
+            <div><dt>Installed version</dt><dd>v{__APP_VERSION__}</dd></div>
+            <div><dt>Platform</dt><dd>{isDesktop ? 'Windows desktop' : 'Web browser'}</dd></div>
+            <div><dt>Update channel</dt><dd>{isDesktop ? 'Stable releases' : 'Browser deployment'}</dd></div>
+            <div><dt>Automatic updates</dt><dd>{isDesktop ? 'Enabled' : 'Desktop only'}</dd></div>
+          </dl>
+          <div className="version-proof-note">
+            <CheckCircle2 size={17} />
+            <span>Version details update automatically with every published build.</span>
+          </div>
         </aside>
       </section>
     </main>

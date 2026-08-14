@@ -135,11 +135,11 @@ function ExecutiveAlert({
   const hasAlert = value > 0;
 
   return (
-    <a
+    <Link
       className={`executive-alert-card ${
         hasAlert ? 'warning' : 'clear'
       }`}
-      href={to}
+      to={to}
     >
       <div className="executive-alert-icon">
         {hasAlert ? (
@@ -160,7 +160,7 @@ function ExecutiveAlert({
           {hasAlert ? message : clearMessage}
         </p>
       </div>
-    </a>
+    </Link>
   );
 }
 

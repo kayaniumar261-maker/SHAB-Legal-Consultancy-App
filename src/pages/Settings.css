@@ -38,3 +38,59 @@
 .registration-note p { margin: 5px 0 0; color: #78350f; line-height: 1.5; }
 @media (max-width: 900px) { .settings-grid { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .settings-page { padding: 16px; } .settings-heading { display: grid; } .settings-two-columns { grid-template-columns: 1fr; } .settings-toggle-row { align-items: flex-start; } }
+
+.settings-icon.info {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.application-info-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.application-info-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.application-info-list dt {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.application-info-list dd {
+  margin: 0;
+  color: #0f172a;
+  font-weight: 700;
+  text-align: right;
+}
+
+.version-proof-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.75rem;
+  color: #166534;
+  background: #f0fdf4;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .application-info-list > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .application-info-list dd {
+    text-align: left;
+  }
+}
