@@ -11,6 +11,7 @@ import {
 } from 'react-router-dom';
 
 import { AdministratorRoute } from './components/AdministratorRoute';
+import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AppLayout } from './layouts/AppLayout';
 
@@ -158,7 +159,8 @@ function RouteLoadingScreen() {
 
 function App() {
   return (
-    <Suspense fallback={<RouteLoadingScreen />}>
+    <AppErrorBoundary>
+      <Suspense fallback={<RouteLoadingScreen />}>
       <Routes>
         <Route
           path="/login"
@@ -245,8 +247,9 @@ function App() {
             />
           }
         />
-      </Routes>
-    </Suspense>
+        </Routes>
+      </Suspense>
+    </AppErrorBoundary>
   );
 }
 
