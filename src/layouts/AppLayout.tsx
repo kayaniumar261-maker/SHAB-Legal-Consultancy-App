@@ -347,11 +347,12 @@ function SidebarContent({
       </div>
 
       <div className="sidebar-footer">
-        <p>
-          SHAB Legal Consultants FZC
-        </p>
-
-        <span>Version 2.0.0</span>
+        <p>SHAB Legal Consultants FZC</p>
+        <div className="sidebar-version-row">
+          <span>v{__APP_VERSION__}</span>
+          <span aria-hidden="true">&bull;</span>
+          <span>{navigator.userAgent.includes('Electron') ? 'Updates enabled' : 'Browser deployment'}</span>
+        </div>
       </div>
     </div>
   );
