@@ -1,0 +1,14 @@
+.deletion-request-backdrop { position: fixed; inset: 0; z-index: 1400; display: grid; place-items: center; padding: 20px; background: rgba(15, 23, 42, .62); }
+.deletion-request-modal { width: min(540px, 100%); border-radius: 18px; background: #fff; box-shadow: 0 24px 70px rgba(15, 23, 42, .28); padding: 24px; }
+.deletion-request-modal header { display: grid; grid-template-columns: auto 1fr auto; gap: 13px; align-items: start; }
+.deletion-request-modal header p { margin: 0 0 3px; color: #92400e; font-size: .78rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.deletion-request-modal h2 { margin: 0; color: #172033; font-size: 1.35rem; }
+.deletion-request-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; color: #b45309; background: #fef3c7; }
+.deletion-request-close { border: 0; background: transparent; color: #64748b; cursor: pointer; }
+.deletion-request-record { margin: 20px 0 14px; padding: 12px 14px; border-radius: 10px; background: #f8fafc; color: #334155; font-weight: 700; }
+.deletion-request-modal label { display: grid; gap: 8px; color: #334155; font-weight: 700; }
+.deletion-request-modal textarea { resize: vertical; min-height: 105px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 11px 12px; font: inherit; }
+.deletion-request-modal small { display: block; margin-top: 6px; color: #64748b; text-align: right; }
+.deletion-request-error { margin-top: 12px; border-radius: 9px; padding: 10px 12px; background: #fef2f2; color: #b91c1c; }
+.deletion-request-modal footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+@media (max-width: 560px) { .deletion-request-modal { padding: 18px; } .deletion-request-modal footer { display: grid; } }

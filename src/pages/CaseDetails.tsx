@@ -20,6 +20,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { CaseTabs } from '../components/cases/CaseTabs';
+import { DeletionRequestModal } from '../components/staff/DeletionRequestModal';
 import { useAccessProfile } from '../hooks/useAccessProfile';
 import { deleteCase, getCaseById } from '../services/caseService';
 import {
@@ -38,6 +39,7 @@ export function CaseDetails() {
   const [caseRecord, setCaseRecord] = useState<Case | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [requestDeleteOpen, setRequestDeleteOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [financialSummary, setFinancialSummary] =
     useState<FinancialLedgerSummary | null>(null);
@@ -244,11 +246,11 @@ export function CaseDetails() {
           <button
             type="button"
             className="secondary-action-button delete-case-button"
-            onClick={() => void handleDelete()}
+            onClick={() => administrator ? void handleDelete() : setRequestDeleteOpen(true)}
             disabled={deleting}
           >
             <Trash2 size={18} />
-            {deleting ? 'Deleting…' : 'Delete'}
+            {deleting ? 'Deleting…' : administrator ? 'Delete' : 'Request deletion'}
           </button>
         </div>
       </section>
@@ -587,6 +589,14 @@ export function CaseDetails() {
         caseRecord={caseRecord}
         clientName={clientName}
         isAdministrator={administrator}
+      />
+
+      <DeletionRequestModal
+        open={!administrator && requestDeleteOpen}
+        entityType="case"
+        recordId={caseRecord.id}
+        recordLabel={matterReference}
+        onClose={() => setRequestDeleteOpen(false)}
       />
     </div>
   );

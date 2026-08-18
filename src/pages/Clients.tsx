@@ -40,6 +40,7 @@ import {
 } from '../services/financeSummaryService';
 import { ClientFormModal } from '../components/clients/ClientFormModal';
 import { DeleteClientModal } from '../components/clients/DeleteClientModal';
+import { DeletionRequestModal } from '../components/staff/DeletionRequestModal';
 import './Clients.css';
 
 type StatusFilter = Client['status'] | 'all';
@@ -564,8 +565,8 @@ export function Clients() {
                     <button
                       type="button"
                       className="icon-action-button danger"
-                      title="Delete client"
-                      aria-label={`Delete ${client.full_name}`}
+                      title={administrator ? 'Delete client' : 'Request client deletion'}
+                      aria-label={`${administrator ? 'Delete' : 'Request deletion of'} ${client.full_name}`}
                       onClick={() => setDeleteTarget(client)}
                     >
                       <Trash2 size={16} />
@@ -613,11 +614,19 @@ export function Clients() {
       />
 
       <DeleteClientModal
-        open={Boolean(deleteTarget)}
+        open={administrator && Boolean(deleteTarget)}
         clientName={deleteTarget?.full_name ?? ''}
         loading={deleteLoading}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
+      />
+
+      <DeletionRequestModal
+        open={!administrator && Boolean(deleteTarget)}
+        entityType="client"
+        recordId={deleteTarget?.id ?? null}
+        recordLabel={deleteTarget?.full_name ?? 'Client record'}
+        onClose={() => setDeleteTarget(null)}
       />
     </div>
   );

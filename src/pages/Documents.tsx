@@ -42,6 +42,8 @@ import type {
 } from '../types/document';
 
 import { DocumentDetailsModal } from '../components/documents/DocumentDetailsModal';
+import { DeletionRequestModal } from '../components/staff/DeletionRequestModal';
+import { useAccessProfile } from '../hooks/useAccessProfile';
 import './Documents.css';
 
 const PAGE_SIZE = 15;
@@ -65,6 +67,8 @@ const emptyUploadForm: UploadFormState = {
 };
 
 export function Documents() {
+  const { profile } = useAccessProfile();
+  const administrator = profile?.access_role === 'administrator' && profile.is_active;
   const [documents, setDocuments] =
     useState<DocumentWithRelations[]>([]);
 
@@ -99,6 +103,9 @@ export function Documents() {
     useState(false);
 
   const [selectedDocument, setSelectedDocument] =
+    useState<DocumentWithRelations | null>(null);
+
+  const [deletionRequestTarget, setDeletionRequestTarget] =
     useState<DocumentWithRelations | null>(null);
 
   const [detailsLoading, setDetailsLoading] =
@@ -480,6 +487,14 @@ export function Documents() {
     }
   };
 
+  const beginDelete = async (document: DocumentWithRelations) => {
+    if (!administrator) {
+      setDeletionRequestTarget(document);
+      return;
+    }
+    await handleDelete(document);
+  };
+
   const hasFilters =
     search.trim().length > 0 ||
     clientFilter !== 'all' ||
@@ -852,12 +867,12 @@ export function Documents() {
                           type="button"
                           className="danger"
                           onClick={() =>
-                            void handleDelete(
+                            void beginDelete(
                               document,
                             )
                           }
                           disabled={actionLoading}
-                          title="Delete"
+                          title={administrator ? 'Delete' : 'Request deletion'}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -1148,6 +1163,11 @@ export function Documents() {
           if (!selectedDocument) {
             return;
           }
+          if (!administrator) {
+            setDeletionRequestTarget(selectedDocument);
+            closeDetails();
+            return;
+          }
           const confirmed = window.confirm(
             `Delete "${selectedDocument.name}"? This will remove both the database record and the stored file.`,
           );
@@ -1167,6 +1187,14 @@ export function Documents() {
             );
           }
         }}
+      />
+
+      <DeletionRequestModal
+        open={!administrator && Boolean(deletionRequestTarget)}
+        entityType="document"
+        recordId={deletionRequestTarget?.id ?? null}
+        recordLabel={deletionRequestTarget?.name ?? 'Document record'}
+        onClose={() => setDeletionRequestTarget(null)}
       />
     </div>
   );
