@@ -140,6 +140,11 @@ const Login = lazyNamed(
   'Login',
 );
 
+const AuthSetup = lazyNamed(
+  () => import('./pages/AuthSetup'),
+  'AuthSetup',
+);
+
 const PlaceholderPage = lazyNamed<{
   title: string;
 }>(
@@ -165,6 +170,11 @@ function App() {
         <Route
           path="/login"
           element={<Login />}
+        />
+
+        <Route
+          path="/auth/setup"
+          element={<AuthSetup />}
         />
 
         <Route element={<ProtectedRoute />}>

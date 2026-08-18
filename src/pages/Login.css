@@ -154,3 +154,27 @@
     gap: 14px;
   }
 }
+
+.login-link-button {
+  justify-self: end;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #7c5f1f;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.login-link-button:hover:not(:disabled) { text-decoration: underline; }
+.login-link-button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.login-notice {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 0.95rem;
+}
+
+.auth-setup-card { display: grid; gap: 20px; }

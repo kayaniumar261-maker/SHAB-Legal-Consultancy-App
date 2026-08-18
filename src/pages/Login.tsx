@@ -4,6 +4,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { shabLogoUrl } from '../constants/branding';
+import { getAuthSetupRedirectUrl } from '../services/authRedirectService';
 import './Login.css';
 
 export function Login() {
@@ -13,6 +14,7 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -52,6 +54,27 @@ export function Login() {
     }
 
     navigate('/', { replace: true });
+  }
+
+  async function handlePasswordReset() {
+    setError(null);
+    setNotice(null);
+    if (!email.trim()) {
+      setError('Enter your email address first.');
+      return;
+    }
+    try {
+      setLoading(true);
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: getAuthSetupRedirectUrl(),
+      });
+      if (resetError) throw resetError;
+      setNotice('If this account exists, a secure password-reset email has been sent.');
+    } catch (resetError) {
+      setError(resetError instanceof Error ? resetError.message : 'Unable to request a password reset.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -109,6 +132,12 @@ export function Login() {
               {error}
             </div>
           )}
+
+          {notice && <div className="login-notice" role="status">{notice}</div>}
+
+          <button type="button" className="login-link-button" onClick={handlePasswordReset} disabled={loading}>
+            Forgot password?
+          </button>
 
           <button
             type="submit"

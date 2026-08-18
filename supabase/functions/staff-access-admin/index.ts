@@ -8,6 +8,23 @@ const headers = {
 const admins = new Set(['umar@shabgroup.com', 'haider@shabgroup.com', 'siyab@shabgroup.com']);
 const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
 
+function allowedRedirect(value: string) {
+  try {
+    const candidate = new URL(value);
+    const configured = Deno.env.get('STAFF_AUTH_REDIRECT_URL')?.trim();
+    if (configured) {
+      const approved = new URL(configured);
+      if (candidate.origin === approved.origin && candidate.pathname === approved.pathname) return true;
+    }
+    return candidate.protocol === 'http:' &&
+      (candidate.hostname === '127.0.0.1' || candidate.hostname === 'localhost') &&
+      (candidate.port === '5173' || candidate.port === '4173') &&
+      candidate.pathname === '/auth/setup';
+  } catch {
+    return false;
+  }
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers });
   try {
@@ -27,7 +44,9 @@ Deno.serve(async (request) => {
     const action = String(body.action || '');
     const email = String(body.email || '').trim().toLowerCase();
     const fullName = String(body.fullName || '').trim();
+    const redirectTo = String(body.redirectTo || '').trim();
     if (!email || !email.includes('@')) return reply({ ok: false, error: 'A valid email is required.' }, 400);
+    if (!allowedRedirect(redirectTo)) return reply({ ok: false, error: 'The password-setup redirect is not approved.' }, 400);
     const administratorAction = action === 'invite_administrator';
     if (administratorAction && !admins.has(email)) return reply({ ok: false, error: 'This email is not an approved administrator.' }, 403);
     if (!administratorAction && action !== 'resend_invite' && admins.has(email)) return reply({ ok: false, error: 'Use the protected administrator invitation control.' }, 400);
@@ -35,12 +54,12 @@ Deno.serve(async (request) => {
     const admin = createClient(url, service, { auth: { autoRefreshToken: false, persistSession: false } });
     if (action === 'invite' || action === 'invite_administrator') {
       if (!fullName) return reply({ ok: false, error: 'Full name is required.' }, 400);
-      const { error } = await admin.auth.admin.inviteUserByEmail(email, { data: { full_name: fullName } });
+      const { error } = await admin.auth.admin.inviteUserByEmail(email, { data: { full_name: fullName }, redirectTo });
       if (error) return reply({ ok: false, error: error.message }, 400);
       return reply({ ok: true, email });
     }
     if (action === 'resend_invite') {
-      const { error } = await admin.auth.resend({ type: 'invite', email });
+      const { error } = await admin.auth.resend({ type: 'invite', email, options: { emailRedirectTo: redirectTo } });
       if (error) return reply({ ok: false, error: error.message }, 400);
       return reply({ ok: true, email });
     }

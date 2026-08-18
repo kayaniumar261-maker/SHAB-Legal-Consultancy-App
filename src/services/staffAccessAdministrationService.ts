@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { getAuthSetupRedirectUrl } from './authRedirectService';
 
 export type AccessAccount = {
   user_id: string;
@@ -48,7 +49,7 @@ export async function setAccountActive(userId: string, active: boolean): Promise
 
 export async function inviteOperationsStaff(input: { email: string; fullName: string }) {
   const { data, error } = await supabase.functions.invoke('staff-access-admin', {
-    body: { action: 'invite', email: input.email, fullName: input.fullName },
+    body: { action: 'invite', email: input.email, fullName: input.fullName, redirectTo: getAuthSetupRedirectUrl() },
   });
   if (error) throw new Error(error.message);
   if (!data?.ok) throw new Error(data?.error || 'Unable to invite staff account.');
@@ -57,7 +58,7 @@ export async function inviteOperationsStaff(input: { email: string; fullName: st
 
 export async function inviteApprovedAdministrator(input: { email: string; fullName: string }) {
   const { data, error } = await supabase.functions.invoke('staff-access-admin', {
-    body: { action: 'invite_administrator', email: input.email, fullName: input.fullName },
+    body: { action: 'invite_administrator', email: input.email, fullName: input.fullName, redirectTo: getAuthSetupRedirectUrl() },
   });
   if (error) throw new Error(error.message);
   if (!data?.ok) throw new Error(data?.error || 'Unable to invite administrator.');
@@ -67,7 +68,7 @@ export async function inviteApprovedAdministrator(input: { email: string; fullNa
 export async function resendStaffInvite(email: string) {
   try {
     const { data, error } = await supabase.functions.invoke('staff-access-admin', {
-      body: { action: 'resend_invite', email },
+      body: { action: 'resend_invite', email, redirectTo: getAuthSetupRedirectUrl() },
     });
     if (error) throw error;
     if (!data?.ok) throw new Error(data?.error || 'Unable to resend invitation.');
