@@ -16,6 +16,7 @@ import {
   Plus,
   Search,
   ShieldCheck,
+  ShieldAlert,
   Trash2,
   UserRoundCheck,
   Users,
@@ -377,14 +378,23 @@ export function Staff() {
           </p>
         </div>
 
-        <button
-          type="button"
-          className="primary-action-button"
-          onClick={openCreateForm}
-        >
-          <Plus size={18} />
-          Add Staff
-        </button>
+        <div className="staff-heading-actions">
+          <Link
+            to="/staff/safety-review"
+            className="secondary-action-button"
+          >
+            <ShieldAlert size={18} />
+            Safety Review
+          </Link>
+          <button
+            type="button"
+            className="primary-action-button"
+            onClick={openCreateForm}
+          >
+            <Plus size={18} />
+            Add Staff
+          </button>
+        </div>
       </section>
 
 

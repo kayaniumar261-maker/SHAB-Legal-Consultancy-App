@@ -37,6 +37,8 @@ import type {
 } from '../types/task';
 import { TaskFormModal } from '../components/tasks/TaskFormModal';
 import { DeleteTaskModal } from '../components/tasks/DeleteTaskModal';
+import { DeletionRequestModal } from '../components/staff/DeletionRequestModal';
+import { useAccessProfile } from '../hooks/useAccessProfile';
 import './Tasks.css';
 
 const PAGE_SIZE = 12;
@@ -66,6 +68,8 @@ const priorityOptions: Array<TaskPriority | 'all'> = [
 ];
 
 export function Tasks() {
+  const { profile } = useAccessProfile();
+  const administrator = profile?.access_role === 'administrator' && profile.is_active;
   const [tasks, setTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState<TaskDashboardStats>(initialStats);
 
@@ -779,8 +783,8 @@ export function Tasks() {
                         type="button"
                         className="action-button delete-button"
                         onClick={() => setDeleteTarget(task)}
-                        title="Delete task"
-                        aria-label={`Delete ${task.title}`}
+                        title={administrator ? 'Delete task' : 'Request task deletion'}
+                        aria-label={`${administrator ? 'Delete' : 'Request deletion of'} ${task.title}`}
                         disabled={actionLoading}
                       >
                         <Trash2 size={16} />
@@ -843,7 +847,7 @@ export function Tasks() {
       />
 
       <DeleteTaskModal
-        open={Boolean(deleteTarget)}
+        open={administrator && Boolean(deleteTarget)}
         taskTitle={deleteTarget?.title ?? ''}
         loading={deleteLoading}
         onCancel={() => {
@@ -852,6 +856,14 @@ export function Tasks() {
           }
         }}
         onConfirm={handleDelete}
+      />
+
+      <DeletionRequestModal
+        open={!administrator && Boolean(deleteTarget)}
+        entityType="task"
+        recordId={deleteTarget?.id ?? null}
+        recordLabel={deleteTarget?.title ?? 'Task record'}
+        onClose={() => setDeleteTarget(null)}
       />
     </div>
   );

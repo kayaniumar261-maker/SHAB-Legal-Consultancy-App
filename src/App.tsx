@@ -135,9 +135,19 @@ const StaffDetails = lazyNamed(
   'StaffDetails',
 );
 
+const StaffSafetyReview = lazyNamed(
+  () => import('./pages/StaffSafetyReview'),
+  'StaffSafetyReview',
+);
+
 const Login = lazyNamed(
   () => import('./pages/Login'),
   'Login',
+);
+
+const AuthSetup = lazyNamed(
+  () => import('./pages/AuthSetup'),
+  'AuthSetup',
 );
 
 const PlaceholderPage = lazyNamed<{
@@ -165,6 +175,11 @@ function App() {
         <Route
           path="/login"
           element={<Login />}
+        />
+
+        <Route
+          path="/auth/setup"
+          element={<AuthSetup />}
         />
 
         <Route element={<ProtectedRoute />}>
@@ -232,6 +247,7 @@ function App() {
               <Route path="/vendors" element={<Vendors />} />
               <Route path="/accounting" element={<Accounting />} />
               <Route path="/staff" element={<Staff />} />
+              <Route path="/staff/safety-review" element={<StaffSafetyReview />} />
               <Route path="/staff/:id" element={<StaffDetails />} />
               <Route path="/settings" element={<Settings />} />
             </Route>

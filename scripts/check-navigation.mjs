@@ -12,6 +12,8 @@ const dashboard = read('src/pages/Dashboard.tsx');
 requireMatch(main.includes('HashRouter') && main.includes("window.location.protocol === 'file:'"), 'Electron file sessions must use HashRouter.');
 requireMatch(dashboard.includes('<Link') && dashboard.includes('to={to}'), 'Executive Alerts must use React Router Link navigation.');
 requireMatch(!dashboard.includes('href={to}'), 'Executive Alerts must not use document-level href navigation.');
+requireMatch(app.includes('path="/auth/setup"'), 'Public password-setup route is missing.');
+
 for (const route of ['/payments', '/tasks', '/hearings']) {
   requireMatch(app.includes(`path="${route}"`), `Required Executive Alert destination is missing: ${route}`);
 }

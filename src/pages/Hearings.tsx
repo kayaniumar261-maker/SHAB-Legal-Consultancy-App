@@ -58,6 +58,8 @@ import {
 import {
   HearingDetailsModal,
 } from '../components/hearings/HearingDetailsModal';
+import { DeletionRequestModal } from '../components/staff/DeletionRequestModal';
+import { useAccessProfile } from '../hooks/useAccessProfile';
 
 import './Hearings.css';
 
@@ -175,6 +177,8 @@ function isActiveHearing(
 }
 
 export function Hearings() {
+  const { profile } = useAccessProfile();
+  const administrator = profile?.access_role === 'administrator' && profile.is_active;
   const [searchParams, setSearchParams] =
     useSearchParams();
 
@@ -1695,7 +1699,7 @@ export function Hearings() {
                       <button
                         type="button"
                         className="hearing-action-danger"
-                        title="Delete hearing"
+                        title={administrator ? 'Delete hearing' : 'Request hearing deletion'}
                         onClick={() =>
                           handleDeleteHearing(
                             hearing,
@@ -1707,7 +1711,7 @@ export function Hearings() {
                         />
 
                         <span>
-                          Delete
+                          {administrator ? 'Delete' : 'Request deletion'}
                         </span>
                       </button>
                     </div>
@@ -1837,7 +1841,7 @@ export function Hearings() {
       )}
 
       {showDeleteModal &&
-        selectedHearing && (
+        selectedHearing && administrator && (
           <DeleteHearingModal
             hearing={
               selectedHearing
@@ -1856,6 +1860,17 @@ export function Hearings() {
             }
           />
         )}
+
+      <DeletionRequestModal
+        open={showDeleteModal && !administrator && Boolean(selectedHearing)}
+        entityType="hearing"
+        recordId={selectedHearing?.id ?? null}
+        recordLabel={selectedHearing?.title ?? 'Hearing record'}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setSelectedHearing(null);
+        }}
+      />
 
       {showDetailsModal &&
         selectedHearing && (
