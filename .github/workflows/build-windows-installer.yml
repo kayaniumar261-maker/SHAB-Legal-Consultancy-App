@@ -50,7 +50,7 @@ jobs:
             throw "Missing GitHub secret: VITE_SUPABASE_ANON_KEY"
           }
           $package = Get-Content package.json -Raw | ConvertFrom-Json
-          if ($package.version -notmatch '^2\.0\.[1-9][0-9]*$') {
+          if ($package.version -notmatch '^2\.(?:0\.[1-9][0-9]*|1\.[0-9]+)$') {
             throw "Unexpected release version: $($package.version)"
           }
 
