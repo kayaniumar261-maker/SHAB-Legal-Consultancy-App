@@ -1,0 +1,30 @@
+/* SHAB MOBILE VENDOR BILL CARDS V2.2 */
+@media (max-width: 760px) {
+  .app-shell .vendor-bills-toolbar { align-items: stretch; flex-direction: column; gap: 9px; padding: 12px; }
+  .app-shell .vendor-bills-toolbar label,
+  .app-shell .vendor-bills-toolbar select { width: 100%; min-width: 0; min-height: 44px; box-sizing: border-box; }
+  .app-shell .vendor-bills-toolbar > span { margin-left: 0; padding: 2px 4px; }
+  .app-shell .vendor-bills-table-wrap { overflow: visible; padding: 10px; background: #f7f8fa; }
+  .app-shell .vendor-bills-table-wrap table,
+  .app-shell .vendor-bills-table-wrap tbody,
+  .app-shell .vendor-bills-table-wrap tr,
+  .app-shell .vendor-bills-table-wrap td { display: block; width: 100%; min-width: 0; box-sizing: border-box; }
+  .app-shell .vendor-bills-table-wrap thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .app-shell .vendor-bills-table-wrap tbody { display: grid; gap: 12px; }
+  .app-shell .vendor-bills-table-wrap tbody tr { overflow: hidden; border: 1px solid #e1e6ed; border-radius: 15px; background: #fff; }
+  .app-shell .vendor-bills-table-wrap tbody td { display: grid; grid-template-columns: minmax(104px, 34%) minmax(0, 1fr); align-items: center; gap: 10px; padding: 12px 13px; border-top: 0; border-bottom: 1px solid #edf0f4; overflow-wrap: anywhere; }
+  .app-shell .vendor-bills-table-wrap tbody td:last-child { border-bottom: 0; }
+  .app-shell .vendor-bills-table-wrap tbody td::before { color: #657084; font-size: 0.62rem; font-weight: 850; letter-spacing: 0.07em; text-transform: uppercase; }
+  .app-shell .vendor-bills-table-wrap tbody td:nth-child(1)::before { content: 'Supplier invoice'; }
+  .app-shell .vendor-bills-table-wrap tbody td:nth-child(2)::before { content: 'Vendor'; }
+  .app-shell .vendor-bills-table-wrap tbody td:nth-child(3)::before { content: 'Invoice / due'; }
+  .app-shell .vendor-bills-table-wrap tbody td:nth-child(4)::before { content: 'Total'; }
+  .app-shell .vendor-bills-table-wrap tbody td:nth-child(5)::before { content: 'Paid'; }
+  .app-shell .vendor-bills-table-wrap tbody td:nth-child(6)::before { content: 'Balance'; }
+  .app-shell .vendor-bills-table-wrap tbody td:nth-child(7)::before { content: 'Status'; }
+  .app-shell .vendor-bills-table-wrap tbody td:nth-child(8)::before { content: 'Actions'; }
+  .app-shell .vendor-bills-table-wrap .vendor-bills-state { display: flex; min-height: 180px; align-items: center; justify-content: center; text-align: center !important; }
+  .app-shell .vendor-bills-table-wrap .vendor-bills-state::before { content: none; }
+  .app-shell .vendor-bill-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .app-shell .vendor-bill-actions button { min-height: 44px; justify-content: center; }
+}
