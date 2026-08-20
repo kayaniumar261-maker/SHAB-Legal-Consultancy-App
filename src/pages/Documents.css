@@ -635,3 +635,124 @@
   }
 }
 
+/* SHAB MOBILE DOCUMENT RECORD CARDS V2.2 */
+@media (max-width: 760px) {
+  .app-shell .documents-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .app-shell .document-summary-card {
+    min-height: 82px;
+    padding: 12px;
+  }
+
+  .app-shell .documents-table-wrapper {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .app-shell .documents-table,
+  .app-shell .documents-table tbody,
+  .app-shell .documents-table tr,
+  .app-shell .documents-table td {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .app-shell .documents-table {
+    min-width: 0;
+  }
+
+  .app-shell .documents-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .app-shell .documents-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .app-shell .documents-table tbody tr {
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
+  }
+
+  .app-shell .documents-table td {
+    box-sizing: border-box;
+    padding: 10px 13px;
+    border-bottom: 1px solid #eef2f7;
+    white-space: normal;
+  }
+
+  .app-shell .documents-table td:not(.document-name-cell):not(.documents-state-cell) {
+    display: grid;
+    grid-template-columns: minmax(82px, 0.7fr) minmax(0, 1.3fr);
+    align-items: center;
+    gap: 12px;
+  }
+
+  .app-shell .documents-table td:not(.document-name-cell):not(.documents-state-cell)::before {
+    color: #7b8493;
+    font-size: 0.64rem;
+    font-weight: 850;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .app-shell .documents-table td:nth-child(2)::before { content: 'Client'; }
+  .app-shell .documents-table td:nth-child(3)::before { content: 'Case'; }
+  .app-shell .documents-table td:nth-child(4)::before { content: 'Type'; }
+  .app-shell .documents-table td:nth-child(5)::before { content: 'Privacy'; }
+  .app-shell .documents-table td:nth-child(6)::before { content: 'Size'; }
+  .app-shell .documents-table td:nth-child(7)::before { content: 'Uploaded'; }
+  .app-shell .documents-table td:nth-child(8)::before { content: 'Actions'; }
+
+  .app-shell .documents-table .document-name-cell {
+    min-width: 0;
+    padding: 14px 13px;
+  }
+
+  .app-shell .document-name-cell > div:last-child,
+  .app-shell .document-name-cell strong,
+  .app-shell .document-name-cell span {
+    min-width: 0;
+  }
+
+  .app-shell .document-name-cell strong,
+  .app-shell .document-name-cell span {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .app-shell .document-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .app-shell .document-actions button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .app-shell .documents-state-cell {
+    display: grid !important;
+    min-height: 180px;
+    place-content: center;
+    text-align: center;
+  }
+}
+
