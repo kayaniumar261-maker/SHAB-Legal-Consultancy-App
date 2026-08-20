@@ -466,7 +466,7 @@ export function Clients() {
             ) : (
               clients.map((client) => (
                 <tr key={client.id}>
-                  <td className="client-name-cell">
+                  <td className="client-name-cell" data-label="Client">
                     <div className="client-avatar">
                       {getInitials(client.full_name)}
                     </div>
@@ -494,7 +494,7 @@ export function Clients() {
                     </div>
                   </td>
 
-                  <td>
+                  <td data-label="Contact">
                     <div className="client-contact-stack">
                       <span>
                         <Phone size={14} />
@@ -507,7 +507,7 @@ export function Clients() {
                     </div>
                   </td>
 
-                  <td>
+                  <td data-label="Type">
                     <span
                       className={`type-badge ${client.client_type}`}
                     >
@@ -515,7 +515,7 @@ export function Clients() {
                     </span>
                   </td>
 
-                  <td>
+                  <td data-label="Cases">
                     <div className="case-count-cell">
                       <strong>{Number(client.total_cases ?? 0)}</strong>
                       <span>
@@ -525,7 +525,7 @@ export function Clients() {
                   </td>
 
                   {administrator && (
-                    <td>
+                    <td data-label="Outstanding">
                       <strong className="balance-value">
                         {formatFinanceAmount(
                           financeSummaries[client.id],
@@ -534,17 +534,17 @@ export function Clients() {
                     </td>
                   )}
 
-                  <td>
+                  <td data-label="Status">
                     <span className={`status-badge ${client.status}`}>
                       {formatLabel(client.status)}
                     </span>
                   </td>
 
-                  <td>
+                  <td data-label="Risk">
                     <RiskBadge risk={client.risk_level ?? 'low'} />
                   </td>
 
-                  <td className="table-actions">
+                  <td className="table-actions" data-label="Actions">
                     <Link
                       className="action-link"
                       to={`/clients/${client.id}`}

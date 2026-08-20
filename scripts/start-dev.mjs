@@ -294,6 +294,7 @@ function runNpmCommand(args) {
   const proc = spawn(npmCommand, args, {
     cwd: ROOT,
     stdio: 'inherit',
+    shell: process.platform === 'win32',
   });
 
   proc.on('exit', (code, signal) => {
@@ -322,6 +323,7 @@ function startViteServer(hostToUse, portToUse, viteArgs) {
   const child = spawn(npmCommand, fullArgs, {
     cwd: ROOT,
     stdio: 'inherit',
+    shell: process.platform === 'win32',
   });
 
   const signaled = {
