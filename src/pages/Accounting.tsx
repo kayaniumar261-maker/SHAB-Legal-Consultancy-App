@@ -23,6 +23,7 @@ import {
 } from '../services/vatAccountingService';
 import type { AccountingPeriod, VatReport } from '../types/vatAccounting';
 import './Accounting.css';
+import './Accounting.mobile.css';
 
 const dateValue = (date: Date) => {
   const year = date.getFullYear();
