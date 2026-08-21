@@ -40,6 +40,7 @@ import { DeleteTaskModal } from '../components/tasks/DeleteTaskModal';
 import { DeletionRequestModal } from '../components/staff/DeletionRequestModal';
 import { useAccessProfile } from '../hooks/useAccessProfile';
 import './Tasks.css';
+import './Tasks.mobile.css';
 
 const PAGE_SIZE = 12;
 
