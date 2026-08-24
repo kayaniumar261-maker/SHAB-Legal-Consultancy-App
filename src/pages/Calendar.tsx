@@ -31,6 +31,7 @@ import {
 } from '../services/calendarService';
 
 import './Calendar.css';
+import './Calendar.mobile.css';
 
 const weekDays = [
   'Sun',

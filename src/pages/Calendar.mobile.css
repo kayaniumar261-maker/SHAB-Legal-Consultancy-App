@@ -1,0 +1,56 @@
+/* SHAB MOBILE CALENDAR V2.2 */
+@media (max-width: 760px) {
+  .app-shell .calendar-month-panel {
+    overflow: hidden;
+  }
+
+  .app-shell .calendar-weekdays,
+  .app-shell .calendar-month-grid {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .app-shell .calendar-weekdays span {
+    min-width: 0;
+    padding: 9px 1px;
+    font-size: 0.55rem;
+  }
+
+  .app-shell .calendar-cell {
+    min-width: 0;
+    min-height: 76px;
+    padding: 5px 3px;
+  }
+
+  .app-shell .calendar-cell-number {
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+  }
+
+  .app-shell .calendar-cell-events {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 3px;
+    margin-top: 6px;
+  }
+
+  .app-shell .calendar-event-dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 8px;
+    overflow: hidden;
+    padding: 0;
+    border-radius: 999px;
+    color: transparent;
+    font-size: 0;
+  }
+
+  .app-shell .calendar-cell-events small {
+    flex-basis: 100%;
+    font-size: 0.5rem;
+    line-height: 1.1;
+  }
+}
