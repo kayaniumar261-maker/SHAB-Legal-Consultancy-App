@@ -15,6 +15,7 @@ import {
 import type { ExpenseStatus, ExpenseWithRelations, VendorPayment } from '../types/expense';
 import './Payments.css';
 import './VendorBills.css';
+import './VendorBills.mobile.css';
 
 export function VendorBills() {
   const [bills, setBills] = useState<ExpenseWithRelations[]>([]);

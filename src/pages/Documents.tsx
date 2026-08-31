@@ -44,6 +44,7 @@ import type {
 import { DocumentDetailsModal } from '../components/documents/DocumentDetailsModal';
 import { DeletionRequestModal } from '../components/staff/DeletionRequestModal';
 import { useAccessProfile } from '../hooks/useAccessProfile';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 import './Documents.css';
 
 const PAGE_SIZE = 15;
@@ -206,6 +207,11 @@ export function Documents() {
   useEffect(() => {
     void fetchDocuments();
   }, [fetchDocuments]);
+
+  useRealtimeRefresh(
+    ['documents', 'clients', 'cases'],
+    fetchDocuments,
+  );
 
   useEffect(() => {
     async function loadOptions() {

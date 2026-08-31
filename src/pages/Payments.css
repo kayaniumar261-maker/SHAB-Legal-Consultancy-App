@@ -1791,3 +1791,66 @@ grid-template-columns:1fr;
   font-weight: 800;
   text-decoration: none;
 }
+
+/* SHAB MOBILE FINANCE RECORD CARDS V2.2 */
+@media (max-width: 760px) {
+  .app-shell .finance-summary-grid,
+  .app-shell .finance-summary-grid.executive { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .app-shell .finance-stat-card { min-height: 82px; padding: 11px; }
+  .app-shell .finance-stat-card strong { overflow: visible; font-size: 0.98rem; white-space: normal; }
+  .app-shell .finance-table-wrapper { overflow: visible; border: 0; background: transparent; }
+  .app-shell .finance-table,
+  .app-shell .finance-table tbody,
+  .app-shell .finance-table tr,
+  .app-shell .finance-table td { display: block; width: 100%; min-width: 0; }
+  .app-shell .finance-table { table-layout: auto; }
+  .app-shell .finance-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+  .app-shell .finance-table tbody { display: grid; gap: 12px; }
+  .app-shell .finance-table tbody tr { overflow: hidden; border: 1px solid #e5e7eb; border-radius: 16px; background: #fff; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04); }
+  .app-shell .finance-table td { box-sizing: border-box; padding: 10px 13px; border-bottom: 1px solid #eef2f7; font-size: 0.78rem; white-space: normal; }
+  .app-shell .finance-table td:not(.finance-state-cell) { display: grid !important; grid-template-columns: minmax(82px, 0.7fr) minmax(0, 1.3fr); align-items: center; gap: 12px; }
+  .app-shell .finance-table td:not(.finance-state-cell)::before { color: #7b8493; font-size: 0.64rem; font-weight: 850; letter-spacing: 0.05em; text-transform: uppercase; }
+  .app-shell .finance-invoice-table td:nth-child(1)::before { content: 'Invoice'; }
+  .app-shell .finance-invoice-table td:nth-child(2)::before { content: 'Client'; }
+  .app-shell .finance-invoice-table td:nth-child(3)::before { content: 'Case'; }
+  .app-shell .finance-invoice-table td:nth-child(4)::before { content: 'Status'; }
+  .app-shell .finance-invoice-table td:nth-child(5)::before { content: 'Total'; }
+  .app-shell .finance-invoice-table td:nth-child(6)::before { content: 'Paid'; }
+  .app-shell .finance-invoice-table td:nth-child(7)::before { content: 'Balance'; }
+  .app-shell .finance-invoice-table td:nth-child(8)::before { content: 'Due date'; }
+  .app-shell .finance-invoice-table td:nth-child(9)::before { content: 'Actions'; }
+  .app-shell .finance-payment-table td:nth-child(1)::before { content: 'Date'; }
+  .app-shell .finance-payment-table td:nth-child(2)::before { content: 'Invoice'; }
+  .app-shell .finance-payment-table td:nth-child(3)::before { content: 'Client'; }
+  .app-shell .finance-payment-table td:nth-child(4)::before { content: 'Method'; }
+  .app-shell .finance-payment-table td:nth-child(5)::before { content: 'Reference'; }
+  .app-shell .finance-payment-table td:nth-child(6)::before { content: 'Status'; }
+  .app-shell .finance-payment-table td:nth-child(7)::before { content: 'Amount'; }
+  .app-shell .finance-payment-table td:nth-child(8)::before { content: 'Actions'; }
+  .app-shell .finance-adjustments-table td:nth-child(1)::before { content: 'Date'; }
+  .app-shell .finance-adjustments-table td:nth-child(2)::before { content: 'Type'; }
+  .app-shell .finance-adjustments-table td:nth-child(3)::before { content: 'Document'; }
+  .app-shell .finance-adjustments-table td:nth-child(4)::before { content: 'Client'; }
+  .app-shell .finance-adjustments-table td:nth-child(5)::before { content: 'Amount'; }
+  .app-shell .finance-adjustments-table td:nth-child(6)::before { content: 'Reason'; }
+  .app-shell .finance-adjustments-table td:nth-child(7)::before { content: 'Actions'; }
+  .app-shell .finance-table .finance-actions-cell { grid-template-columns: 82px minmax(0, 1fr) !important; }
+  .app-shell .finance-row-actions { display: flex; width: 100%; flex-wrap: wrap; gap: 8px; }
+  .app-shell .finance-row-actions > * { min-height: 44px; }
+  .app-shell .finance-action-button,
+  .app-shell .finance-actions-menu { flex: 1 1 110px; }
+  .app-shell .finance-actions-menu summary { min-height: 44px; }
+  .app-shell .finance-actions-menu[open] { flex-basis: 100%; }
+  .app-shell .finance-actions-popover {
+    position: static;
+    box-sizing: border-box;
+    width: 100%;
+    margin-top: 8px;
+  }
+  .app-shell .finance-state-cell { display: grid !important; min-height: 180px; place-content: center; text-align: center; }
+}
+
+@media (max-width: 390px) {
+  .app-shell .finance-summary-grid,
+  .app-shell .finance-summary-grid.executive { grid-template-columns: 1fr; }
+}

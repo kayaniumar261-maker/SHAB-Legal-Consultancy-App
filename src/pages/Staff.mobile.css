@@ -1,0 +1,130 @@
+/* SHAB MOBILE STAFF ACCESS CARDS V2.2 */
+@media (max-width: 760px) {
+  .app-shell .staff-page,
+  .app-shell .staff-access-panel,
+  .app-shell .staff-directory-panel { min-width: 0; max-width: 100%; }
+  .app-shell .staff-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .app-shell .staff-kpi { min-width: 0; padding: 14px; }
+  .app-shell .staff-kpi-icon { width: 44px; height: 44px; flex: 0 0 44px; }
+  .app-shell .staff-access-heading { display: grid; gap: 12px; }
+  .app-shell .staff-access-heading > div { min-width: 0; }
+  .app-shell .staff-access-heading p,
+  .app-shell .staff-access-heading h3 { overflow-wrap: anywhere; }
+  .app-shell .staff-access-security { width: 100%; box-sizing: border-box; justify-content: center; white-space: normal; text-align: center; }
+  .app-shell .staff-admin-provisioning,
+  .app-shell .staff-admin-provisioning-actions { min-width: 0; }
+  .app-shell .staff-admin-provisioning-actions button,
+  .app-shell .staff-access-invite button { width: 100%; min-height: 44px; justify-content: center; white-space: normal; }
+  .app-shell .staff-access-invite,
+  .app-shell .staff-access-invite label,
+  .app-shell .staff-access-invite input { min-width: 0; width: 100%; box-sizing: border-box; }
+  .app-shell .staff-access-panel > .table-wrapper { overflow: visible; width: 100%; }
+  .app-shell .staff-access-table,
+  .app-shell .staff-access-table tbody,
+  .app-shell .staff-access-table tr,
+  .app-shell .staff-access-table td { display: block; width: 100%; min-width: 0; box-sizing: border-box; }
+  .app-shell .staff-access-table { table-layout: auto; }
+  .app-shell .staff-access-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .app-shell .staff-access-table tbody { display: grid; gap: 12px; }
+  .app-shell .staff-access-table tbody tr { overflow: hidden; border: 1px solid #e2e8f0; border-radius: 14px; background: #fff; }
+  .app-shell .staff-access-table tbody td,
+  .app-shell .staff-access-table tbody td:first-child { display: grid; grid-template-columns: minmax(92px, 31%) minmax(0, 1fr); align-items: center; gap: 10px; padding: 11px 12px; border-bottom: 1px solid #f1f5f9; overflow-wrap: anywhere; }
+  .app-shell .staff-access-table tbody td:last-child { border-bottom: 0; }
+  .app-shell .staff-access-table tbody td::before { color: #64748b; font-size: 0.62rem; font-weight: 850; letter-spacing: 0.07em; text-transform: uppercase; }
+  .app-shell .staff-access-table tbody td:nth-child(1)::before { content: 'Account'; }
+  .app-shell .staff-access-table tbody td:nth-child(2)::before { content: 'Access role'; }
+  .app-shell .staff-access-table tbody td:nth-child(3)::before { content: 'Staff link'; }
+  .app-shell .staff-access-table tbody td:nth-child(4)::before { content: 'Status'; }
+  .app-shell .staff-access-table tbody td:nth-child(5)::before { content: 'Controls'; }
+  .app-shell .staff-access-table td:first-child > strong,
+  .app-shell .staff-access-table td:first-child > span { grid-column: 2; min-width: 0; overflow-wrap: anywhere; }
+  .app-shell .staff-access-table td:first-child::before { grid-row: 1 / span 2; }
+  .app-shell .staff-access-table .staff-actions { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 8px; }
+  .app-shell .staff-access-table .secondary-action-button,
+  .app-shell .staff-access-table .staff-access-locked { min-width: 0; min-height: 44px; width: 100%; box-sizing: border-box; align-items: center; }
+  .app-shell .staff-access-table .icon-action-button { width: 44px; height: 44px; }
+
+  .app-shell .staff-page > .modal-backdrop {
+    position: fixed;
+    z-index: 6000;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    overflow-y: auto;
+    background: rgba(15, 23, 42, 0.64);
+    backdrop-filter: blur(3px);
+  }
+  .app-shell .staff-page > .modal-backdrop > .modal-card {
+    display: flex;
+    width: 100%;
+    max-width: none;
+    max-height: 90dvh;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 18px 18px 0 0;
+    background: #fff;
+    box-shadow: 0 -20px 60px rgba(15, 23, 42, 0.3);
+  }
+  .app-shell .staff-page .modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fff;
+  }
+  .app-shell .staff-page .modal-header h3 { margin: 3px 0 0; }
+  .app-shell .staff-page .modal-header .icon-action-button { width: 44px; height: 44px; flex: 0 0 44px; }
+  .app-shell .staff-page .modal-card > .case-form {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .app-shell .staff-page .modal-card .case-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 13px;
+    padding: 16px;
+  }
+  .app-shell .staff-page .modal-card .case-form-field { display: grid; min-width: 0; gap: 6px; }
+  .app-shell .staff-page .modal-card .case-form-field label { color: #475569; font-size: 0.75rem; font-weight: 800; }
+  .app-shell .staff-page .modal-card .case-form-field input,
+  .app-shell .staff-page .modal-card .case-form-field select {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #fff;
+    color: #0f172a;
+    font: inherit;
+  }
+  .app-shell .staff-page .modal-card .case-form-error { margin: 0 16px 12px; }
+  .app-shell .staff-page .modal-card .case-form-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: auto;
+    padding: 12px 16px max(14px, env(safe-area-inset-bottom));
+    border-top: 1px solid #e5e7eb;
+    background: #fff;
+  }
+  .app-shell .staff-page .modal-card .case-form-actions button { width: 100%; min-height: 46px; justify-content: center; }
+}
+
+@media (max-width: 390px) {
+  .app-shell .staff-kpis { grid-template-columns: 1fr; }
+}

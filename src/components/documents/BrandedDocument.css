@@ -428,6 +428,44 @@
   line-height: 1.5;
 }
 
+@media screen and (max-width: 700px) {
+  .shab-document-bank-details {
+    margin-top: 16px;
+    padding: 14px;
+  }
+
+  .shab-document-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .shab-document-bank-details dl {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .shab-document-bank-details dl div {
+    grid-template-columns: minmax(92px, 0.7fr) minmax(0, 1.3fr);
+    gap: 12px;
+    border-bottom: 1px solid #eef2f7;
+    padding: 9px 0;
+  }
+
+  .shab-document-bank-details dd {
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+}
+
+@media screen and (max-width: 390px) {
+  .shab-document-bank-details dl div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
 @media print {
   .shab-document-bank-details {
     margin-top: 16px;

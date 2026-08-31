@@ -1,7 +1,7 @@
 {
   "name": "shab-legal-consultancy-app",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.2.0",
   "type": "module",
   "scripts": {
     "dev": "node ./scripts/start-dev.mjs --start",
@@ -15,7 +15,8 @@
     "desktop": "npm run build && electron .",
     "desktop:pack": "npm run build && electron-builder --win nsis --x64 --publish never",
     "desktop:release": "npm run build && electron-builder --win nsis --x64 --publish always",
-    "check:navigation": "node scripts/check-navigation.mjs"
+    "check:navigation": "node scripts/check-navigation.mjs",
+    "check:realtime": "node scripts/check-realtime.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",

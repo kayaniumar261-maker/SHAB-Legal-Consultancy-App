@@ -1,0 +1,37 @@
+/* SHAB MOBILE TASK RECORD CARDS V2.2 */
+@media (max-width: 760px) {
+  .app-shell .tasks-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .app-shell .task-stat-card { min-height: 82px; padding: 12px; border-radius: 16px; }
+  .app-shell .task-stat-card:nth-child(5) { grid-column: 1 / -1; }
+  .app-shell .task-stat-icon { width: 40px; height: 40px; flex: 0 0 40px; }
+  .app-shell .task-stat-card strong { font-size: 1.35rem; }
+  .app-shell .tasks-table-wrapper { overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  .app-shell .tasks-table,
+  .app-shell .tasks-table tbody,
+  .app-shell .tasks-table tr,
+  .app-shell .tasks-table td { display: block; width: 100%; min-width: 0; box-sizing: border-box; }
+  .app-shell .tasks-table { table-layout: auto; }
+  .app-shell .tasks-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .app-shell .tasks-table tbody { display: grid; gap: 12px; }
+  .app-shell .tasks-table tbody tr { overflow: hidden; border: 1px solid #e5e7eb; border-radius: 16px; background: #fff; box-shadow: 0 5px 18px rgba(15, 23, 42, 0.04); }
+  .app-shell .tasks-table tbody td { display: grid; grid-template-columns: minmax(96px, 31%) minmax(0, 1fr); align-items: center; gap: 10px; padding: 11px 13px; border-bottom: 1px solid #f0f1f3; white-space: normal; overflow-wrap: anywhere; }
+  .app-shell .tasks-table tbody td:last-child { border-bottom: 0; }
+  .app-shell .tasks-table tbody td::before { color: #64748b; font-size: 0.62rem; font-weight: 850; letter-spacing: 0.07em; text-transform: uppercase; }
+  .app-shell .tasks-table tbody td:nth-child(1)::before { content: 'Task'; }
+  .app-shell .tasks-table tbody td:nth-child(2)::before { content: 'Client'; }
+  .app-shell .tasks-table tbody td:nth-child(3)::before { content: 'Case'; }
+  .app-shell .tasks-table tbody td:nth-child(4)::before { content: 'Assigned to'; }
+  .app-shell .tasks-table tbody td:nth-child(5)::before { content: 'Priority'; }
+  .app-shell .tasks-table tbody td:nth-child(6)::before { content: 'Status'; }
+  .app-shell .tasks-table tbody td:nth-child(7)::before { content: 'Due date'; }
+  .app-shell .tasks-table tbody td:nth-child(8)::before { content: 'Actions'; }
+  .app-shell .tasks-table .task-title-cell > strong,
+  .app-shell .tasks-table .task-title-cell > span { grid-column: 2; min-width: 0; }
+  .app-shell .tasks-table .task-title-cell::before { grid-row: 1 / span 2; }
+  .app-shell .tasks-table tbody td.task-actions { display: grid; grid-template-columns: minmax(96px, 31%) repeat(4, 44px); align-items: center; gap: 7px; }
+  .app-shell .tasks-table .task-actions .action-button { width: 44px; height: 44px; min-height: 44px; justify-content: center; }
+  .app-shell .tasks-table .loading-cell,
+  .app-shell .tasks-table .empty-cell { display: block; min-height: 180px; padding: 24px 14px; text-align: center; }
+  .app-shell .tasks-table .loading-cell::before,
+  .app-shell .tasks-table .empty-cell::before { content: none; }
+}

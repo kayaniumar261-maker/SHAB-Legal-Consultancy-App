@@ -121,6 +121,13 @@ export function AppLayout() {
   const { profile } = useAccessProfile();
   const administrator = profile?.access_role === 'administrator' && profile.is_active;
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email || 'SHAB User';
+  const mobilePrimaryPaths = ['/', '/clients', '/cases', '/tasks'];
+  const authorizedNavigationItems = navigationItems.filter(
+    (item) => !item.adminOnly || administrator,
+  );
+  const mobileMoreItems = authorizedNavigationItems.filter(
+    (item) => !mobilePrimaryPaths.includes(item.path),
+  );
 
   const isOnline = useOnlineStatus();
 
@@ -239,41 +246,40 @@ export function AppLayout() {
           <Outlet />
         </main>
 
-        {!administrator && (
-          <nav className="operations-mobile-nav" aria-label="Operations shortcuts">
-            {navigationItems
-              .filter((item) => ['/', '/clients', '/cases', '/tasks'].includes(item.path))
-              .map(({ label, path, icon: Icon }) => (
-                <NavLink
-                  key={path}
-                  to={path}
-                  end={path === '/'}
-                  className={({ isActive }) =>
-                    isActive ? 'operations-mobile-link active' : 'operations-mobile-link'
-                  }
-                >
-                  <Icon size={20} />
-                  <span>{label}</span>
-                </NavLink>
-              ))}
+        <nav className="operations-mobile-nav" aria-label="Application shortcuts">
+          {authorizedNavigationItems
+            .filter((item) => mobilePrimaryPaths.includes(item.path))
+            .map(({ label, path, icon: Icon }) => (
+              <NavLink
+                key={path}
+                to={path}
+                end={path === '/'}
+                className={({ isActive }) =>
+                  isActive ? 'operations-mobile-link active' : 'operations-mobile-link'
+                }
+              >
+                <Icon size={20} />
+                <span>{label}</span>
+              </NavLink>
+            ))}
 
-            <button
-              type="button"
-              className={
-                ['/hearings', '/calendar', '/documents'].some((path) =>
-                  location.pathname.startsWith(path),
-                )
-                  ? 'operations-mobile-link active'
-                  : 'operations-mobile-link'
-              }
-              onClick={() => setIsMobileMenuOpen(true)}
-              aria-label="Open all operations modules"
-            >
-              <Menu size={20} />
-              <span>More</span>
-            </button>
-          </nav>
-        )}
+          <button
+            type="button"
+            className={
+              mobileMoreItems.some((item) =>
+                location.pathname === item.path ||
+                location.pathname.startsWith(`${item.path}/`),
+              )
+                ? 'operations-mobile-link active'
+                : 'operations-mobile-link'
+            }
+            onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Open all authorized modules"
+          >
+            <Menu size={20} />
+            <span>More</span>
+          </button>
+        </nav>
       </div>
     </div>
   );

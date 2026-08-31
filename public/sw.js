@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shab-legal-shell-v3';
+const CACHE_NAME = 'shab-legal-shell-v4';
 
 const SHELL_ASSETS = [
   '/offline.html',
