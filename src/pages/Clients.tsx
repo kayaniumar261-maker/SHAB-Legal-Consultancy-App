@@ -25,6 +25,7 @@ import {
 import { Link } from 'react-router-dom';
 
 import { useAccessProfile } from '../hooks/useAccessProfile';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 
 import {
   createClient,
@@ -119,6 +120,11 @@ export function Clients() {
   useEffect(() => {
     void fetchClients();
   }, [fetchClients]);
+
+  useRealtimeRefresh(
+    ['clients', 'cases', 'invoices', 'payments', 'credit_notes', 'payment_reversals'],
+    fetchClients,
+  );
 
   const filteredLabel = useMemo(() => {
     if (searchTerm || statusFilter !== 'all' || clientTypeFilter !== 'all') {

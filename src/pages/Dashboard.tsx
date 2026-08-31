@@ -28,6 +28,7 @@ import {
 
 import { KPICard } from '../components/dashboard/KPICard';
 import { useAccessProfile } from '../hooks/useAccessProfile';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { RecentCases } from '../components/dashboard/RecentCases';
 import { UpcomingHearings } from '../components/dashboard/UpcomingHearings';
@@ -218,6 +219,11 @@ export function Dashboard() {
   useEffect(() => {
     void loadDashboard();
   }, [loadDashboard]);
+
+  useRealtimeRefresh(
+    ['clients', 'cases', 'tasks', 'hearings', 'documents', 'invoices', 'payments', 'staff'],
+    () => loadDashboard(true),
+  );
 
   const kpis = useMemo<KPI[]>(
     () => [

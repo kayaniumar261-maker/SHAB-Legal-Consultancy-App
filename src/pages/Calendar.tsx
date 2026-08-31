@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -23,6 +24,7 @@ import {
 } from 'react-router-dom';
 
 import { useAccessProfile } from '../hooks/useAccessProfile';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 
 import {
   getCalendarEventsForMonth,
@@ -120,45 +122,37 @@ export function Calendar() {
     ]),
   );
 
-  useEffect(() => {
-    let active = true;
+  const loadEvents = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    async function load() {
-      try {
-        setLoading(true);
-        setError(null);
+      const result = await getCalendarEventsForMonth(
+        visibleMonth.getFullYear(),
+        visibleMonth.getMonth(),
+        administrator,
+      );
 
-        const result =
-          await getCalendarEventsForMonth(
-            visibleMonth.getFullYear(),
-            visibleMonth.getMonth(),
-            administrator,
-          );
-
-        if (active) {
-          setEvents(result);
-        }
-      } catch (loadError) {
-        if (active) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : 'Unable to load calendar events.',
-          );
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
+      setEvents(result);
+    } catch (loadError) {
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : 'Unable to load calendar events.',
+      );
+    } finally {
+      setLoading(false);
     }
-
-    void load();
-
-    return () => {
-      active = false;
-    };
   }, [administrator, visibleMonth]);
+
+  useEffect(() => {
+    void loadEvents();
+  }, [loadEvents]);
+
+  useRealtimeRefresh(
+    ['hearings', 'tasks', 'invoices', 'cases'],
+    loadEvents,
+  );
 
   const filteredEvents =
     useMemo(

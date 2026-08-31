@@ -39,6 +39,7 @@ import { TaskFormModal } from '../components/tasks/TaskFormModal';
 import { DeleteTaskModal } from '../components/tasks/DeleteTaskModal';
 import { DeletionRequestModal } from '../components/staff/DeletionRequestModal';
 import { useAccessProfile } from '../hooks/useAccessProfile';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 import './Tasks.css';
 import './Tasks.mobile.css';
 
@@ -223,6 +224,11 @@ export function Tasks() {
   useEffect(() => {
     void fetchData();
   }, [fetchData]);
+
+  useRealtimeRefresh(
+    ['tasks', 'clients', 'cases', 'staff'],
+    fetchData,
+  );
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 

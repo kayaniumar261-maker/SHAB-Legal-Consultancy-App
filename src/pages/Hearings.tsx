@@ -60,6 +60,7 @@ import {
 } from '../components/hearings/HearingDetailsModal';
 import { DeletionRequestModal } from '../components/staff/DeletionRequestModal';
 import { useAccessProfile } from '../hooks/useAccessProfile';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 
 import './Hearings.css';
 
@@ -532,6 +533,11 @@ export function Hearings() {
         loadDashboardHearings(),
       ]);
     };
+
+  useRealtimeRefresh(
+    ['hearings', 'cases', 'clients', 'staff'],
+    refreshAll,
+  );
 
   const dashboardStats =
     useMemo(() => {

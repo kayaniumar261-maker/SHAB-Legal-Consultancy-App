@@ -45,6 +45,7 @@ import {
   getCaseFinanceSummaries,
   type AuthoritativeFinanceSummary,
 } from '../services/financeSummaryService';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 import './Cases.css';
 
 const PAGE_SIZE = 12;
@@ -283,6 +284,13 @@ export function Cases() {
   useEffect(() => {
     void fetchStats();
   }, [fetchStats]);
+
+  useRealtimeRefresh(
+    ['cases', 'clients', 'staff', 'invoices', 'payments', 'credit_notes', 'payment_reversals'],
+    async () => {
+      await Promise.all([fetchCases(), fetchStats()]);
+    },
+  );
 
   const totalPages = Math.max(
     1,
