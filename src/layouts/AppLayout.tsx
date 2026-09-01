@@ -30,6 +30,7 @@ import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { GlobalSearch } from '../components/search/GlobalSearch';
 import { NotificationCenter } from '../components/notifications/NotificationCenter';
 import '../styles/MobileExperience.css';
+import '../styles/MobileFormAccess.css';
 
 const navigationItems = [
   {

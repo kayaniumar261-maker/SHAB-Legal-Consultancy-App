@@ -1,0 +1,371 @@
+/*
+ * SHAB mobile form accessibility v2.3.1
+ *
+ * Ensures every creation, edit, review and deletion
+ * dialog remains fully accessible above mobile navigation.
+ */
+
+@media (max-width: 760px) {
+  /*
+   * Remove application navigation while a modal is open.
+   * The modal close and action controls become the only
+   * active mobile navigation context.
+   */
+
+  body:has(
+    :is(
+      [role='dialog'][aria-modal='true'],
+      .modal-backdrop,
+      .client-modal-layer,
+      .task-modal-layer,
+      .hearing-modal-overlay,
+      .hearing-details-overlay,
+      .delete-hearing-overlay,
+      .document-modal-layer,
+      .document-details-layer,
+      .finance-modal-layer,
+      .fee-modal-overlay,
+      .client-funds-overlay,
+      .client-statement-overlay,
+      .expense-modal-overlay,
+      .vendor-modal-overlay,
+      .vendor-payment-overlay,
+      .deletion-request-backdrop,
+      .safety-review-overlay,
+      .global-search-layer
+    )
+  )
+  .operations-mobile-nav {
+    display: none !important;
+  }
+
+  /*
+   * All modal layers must sit above the sticky app header,
+   * side menu and any remaining navigation surfaces.
+   */
+
+  :is(
+    .modal-backdrop,
+    .client-modal-layer,
+    .task-modal-layer,
+    .hearing-modal-overlay,
+    .hearing-details-overlay,
+    .delete-hearing-overlay,
+    .document-modal-layer,
+    .document-details-layer,
+    .finance-modal-layer,
+    .fee-modal-overlay,
+    .client-funds-overlay,
+    .client-statement-overlay,
+    .expense-modal-overlay,
+    .vendor-modal-overlay,
+    .vendor-payment-overlay,
+    .deletion-request-backdrop,
+    .safety-review-overlay,
+    .global-search-layer
+  ) {
+    z-index: 10000 !important;
+  }
+
+  /*
+   * Dynamic viewport sizing handles Safari toolbars,
+   * installed PWA mode and orientation changes.
+   */
+
+  :is(
+    .modal,
+    .modal-card,
+    .client-modal,
+    .task-modal,
+    .hearing-modal,
+    .hearing-details-modal,
+    .delete-hearing-modal,
+    .document-modal,
+    .document-details-modal,
+    .finance-modal,
+    .fee-modal,
+    .client-funds-dialog,
+    .client-statement-modal,
+    .expense-modal,
+    .vendor-modal,
+    .vendor-payment-modal,
+    .deletion-request-modal,
+    .safety-review-dialog,
+    .global-search-modal
+  ) {
+    width: calc(
+      100vw -
+      max(16px, env(safe-area-inset-left)) -
+      max(16px, env(safe-area-inset-right))
+    ) !important;
+
+    max-width: 100% !important;
+    max-height: calc(
+      100dvh -
+      max(16px, env(safe-area-inset-top)) -
+      max(16px, env(safe-area-inset-bottom))
+    ) !important;
+
+    margin: auto !important;
+    overflow: hidden !important;
+    border-radius: 18px !important;
+  }
+
+  /*
+   * Long form containers become internal scroll regions.
+   */
+
+  :is(
+    .client-form,
+    .task-form,
+    .hearing-form,
+    .document-upload-form,
+    .finance-form,
+    .case-form,
+    .expense-form-grid,
+    .vendor-form-grid,
+    .client-funds-dialog-body
+  ) {
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-bottom:
+      calc(92px + env(safe-area-inset-bottom));
+  }
+
+  /*
+   * Modal bodies used by task, hearing and document forms.
+   */
+
+  :is(
+    .task-modal-body,
+    .hearing-modal-body,
+    .document-details-body,
+    .finance-view-content,
+    .expense-activity-list,
+    .expense-documents-list,
+    .vendor-history-list
+  ) {
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /*
+   * Structured form modals use header / body / footer.
+   */
+
+  :is(
+    .task-modal,
+    .hearing-form-modal,
+    .document-modal,
+    .finance-modal,
+    .expense-modal,
+    .vendor-modal,
+    .vendor-payment-modal,
+    .client-funds-dialog
+  ) {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  :is(
+    .task-modal,
+    .hearing-form-modal,
+    .document-modal,
+    .finance-modal,
+    .expense-modal,
+    .vendor-modal,
+    .vendor-payment-modal,
+    .client-funds-dialog
+  )
+  > :is(
+    header,
+    .task-modal-header,
+    .hearing-modal-header,
+    .document-modal-header,
+    .finance-modal-header
+  ) {
+    flex: 0 0 auto !important;
+  }
+
+  /*
+   * Sticky action regions remain visible above the
+   * iPhone home indicator and mobile browser controls.
+   */
+
+  :is(
+    .client-form-actions,
+    .task-form-actions,
+    .hearing-form-footer,
+    .document-form-actions,
+    .finance-form-actions,
+    .case-form-actions,
+    .modal-actions,
+    .modal-footer,
+    .form-modal-footer,
+    .safety-dialog-actions
+  ) {
+    position: sticky !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    z-index: 20 !important;
+
+    flex: 0 0 auto !important;
+
+    padding-bottom:
+      max(14px, env(safe-area-inset-bottom)) !important;
+
+    border-top: 1px solid #e1e6ed !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    box-shadow:
+      0 -10px 26px rgba(15, 23, 42, 0.08) !important;
+
+    backdrop-filter: blur(14px);
+  }
+
+  /*
+   * Form elements that use a direct footer.
+   */
+
+  :is(
+    .expense-modal,
+    .vendor-modal,
+    .vendor-payment-modal,
+    .client-funds-dialog
+  )
+  > footer {
+    position: sticky !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    z-index: 20 !important;
+
+    flex: 0 0 auto !important;
+
+    padding-bottom:
+      max(14px, env(safe-area-inset-bottom)) !important;
+
+    background: rgba(255, 255, 255, 0.98) !important;
+    box-shadow:
+      0 -10px 26px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  /*
+   * Action buttons remain usable at narrow widths.
+   */
+
+  :is(
+    .client-form-actions,
+    .task-form-actions,
+    .hearing-form-footer-actions,
+    .document-form-actions,
+    .finance-form-actions,
+    .case-form-actions,
+    .modal-actions,
+    .modal-footer,
+    .safety-dialog-actions
+  ) {
+    gap: 9px !important;
+  }
+
+  :is(
+    .client-form-actions,
+    .task-form-actions,
+    .hearing-form-footer-actions,
+    .document-form-actions,
+    .finance-form-actions,
+    .case-form-actions,
+    .modal-actions,
+    .modal-footer,
+    .safety-dialog-actions
+  )
+  > button {
+    min-height: 46px !important;
+  }
+
+  /*
+   * Prevent the last field from being trapped beneath
+   * a sticky action footer or the software keyboard.
+   */
+
+  :is(
+    .client-form,
+    .task-modal-body,
+    .hearing-form,
+    .document-upload-form,
+    .finance-form,
+    .case-form,
+    .expense-form-grid,
+    .vendor-form-grid,
+    .client-funds-dialog-body
+  )
+  > :last-child {
+    scroll-margin-bottom:
+      calc(100px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 430px) {
+  :is(
+    .client-form-actions,
+    .task-form-actions,
+    .hearing-form-footer-actions,
+    .document-form-actions,
+    .finance-form-actions,
+    .case-form-actions,
+    .modal-actions,
+    .modal-footer,
+    .safety-dialog-actions
+  ) {
+    display: grid !important;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  :is(
+    .client-form-actions,
+    .task-form-actions,
+    .hearing-form-footer-actions,
+    .document-form-actions,
+    .finance-form-actions,
+    .case-form-actions,
+    .modal-actions,
+    .modal-footer,
+    .safety-dialog-actions
+  )
+  > button {
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-content: center !important;
+  }
+
+  :is(
+    .expense-modal,
+    .vendor-modal,
+    .vendor-payment-modal,
+    .client-funds-dialog
+  )
+  > footer {
+    display: grid !important;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+  }
+
+  :is(
+    .expense-modal,
+    .vendor-modal,
+    .vendor-payment-modal,
+    .client-funds-dialog
+  )
+  > footer
+  > button {
+    width: 100% !important;
+    min-height: 46px !important;
+    justify-content: center !important;
+  }
+}
