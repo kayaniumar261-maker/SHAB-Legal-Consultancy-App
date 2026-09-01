@@ -1,0 +1,540 @@
+/*
+ * SHAB mobile experience v2.3.0
+ *
+ * Presentation-only responsive rules.
+ * Desktop layouts and application data logic remain unchanged.
+ */
+
+@media (max-width: 760px) {
+  :root {
+    --mobile-surface: #ffffff;
+    --mobile-background: #f4f6f9;
+    --mobile-border: #dfe5ec;
+    --mobile-ink: #172033;
+    --mobile-muted: #687386;
+    --mobile-navy: #173b63;
+    --mobile-gold: #b98a32;
+  }
+
+  body {
+    background: var(--mobile-background);
+  }
+
+  /*
+   * Compact application header
+   */
+
+  .app-shell .top-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    min-height: 64px;
+    padding:
+      calc(8px + env(safe-area-inset-top))
+      12px
+      8px;
+    border-bottom: 1px solid var(--mobile-border);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 5px 20px rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(16px);
+  }
+
+  .app-shell .header-eyebrow,
+  .app-shell .header-profile,
+  .app-shell .connection-status {
+    display: none;
+  }
+
+  .app-shell .header-title {
+    max-width: 122px;
+    margin: 0;
+    overflow: hidden;
+    color: var(--mobile-ink);
+    font-size: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-shell .header-title::after {
+    content: 'SHAB Legal';
+    font-size: 0.94rem;
+    font-weight: 850;
+    letter-spacing: -0.02em;
+  }
+
+  .app-shell .mobile-menu-button {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    border: 1px solid var(--mobile-border);
+    border-radius: 14px;
+    background: var(--mobile-surface);
+    color: var(--mobile-navy);
+  }
+
+  .app-shell .page-content {
+    padding:
+      12px
+      12px
+      calc(94px + env(safe-area-inset-bottom));
+  }
+
+  /*
+   * Floating mobile navigation
+   */
+
+  .app-shell .operations-mobile-nav {
+    right: 10px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    left: 10px;
+    min-height: 70px;
+    overflow: hidden;
+    padding: 5px;
+    border: 1px solid var(--mobile-border);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.16);
+    backdrop-filter: blur(18px);
+  }
+
+  .app-shell .operations-mobile-link {
+    min-height: 56px;
+    border-radius: 16px;
+    color: #657186;
+    font-size: 0.61rem;
+    font-weight: 800;
+  }
+
+  .app-shell .operations-mobile-link svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .app-shell .operations-mobile-link.active {
+    background: rgba(23, 59, 99, 0.1);
+    color: var(--mobile-navy);
+  }
+
+  .app-shell
+    .operations-mobile-link[href='/']
+    span {
+    font-size: 0;
+  }
+
+  .app-shell
+    .operations-mobile-link[href='/']
+    span::after {
+    content: 'Today';
+    font-size: 0.61rem;
+  }
+
+  /*
+   * Mobile dashboard foundation
+   */
+
+  .dashboard-page,
+  .operations-dashboard {
+    display: flex;
+    width: 100%;
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .dashboard-page > .dashboard-header {
+    order: 1;
+  }
+
+  .dashboard-page > .dashboard-data-warning {
+    order: 2;
+  }
+
+  .dashboard-page > .kpi-grid {
+    order: 3;
+  }
+
+  .dashboard-page > .quick-actions,
+  .dashboard-page > .quick-actions-panel,
+  .dashboard-page > .dashboard-quick-actions {
+    order: 4;
+  }
+
+  .dashboard-page > .executive-alerts-panel {
+    order: 5;
+  }
+
+  .dashboard-page > .dashboard-finance-summary {
+    order: 6;
+  }
+
+  .dashboard-page > .dashboard-workspace {
+    order: 7;
+  }
+
+  /*
+   * Compact dashboard heading
+   */
+
+  .dashboard-page .dashboard-header {
+    width: 100%;
+    gap: 9px;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 3px 2px 2px;
+  }
+
+  .dashboard-page .dashboard-header > div:first-child {
+    min-width: 0;
+  }
+
+  .dashboard-page .dashboard-header .page-eyebrow,
+  .dashboard-page .dashboard-header .page-intro {
+    display: none;
+  }
+
+  .dashboard-page .dashboard-header h2 {
+    margin: 0;
+    overflow: hidden;
+    color: var(--mobile-ink);
+    font-size: 1.16rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dashboard-page .dashboard-header-actions {
+    width: auto;
+    flex: 0 0 auto;
+    gap: 7px;
+    justify-content: flex-end;
+  }
+
+  .dashboard-page .dashboard-updated-time {
+    display: none;
+  }
+
+  .dashboard-page .dashboard-refresh-button {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid var(--mobile-border);
+    border-radius: 14px;
+    background: var(--mobile-surface);
+    color: var(--mobile-navy);
+    font-size: 0;
+  }
+
+  .dashboard-page
+    .dashboard-refresh-button
+    svg {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+  }
+
+  /*
+   * Two-column mobile KPI summary
+   */
+
+  .dashboard-page .kpi-grid {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px;
+  }
+
+  .dashboard-page .kpi-grid .kpi-card,
+  .dashboard-page
+    .kpi-grid
+    .dashboard-kpi-card,
+  .dashboard-page .kpi-grid article {
+    min-width: 0;
+    min-height: 94px !important;
+    padding: 12px !important;
+    gap: 7px !important;
+    border: 1px solid var(--mobile-border) !important;
+    border-radius: 16px !important;
+    background: var(--mobile-surface);
+    box-shadow:
+      0 5px 16px rgba(15, 23, 42, 0.045) !important;
+  }
+
+  .dashboard-page .kpi-grid .kpi-icon,
+  .dashboard-page
+    .kpi-grid
+    .dashboard-kpi-icon {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    border-radius: 10px !important;
+  }
+
+  .dashboard-page .kpi-grid h3,
+  .dashboard-page .kpi-grid .kpi-value,
+  .dashboard-page
+    .kpi-grid
+    .dashboard-kpi-value {
+    font-size: 1.12rem !important;
+  }
+
+  .dashboard-page .kpi-grid .kpi-label,
+  .dashboard-page
+    .kpi-grid
+    .dashboard-kpi-label {
+    overflow: hidden;
+    font-size: 0.66rem !important;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+  }
+
+  .dashboard-page .kpi-grid .kpi-subtitle,
+  .dashboard-page
+    .kpi-grid
+    .dashboard-kpi-subtitle {
+    display: none;
+  }
+
+  /*
+   * Thumb-friendly quick actions
+   */
+
+  .dashboard-page .quick-actions,
+  .dashboard-page .dashboard-quick-actions {
+    padding: 13px !important;
+    border: 1px solid var(--mobile-border);
+    border-radius: 18px !important;
+    background: var(--mobile-surface);
+  }
+
+  .dashboard-page .quick-actions-grid,
+  .dashboard-page
+    .dashboard-quick-actions-grid {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .dashboard-page .quick-action-button,
+  .dashboard-page .quick-actions-grid > *,
+  .dashboard-page
+    .dashboard-quick-actions-grid
+    > * {
+    width: 100%;
+    min-width: 0;
+    min-height: 62px !important;
+    padding: 9px !important;
+    border-radius: 14px !important;
+  }
+
+  /*
+   * Alerts become compact priority cards
+   */
+
+  .dashboard-page .executive-alerts-panel,
+  .operations-dashboard
+    .executive-alerts-panel {
+    display: block;
+    padding: 14px !important;
+    border: 1px solid var(--mobile-border);
+    border-radius: 18px;
+    background: var(--mobile-surface);
+  }
+
+  .dashboard-page .executive-alerts-header {
+    margin-bottom: 11px;
+  }
+
+  .dashboard-page
+    .executive-alerts-header
+    .page-eyebrow,
+  .dashboard-page
+    .executive-alerts-header
+    p {
+    display: none;
+  }
+
+  .dashboard-page
+    .executive-alerts-header
+    h3 {
+    margin: 0;
+    font-size: 0.94rem;
+  }
+
+  .dashboard-page .executive-alerts-grid,
+  .operations-dashboard
+    .executive-alerts-grid {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+
+  .dashboard-page .executive-alert-card,
+  .operations-dashboard .executive-alert {
+    min-width: 0;
+    min-height: 92px !important;
+    padding: 11px !important;
+    border-radius: 14px !important;
+  }
+
+  .dashboard-page
+    .executive-alert-card
+    p {
+    display: none;
+  }
+
+  /*
+   * Remaining dashboard sections
+   */
+
+  .dashboard-page .dashboard-finance-summary,
+  .dashboard-page .dashboard-widget,
+  .dashboard-page .widget-card,
+  .dashboard-page .dashboard-card {
+    border-radius: 18px;
+  }
+
+  .dashboard-page .dashboard-finance-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .dashboard-page .dashboard-work-row,
+  .dashboard-page .dashboard-side-stack,
+  .operations-dashboard
+    .dashboard-work-row-secondary
+    > .dashboard-side-stack {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-page .dashboard-workspace {
+    gap: 12px;
+  }
+}
+
+/*
+ * Mobile Today workspace
+ *
+ * Secondary desktop analytics remain accessible from
+ * their dedicated authorized modules.
+ */
+
+@media (max-width: 760px) {
+  .dashboard-page
+    > .dashboard-finance-summary {
+    display: none;
+  }
+
+  .dashboard-page
+    :is(
+      .revenue-chart-panel,
+      .recent-documents-panel,
+      .staff-workload-panel,
+      .case-distribution-panel,
+      .calendar-widget-panel,
+      .activity-feed-panel,
+      .notifications-panel
+    ) {
+    display: none !important;
+  }
+
+  .dashboard-page .dashboard-workspace {
+    display: flex;
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .dashboard-page .dashboard-work-row,
+  .dashboard-page .dashboard-side-stack {
+    display: contents;
+  }
+
+  /*
+   * The mobile Today view uses four essential KPIs.
+   * Remaining administrator metrics are available
+   * from Payments, Accounting and other modules.
+   */
+
+  .dashboard-page
+    .kpi-grid
+    > :nth-child(n + 5) {
+    display: none !important;
+  }
+
+  .dashboard-page
+    :is(
+      .recent-cases-panel,
+      .task-widget-panel,
+      .upcoming-hearings-panel
+    ) {
+    display: block;
+    width: 100% !important;
+    overflow: hidden;
+    border: 1px solid var(--mobile-border);
+    border-radius: 18px;
+    background: var(--mobile-surface);
+    box-shadow:
+      0 6px 18px rgba(15, 23, 42, 0.045);
+  }
+
+  .dashboard-page
+    :is(
+      .recent-cases-panel,
+      .task-widget-panel,
+      .upcoming-hearings-panel
+    )
+    :is(
+      .panel-heading-row,
+      .widget-header,
+      .dashboard-widget-header
+    ) {
+    padding: 13px 14px 10px;
+  }
+
+  .dashboard-page
+    :is(
+      .recent-cases-panel,
+      .task-widget-panel,
+      .upcoming-hearings-panel
+    )
+    h3 {
+    font-size: 0.92rem !important;
+  }
+
+  .dashboard-page
+    :is(
+      .recent-cases-panel,
+      .task-widget-panel,
+      .upcoming-hearings-panel
+    )
+    p {
+    font-size: 0.7rem;
+    line-height: 1.4;
+  }
+}
+/*
+ * Keep the Dashboard preview concise.
+ * Every case remains available from the Cases module.
+ */
+
+@media (max-width: 760px) {
+  .dashboard-page
+    .recent-case-list
+    > .recent-case-card:nth-child(n + 4) {
+    display: none !important;
+  }
+}
+@media (max-width: 360px) {
+  .dashboard-page .kpi-grid,
+  .dashboard-page .executive-alerts-grid,
+  .dashboard-page .dashboard-finance-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-shell .header-title {
+    max-width: 96px;
+  }
+}
