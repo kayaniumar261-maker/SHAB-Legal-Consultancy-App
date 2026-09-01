@@ -149,3 +149,6 @@ vite.config.ts.timestamp-*
 
 # Electron packaging output
 release/
+
+# Vendored patched SheetJS dependency
+!/vendor/xlsx-0.20.3.tgz
