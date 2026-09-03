@@ -809,3 +809,194 @@
     justify-content: center;
   }
 }
+
+/* =========================================================
+   MOBILE TASK TABLE CARD LAYOUT
+========================================================= */
+
+@media (max-width: 560px) {
+  .tasks-table-wrapper {
+    overflow-x: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .tasks-table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tasks-table thead {
+    display: none;
+  }
+
+  .tasks-table tbody {
+    display: grid;
+    width: 100%;
+    gap: 14px;
+  }
+
+  .tasks-table tbody tr {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.02),
+      0 8px 24px rgba(15, 23, 42, 0.035);
+  }
+
+  .tasks-table tbody tr:hover {
+    background: #ffffff;
+  }
+
+  .tasks-table td {
+    display: grid;
+    grid-template-columns:
+      minmax(92px, 0.72fr)
+      minmax(0, 1.28fr);
+    align-items: center;
+    gap: 12px;
+
+    width: 100%;
+    min-width: 0 !important;
+    padding: 12px 14px;
+
+    overflow: hidden;
+
+    border-bottom: 1px solid #eef1f4;
+
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .tasks-table td::before {
+    color: #64748b;
+
+    font-size: 0.68rem;
+    font-weight: 850;
+
+    letter-spacing: 0.07em;
+    line-height: 1.25;
+
+    text-transform: uppercase;
+  }
+
+  .tasks-table td:nth-child(1)::before {
+    content: 'Task';
+  }
+
+  .tasks-table td:nth-child(2)::before {
+    content: 'Client';
+  }
+
+  .tasks-table td:nth-child(3)::before {
+    content: 'Case';
+  }
+
+  .tasks-table td:nth-child(4)::before {
+    content: 'Assigned To';
+  }
+
+  .tasks-table td:nth-child(5)::before {
+    content: 'Priority';
+  }
+
+  .tasks-table td:nth-child(6)::before {
+    content: 'Status';
+  }
+
+  .tasks-table td:nth-child(7)::before {
+    content: 'Due Date';
+  }
+
+  .tasks-table td:nth-child(8)::before {
+    content: 'Actions';
+  }
+
+  .tasks-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .tasks-table td > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .tasks-table td > a {
+    overflow-wrap: anywhere;
+  }
+
+  .tasks-table .task-title-cell {
+    align-items: start;
+  }
+
+  .tasks-table .task-title-cell strong,
+  .tasks-table .task-title-cell .task-description {
+    grid-column: 2;
+    max-width: 100%;
+  }
+
+  .tasks-table .task-title-cell::before {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .tasks-table .task-description {
+    margin-top: 3px;
+    overflow: visible;
+    text-overflow: initial;
+    white-space: normal;
+  }
+
+  .tasks-table .priority-badge,
+  .tasks-table .status-badge {
+    justify-self: start;
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    padding: 6px 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tasks-table .task-actions {
+    display: grid;
+    grid-template-columns:
+      minmax(92px, 0.72fr)
+      repeat(4, 36px);
+    justify-content: start;
+    gap: 8px;
+    white-space: normal;
+  }
+
+  .tasks-table .task-actions::before {
+    grid-column: 1;
+  }
+
+  .tasks-table .action-button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    flex-basis: 36px;
+  }
+
+  .tasks-table .loading-cell,
+  .tasks-table .empty-cell {
+    display: block;
+    width: 100%;
+    padding: 34px 18px !important;
+    text-align: center;
+  }
+
+  .tasks-table .loading-cell::before,
+  .tasks-table .empty-cell::before {
+    content: none;
+  }
+}

@@ -6,6 +6,12 @@ import react from '@vitejs/plugin-react';
 const require = createRequire(import.meta.url);
 const { version: appVersion } = require('./package.json') as { version: string };
 
+const isCodespaces = Boolean(
+  process.env.CODESPACES ||
+  process.env.CODESPACE_NAME ||
+  process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN,
+);
+
 export default defineConfig({
   base: './',
   plugins: [react()],
@@ -18,9 +24,11 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     allowedHosts: true,
-    hmr: {
-      clientPort: 443,
-    },
+    hmr: isCodespaces
+      ? {
+          clientPort: 443,
+        }
+      : undefined,
   },
 
   preview: {
