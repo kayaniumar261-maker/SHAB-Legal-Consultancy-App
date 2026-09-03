@@ -27,6 +27,10 @@ import {
   type PracticeNotification,
 } from '../../services/notificationService';
 
+import {
+  supabase,
+} from '../../lib/supabase';
+
 import './NotificationCenter.css';
 
 const readStorageKey =
@@ -71,6 +75,30 @@ export function NotificationCenter() {
 
           setError(null);
 
+          if (
+            document.visibilityState === 'hidden' ||
+            !navigator.onLine
+          ) {
+            return;
+          }
+
+          const {
+            data: {
+              session,
+            },
+            error: sessionError,
+          } = await supabase.auth.getSession();
+
+          if (sessionError) {
+            throw sessionError;
+          }
+
+          if (!session) {
+            setItems([]);
+            setLoadedAt(null);
+            return;
+          }
+
           const response =
             await getNotificationCenterData();
 
@@ -100,15 +128,123 @@ export function NotificationCenter() {
     );
 
   useEffect(() => {
-    void loadNotifications();
+    let interval: number | null = null;
+    let active = true;
 
-    const interval =
-      window.setInterval(() => {
+    const stopPolling = () => {
+      if (interval !== null) {
+        window.clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const canRequest = () =>
+      active &&
+      navigator.onLine &&
+      document.visibilityState === 'visible';
+
+    const refreshIfActive = () => {
+      if (canRequest()) {
         void loadNotifications(true);
-      }, 300_000);
+      }
+    };
+
+    const startPolling = () => {
+      stopPolling();
+
+      if (!canRequest()) {
+        return;
+      }
+
+      interval = window.setInterval(
+        refreshIfActive,
+        300_000,
+      );
+    };
+
+    const handlePageHide = () => {
+      stopPolling();
+    };
+
+    const handlePageShow = () => {
+      if (!active) {
+        return;
+      }
+
+      startPolling();
+      refreshIfActive();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        startPolling();
+        refreshIfActive();
+      } else {
+        stopPolling();
+      }
+    };
+
+    const handleOnline = () => {
+      startPolling();
+      refreshIfActive();
+    };
+
+    const handleOffline = () => {
+      stopPolling();
+    };
+
+    if (canRequest()) {
+      void loadNotifications();
+      startPolling();
+    } else {
+      setLoading(false);
+    }
+
+    window.addEventListener(
+      'pagehide',
+      handlePageHide,
+    );
+    window.addEventListener(
+      'pageshow',
+      handlePageShow,
+    );
+    window.addEventListener(
+      'online',
+      handleOnline,
+    );
+    window.addEventListener(
+      'offline',
+      handleOffline,
+    );
+    document.addEventListener(
+      'visibilitychange',
+      handleVisibilityChange,
+    );
 
     return () => {
-      window.clearInterval(interval);
+      active = false;
+      stopPolling();
+
+      window.removeEventListener(
+        'pagehide',
+        handlePageHide,
+      );
+      window.removeEventListener(
+        'pageshow',
+        handlePageShow,
+      );
+      window.removeEventListener(
+        'online',
+        handleOnline,
+      );
+      window.removeEventListener(
+        'offline',
+        handleOffline,
+      );
+      document.removeEventListener(
+        'visibilitychange',
+        handleVisibilityChange,
+      );
     };
   }, [loadNotifications]);
 

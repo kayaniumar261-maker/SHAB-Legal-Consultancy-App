@@ -29,21 +29,40 @@ export function useRealtimeRefresh(
       return undefined;
     }
 
+    let active = true;
+    let suspended = false;
+    let channelSequence = 0;
     let refreshTimer: number | null = null;
+    let reconnectTimer: number | null = null;
+    let reconnectAttempt = 0;
     let refreshPending = false;
+    let channel:
+      ReturnType<typeof supabase.channel> | null =
+      null;
+
+    const canConnect = () =>
+      active &&
+      !suspended &&
+      navigator.onLine &&
+      document.visibilityState === 'visible';
 
     const runRefresh = () => {
       refreshTimer = null;
 
-      if (document.visibilityState === 'hidden') {
+      if (!canConnect()) {
         refreshPending = true;
         return;
       }
 
       refreshPending = false;
 
-      void Promise.resolve(callbackRef.current()).catch((error) => {
-        console.error('Realtime screen refresh failed:', error);
+      void Promise.resolve(
+        callbackRef.current(),
+      ).catch((error) => {
+        console.error(
+          'Realtime screen refresh failed:',
+          error,
+        );
       });
     };
 
@@ -52,40 +71,222 @@ export function useRealtimeRefresh(
         window.clearTimeout(refreshTimer);
       }
 
-      refreshTimer = window.setTimeout(runRefresh, debounceMs);
+      refreshTimer = window.setTimeout(
+        runRefresh,
+        debounceMs,
+      );
     };
 
-    const channel = supabase.channel(channelNameRef.current);
-
-    tablesKey.split(',').forEach((table) => {
-      channel.on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table },
-        scheduleRefresh,
-      );
-    });
-
-    channel.subscribe((status) => {
-      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        console.warn(`Realtime channel status: ${status}`);
+    const stopChannel = async () => {
+      if (!channel) {
+        return;
       }
-    });
+
+      const removal =
+        supabase.removeChannel(channel);
+
+      channel = null;
+
+      await removal;
+    };
+
+    const startChannel = () => {
+      if (!canConnect() || channel) {
+        return;
+      }
+
+      channelSequence += 1;
+
+      const nextChannel = supabase.channel(
+        `${channelNameRef.current}-${channelSequence}`,
+      );
+
+      channel = nextChannel;
+
+      for (const table of tablesKey.split(',')) {
+        channel.on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table,
+          },
+          scheduleRefresh,
+        );
+      }
+
+      nextChannel.subscribe((status) => {
+        if (
+          channel !== nextChannel ||
+          !canConnect()
+        ) {
+          return;
+        }
+
+        if (status === 'SUBSCRIBED') {
+          reconnectAttempt = 0;
+
+          if (reconnectTimer !== null) {
+            window.clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+          }
+
+          return;
+        }
+
+        if (
+          status === 'CHANNEL_ERROR' ||
+          status === 'TIMED_OUT'
+        ) {
+          if (reconnectTimer !== null) {
+            return;
+          }
+
+          reconnectAttempt += 1;
+
+          const retryDelay = Math.min(
+            1_000 * 2 ** Math.min(reconnectAttempt, 5),
+            30_000,
+          );
+
+          reconnectTimer = window.setTimeout(
+            () => {
+              reconnectTimer = null;
+              restartChannel();
+            },
+            retryDelay,
+          );
+        }
+      });
+    };
+
+    const restartChannel = () => {
+      void stopChannel()
+        .catch((error) => {
+          console.warn(
+            'Realtime channel cleanup failed:',
+            error,
+          );
+        })
+        .finally(() => {
+          if (canConnect()) {
+            startChannel();
+
+            if (refreshPending) {
+              scheduleRefresh();
+            }
+          }
+        });
+    };
+
+    const suspendChannel = () => {
+      suspended = true;
+      reconnectAttempt = 0;
+
+      if (reconnectTimer !== null) {
+        window.clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
+
+      if (refreshTimer !== null) {
+        window.clearTimeout(refreshTimer);
+        refreshTimer = null;
+      }
+
+      void stopChannel().catch(() => {
+        // The browser may already be freezing the page.
+      });
+    };
+
+    const resumeChannel = () => {
+      suspended = false;
+      refreshPending = true;
+      restartChannel();
+    };
+
+    const handlePageHide = () => {
+      suspendChannel();
+    };
+
+    const handlePageShow = () => {
+      resumeChannel();
+    };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && refreshPending) {
-        scheduleRefresh();
+      if (document.visibilityState === 'hidden') {
+        suspendChannel();
+      } else {
+        resumeChannel();
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    const handleOnline = () => {
+      resumeChannel();
+    };
+
+    const handleOffline = () => {
+      suspendChannel();
+    };
+
+    startChannel();
+
+    window.addEventListener(
+      'pagehide',
+      handlePageHide,
+    );
+    window.addEventListener(
+      'pageshow',
+      handlePageShow,
+    );
+    window.addEventListener(
+      'online',
+      handleOnline,
+    );
+    window.addEventListener(
+      'offline',
+      handleOffline,
+    );
+    document.addEventListener(
+      'visibilitychange',
+      handleVisibilityChange,
+    );
 
     return () => {
+      active = false;
+      suspended = true;
+
       if (refreshTimer !== null) {
         window.clearTimeout(refreshTimer);
       }
 
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      void supabase.removeChannel(channel);
+      if (reconnectTimer !== null) {
+        window.clearTimeout(reconnectTimer);
+      }
+
+      window.removeEventListener(
+        'pagehide',
+        handlePageHide,
+      );
+      window.removeEventListener(
+        'pageshow',
+        handlePageShow,
+      );
+      window.removeEventListener(
+        'online',
+        handleOnline,
+      );
+      window.removeEventListener(
+        'offline',
+        handleOffline,
+      );
+      document.removeEventListener(
+        'visibilitychange',
+        handleVisibilityChange,
+      );
+
+      void stopChannel().catch(() => {
+        // Cleanup failure is harmless during unmount.
+      });
     };
   }, [debounceMs, enabled, tablesKey]);
 }
