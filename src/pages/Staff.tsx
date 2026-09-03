@@ -22,6 +22,8 @@ import {
   X,
 } from 'lucide-react';
 
+import { StaffAccessAdministration } from '../components/staff/StaffAccessAdministration';
+
 import {
   createStaff,
   deleteStaff,
@@ -386,6 +388,8 @@ export function Staff() {
       </section>
 
 
+      <StaffAccessAdministration />
+
       <section className="staff-kpis">
         <StaffKpi
           icon={<Users size={22} />}
@@ -418,7 +422,7 @@ export function Staff() {
         />
       </section>
 
-      <section className="panel">
+      <section className="panel staff-directory-panel">
         <div className="staff-toolbar">
           <div className="staff-search">
             <Search size={18} />
@@ -489,7 +493,7 @@ export function Staff() {
           </div>
         ) : (
           <div className="table-wrapper">
-            <table className="data-table">
+            <table className="data-table staff-directory-table">
               <thead>
                 <tr>
                   <th>Name</th>
@@ -504,7 +508,7 @@ export function Staff() {
               <tbody>
                 {filteredStaff.map((member) => (
                   <tr key={member.id}>
-                    <td>
+                    <td data-label="Name">
                       <Link
                         className="staff-profile-link"
                         to={`/staff/${member.id}`}
@@ -515,19 +519,19 @@ export function Staff() {
                       </Link>
                     </td>
 
-                    <td>
+                    <td data-label="Role">
                       {formatRole(member.role)}
                     </td>
 
-                    <td>
+                    <td data-label="Email">
                       {member.email ?? '—'}
                     </td>
 
-                    <td>
+                    <td data-label="Phone">
                       {member.phone ?? '—'}
                     </td>
 
-                    <td>
+                    <td data-label="Status">
                       <span
                         className={`status-badge status-${member.status}`}
                       >
@@ -535,7 +539,7 @@ export function Staff() {
                       </span>
                     </td>
 
-                    <td>
+                    <td data-label="Actions">
                       <div className="staff-actions">
                         <button
                           type="button"
