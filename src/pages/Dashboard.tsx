@@ -40,6 +40,7 @@ import { RevenueChart } from '../components/dashboard/RevenueChart';
 import { CaseDistribution } from '../components/dashboard/CaseDistribution';
 import { CalendarWidget } from '../components/dashboard/CalendarWidget';
 import { Notifications } from '../components/dashboard/Notifications';
+import { DashboardGreeting } from '../components/dashboard/DashboardGreeting';
 
 import './Dashboard.css';
 
@@ -398,7 +399,9 @@ export function Dashboard() {
           : 'dashboard-page operations-dashboard'
       }
     >
-      <section className="dashboard-header">
+      <DashboardGreeting />
+
+      <section className="dashboard-header dashboard-legacy-heading">
         <div>
           <p className="page-eyebrow">
             {administrator ? 'Executive overview' : 'Daily operations'}

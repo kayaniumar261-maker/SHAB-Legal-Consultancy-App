@@ -14,8 +14,10 @@ import {
   Store,
   Users,
   X,
+  Camera,
+  ChevronDown,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   NavLink,
   Outlet,
@@ -29,8 +31,10 @@ import { shabLogoUrl } from '../constants/branding';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { GlobalSearch } from '../components/search/GlobalSearch';
 import { NotificationCenter } from '../components/notifications/NotificationCenter';
+import { supabase } from '../lib/supabase';
 import '../styles/MobileExperience.css';
 import '../styles/MobileFormAccess.css';
+import '../styles/CompactWorkspace.css';
 
 const navigationItems = [
   {
@@ -117,12 +121,18 @@ export function AppLayout() {
     isMobileMenuOpen,
     setIsMobileMenuOpen,
   ] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut, user } = useAuth();
   const { profile } = useAccessProfile();
   const administrator = profile?.access_role === 'administrator' && profile.is_active;
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email || 'SHAB User';
+  const avatarUrl = typeof user?.user_metadata?.avatar_url === 'string'
+    ? user.user_metadata.avatar_url
+    : '';
   const mobilePrimaryPaths = ['/', '/clients', '/cases', '/tasks'];
   const authorizedNavigationItems = navigationItems.filter(
     (item) => !item.adminOnly || administrator,
@@ -140,6 +150,41 @@ export function AppLayout() {
   const handleSignOut = async () => {
     await signOut();
     navigate('/login', { replace: true });
+  };
+
+  const handleAvatarUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file || !user) return;
+    if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+      window.alert('Choose a JPG, PNG or WebP image smaller than 5 MB.');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${user.id}/profile.${extension}`;
+      const { error: uploadError } = await supabase.storage
+        .from('profile-photos')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('profile-photos').getPublicUrl(path);
+      const versionedUrl = `${data.publicUrl}?v=${Date.now()}`;
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { avatar_url: versionedUrl },
+      });
+      if (updateError) throw updateError;
+      setIsProfileOpen(false);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Profile photo upload failed.');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
   };
 
   return (
@@ -224,23 +269,43 @@ export function AppLayout() {
             {isOnline ? 'Online' : 'Offline'}
           </div>
 
-          <div className="header-profile">
-            <div className="profile-avatar">
-              {getInitials(displayName)}
-            </div>
-
-            <div className="profile-details">
-              <strong>{displayName}</strong>
-              <span>{administrator ? 'Administrator' : 'Operations Staff'}</span>
-            </div>
-
+          <div className="header-profile compact-profile">
             <button
               type="button"
-              className="signout-button"
-              onClick={handleSignOut}
+              className="profile-menu-trigger"
+              onClick={() => setIsProfileOpen((open) => !open)}
+              aria-expanded={isProfileOpen}
             >
-              Sign Out
+              <ProfileAvatar name={displayName} url={avatarUrl} />
+
+              <div className="profile-details">
+                <strong>{displayName}</strong>
+                <span>{administrator ? 'Administrator' : 'Operations Staff'}</span>
+              </div>
+              <ChevronDown size={16} />
             </button>
+
+            {isProfileOpen && (
+              <div className="profile-menu-card">
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                >
+                  <Camera size={16} />
+                  {isUploadingAvatar ? 'Uploading…' : 'Change profile photo'}
+                </button>
+                <button type="button" onClick={handleSignOut}>Sign Out</button>
+              </div>
+            )}
+
+            <input
+              ref={avatarInputRef}
+              className="profile-photo-input"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={handleAvatarUpload}
+            />
           </div>
         </header>
 
@@ -368,4 +433,12 @@ function SidebarContent({
 
 function getInitials(value: string) {
   return value.trim().split(/\s+/).slice(0, 2).map((part) => part.charAt(0)).join('').toUpperCase() || 'SH';
+}
+
+function ProfileAvatar({ name, url }: { name: string; url?: string }) {
+  return (
+    <div className="profile-avatar">
+      {url ? <img src={url} alt="" /> : getInitials(name)}
+    </div>
+  );
 }
