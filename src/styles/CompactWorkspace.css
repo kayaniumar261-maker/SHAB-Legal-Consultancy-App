@@ -102,16 +102,16 @@
   }
 }
 
-.dashboard-date-compact {
+.dashboard-context .dashboard-date-compact {
   display: none;
 }
 
 @media (max-width: 760px) {
-  .dashboard-date-full {
+  .dashboard-context .dashboard-date-full {
     display: none;
   }
 
-  .dashboard-date-compact {
+  .dashboard-context .dashboard-date-compact {
     display: inline;
     white-space: nowrap;
   }
