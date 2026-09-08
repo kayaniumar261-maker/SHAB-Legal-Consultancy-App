@@ -671,13 +671,13 @@ export function Dashboard() {
           <UpcomingHearings />
           <ActivityFeed />
           <Notifications />
+          <StaffWorkload />
         </div>
 
         <div className="dashboard-secondary-column">
           <TaskWidget />
           {administrator && <RevenueChart />}
           <RecentDocuments />
-          <StaffWorkload />
           <CaseDistribution />
           <CalendarWidget />
         </div>
