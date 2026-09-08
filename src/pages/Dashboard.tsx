@@ -666,29 +666,20 @@ export function Dashboard() {
       )}
 
       <section className="dashboard-workspace">
-        <div className="dashboard-work-row dashboard-work-row-primary">
+        <div className="dashboard-main-column">
           <RecentCases />
-
-          <div className="dashboard-side-stack">
-            <TaskWidget />
-            {administrator && <RevenueChart />}
-            <RecentDocuments />
-          </div>
-        </div>
-
-        <div className="dashboard-work-row dashboard-work-row-secondary">
           <UpcomingHearings />
-
-          <div className="dashboard-side-stack">
-            <StaffWorkload />
-            <CaseDistribution />
-            <CalendarWidget />
-          </div>
-        </div>
-
-        <div className="dashboard-work-row dashboard-work-row-bottom">
           <ActivityFeed />
           <Notifications />
+        </div>
+
+        <div className="dashboard-secondary-column">
+          <TaskWidget />
+          {administrator && <RevenueChart />}
+          <RecentDocuments />
+          <StaffWorkload />
+          <CaseDistribution />
+          <CalendarWidget />
         </div>
       </section>
     </div>
