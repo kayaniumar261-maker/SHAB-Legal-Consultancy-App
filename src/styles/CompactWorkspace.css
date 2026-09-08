@@ -101,3 +101,18 @@
     padding-top: 16px;
   }
 }
+
+.dashboard-date-compact {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .dashboard-date-full {
+    display: none;
+  }
+
+  .dashboard-date-compact {
+    display: inline;
+    white-space: nowrap;
+  }
+}
