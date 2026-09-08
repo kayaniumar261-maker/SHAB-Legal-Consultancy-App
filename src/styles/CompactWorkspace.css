@@ -50,3 +50,45 @@
   .dashboard-page .kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .dashboard-page .kpi-grid .kpi-card,.dashboard-page .kpi-grid article { min-height:126px; }
 }
+
+/* SHAB BALANCED DESKTOP WORKSPACE V5
+   Independent columns prevent short widgets from reserving
+   the height of unrelated cards in the opposite column. */
+@media (min-width: 1051px) {
+  .dashboard-workspace {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1.48fr)
+      minmax(330px, 0.78fr);
+    align-items: start;
+    gap: 12px;
+  }
+
+  .dashboard-main-column,
+  .dashboard-secondary-column {
+    display: grid;
+    min-width: 0;
+    align-content: start;
+    gap: 12px;
+  }
+
+  .dashboard-main-column > *,
+  .dashboard-secondary-column > * {
+    width: 100%;
+    height: auto !important;
+    min-width: 0;
+    align-self: start;
+  }
+}
+
+@media (max-width: 1050px) {
+  .dashboard-workspace,
+  .dashboard-main-column,
+  .dashboard-secondary-column {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-width: 0;
+    align-content: start;
+    gap: 10px;
+  }
+}
