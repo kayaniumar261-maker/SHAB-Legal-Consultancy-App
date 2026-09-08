@@ -55,6 +55,10 @@ export function DashboardGreeting() {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   }).format(now), [now]);
 
+  const compactDate = useMemo(() => new Intl.DateTimeFormat('en-AE', {
+    day: 'numeric', month: 'short', year: 'numeric',
+  }).format(now), [now]);
+
   return (
     <section className="dashboard-greeting">
       <div>
@@ -62,7 +66,10 @@ export function DashboardGreeting() {
         <p>Here&apos;s what&apos;s happening at SHAB Legal Consultants FZC today.</p>
       </div>
       <div className="dashboard-context">
-        <time dateTime={now.toISOString()}>{formattedDate}</time>
+        <time dateTime={now.toISOString()}>
+          <span className="dashboard-date-full">{formattedDate}</span>
+          <span className="dashboard-date-compact">{compactDate}</span>
+        </time>
         <label>
           <MapPin size={14} />
           <select value={location} onChange={(event) => setLocation(event.target.value as LocationName)}>
