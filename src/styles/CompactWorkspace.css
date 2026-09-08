@@ -92,3 +92,12 @@
     gap: 10px;
   }
 }
+
+
+/* MOBILE DASHBOARD HEADER CLEARANCE V6
+   Keeps the greeting below the sticky shell header and device safe area. */
+@media (max-width: 760px) {
+  .app-shell .page-content > .dashboard-page {
+    padding-top: 16px;
+  }
+}
