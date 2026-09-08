@@ -40,6 +40,7 @@ import { RevenueChart } from '../components/dashboard/RevenueChart';
 import { CaseDistribution } from '../components/dashboard/CaseDistribution';
 import { CalendarWidget } from '../components/dashboard/CalendarWidget';
 import { Notifications } from '../components/dashboard/Notifications';
+import { DashboardGreeting } from '../components/dashboard/DashboardGreeting';
 
 import './Dashboard.css';
 
@@ -398,7 +399,9 @@ export function Dashboard() {
           : 'dashboard-page operations-dashboard'
       }
     >
-      <section className="dashboard-header">
+      <DashboardGreeting />
+
+      <section className="dashboard-header dashboard-legacy-heading">
         <div>
           <p className="page-eyebrow">
             {administrator ? 'Executive overview' : 'Daily operations'}
@@ -663,29 +666,20 @@ export function Dashboard() {
       )}
 
       <section className="dashboard-workspace">
-        <div className="dashboard-work-row dashboard-work-row-primary">
+        <div className="dashboard-main-column">
           <RecentCases />
-
-          <div className="dashboard-side-stack">
-            <TaskWidget />
-            {administrator && <RevenueChart />}
-            <RecentDocuments />
-          </div>
-        </div>
-
-        <div className="dashboard-work-row dashboard-work-row-secondary">
           <UpcomingHearings />
-
-          <div className="dashboard-side-stack">
-            <StaffWorkload />
-            <CaseDistribution />
-            <CalendarWidget />
-          </div>
-        </div>
-
-        <div className="dashboard-work-row dashboard-work-row-bottom">
           <ActivityFeed />
           <Notifications />
+          <StaffWorkload />
+        </div>
+
+        <div className="dashboard-secondary-column">
+          <TaskWidget />
+          {administrator && <RevenueChart />}
+          <RecentDocuments />
+          <CaseDistribution />
+          <CalendarWidget />
         </div>
       </section>
     </div>

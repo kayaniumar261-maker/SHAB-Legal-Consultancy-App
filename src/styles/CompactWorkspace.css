@@ -1,0 +1,118 @@
+.dashboard-page { gap: 14px; }
+.dashboard-greeting { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
+.dashboard-greeting h2 { margin:0; color:#0f172a; font-size:clamp(1.55rem,2.3vw,2rem); letter-spacing:-.035em; }
+.dashboard-greeting p { margin:5px 0 0; color:#64748b; font-size:.88rem; }
+.dashboard-context { display:grid; justify-items:end; gap:5px; color:#475569; font-size:.75rem; }
+.dashboard-context label,.dashboard-context span { display:flex; align-items:center; gap:5px; }
+.dashboard-context select { border:0; background:transparent; color:inherit; font-weight:700; cursor:pointer; }
+.dashboard-legacy-heading { display:none !important; }
+.dashboard-page .kpi-grid { gap:10px; }
+.dashboard-page .kpi-grid .kpi-card,.dashboard-page .kpi-grid article { min-height:108px; padding:13px; border-radius:13px; }
+.dashboard-page .executive-alerts-panel,.dashboard-page .dashboard-finance-summary,.dashboard-page .quick-actions,.dashboard-page .dashboard-quick-actions { padding:14px; border-radius:15px; }
+.dashboard-page .executive-alerts-grid,.dashboard-page .dashboard-finance-grid { gap:8px; }
+.dashboard-page .dashboard-workspace { gap:14px; }
+.compact-profile { position:relative; }
+.profile-menu-trigger { display:flex; align-items:center; gap:10px; min-height:46px; border:0; background:transparent; color:#0f172a; padding:3px; }
+.profile-avatar { overflow:hidden; }
+.profile-avatar img { width:100%; height:100%; object-fit:cover; }
+.profile-menu-card { position:absolute; top:calc(100% + 10px); right:0; z-index:80; width:220px; padding:8px; border:1px solid #e2e8f0; border-radius:13px; background:#fff; box-shadow:0 18px 45px rgba(15,23,42,.16); }
+.profile-menu-card button { display:flex; width:100%; align-items:center; gap:8px; min-height:42px; border:0; border-radius:9px; background:transparent; padding:8px 10px; color:#334155; text-align:left; }
+.profile-menu-card button:hover { background:#f8fafc; }
+.profile-photo-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+@media (min-width:960px) {
+  .desktop-sidebar { width:224px; }
+  .app-content { margin-left:224px; width:calc(100% - 224px); }
+  .brand-block { min-height:112px; }
+  .sidebar-brand-logo { max-height:94px; }
+  .sidebar-content { padding:14px; }
+  .sidebar-navigation { gap:2px; padding-top:14px; }
+  .sidebar-link { padding:9px 11px; font-size:13px; }
+  .top-header { min-height:64px; padding-top:9px; padding-bottom:9px; }
+  .page-content { padding-top:22px; }
+}
+@media (max-width:959px) {
+  .top-header .header-profile { display:flex; margin-left:auto; }
+  .top-header .profile-details,.top-header .profile-menu-trigger > svg { display:none; }
+  .top-header .profile-menu-trigger { min-height:44px; }
+  .top-header .profile-avatar { width:38px; height:38px; }
+  .dashboard-greeting { padding:2px 2px 0; }
+  .dashboard-context { justify-items:end; }
+}
+@media (max-width:559px) {
+  .top-header > div:first-of-type { display:none; }
+  .top-header .global-search { margin-left:auto; }
+  .dashboard-greeting { align-items:flex-start; }
+  .dashboard-greeting h2 { font-size:1.3rem; }
+  .dashboard-greeting p { max-width:210px; font-size:.76rem; line-height:1.4; }
+  .dashboard-context { min-width:112px; font-size:.65rem; }
+  .dashboard-context time { max-width:112px; text-align:right; }
+  .dashboard-context select { max-width:88px; }
+  .dashboard-page .kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .dashboard-page .kpi-grid .kpi-card,.dashboard-page .kpi-grid article { min-height:126px; }
+}
+
+/* SHAB BALANCED DESKTOP WORKSPACE V5
+   Independent columns prevent short widgets from reserving
+   the height of unrelated cards in the opposite column. */
+@media (min-width: 1051px) {
+  .dashboard-workspace {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1.48fr)
+      minmax(330px, 0.78fr);
+    align-items: start;
+    gap: 12px;
+  }
+
+  .dashboard-main-column,
+  .dashboard-secondary-column {
+    display: grid;
+    min-width: 0;
+    align-content: start;
+    gap: 12px;
+  }
+
+  .dashboard-main-column > *,
+  .dashboard-secondary-column > * {
+    width: 100%;
+    height: auto !important;
+    min-width: 0;
+    align-self: start;
+  }
+}
+
+@media (max-width: 1050px) {
+  .dashboard-workspace,
+  .dashboard-main-column,
+  .dashboard-secondary-column {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-width: 0;
+    align-content: start;
+    gap: 10px;
+  }
+}
+
+
+/* MOBILE DASHBOARD HEADER CLEARANCE V6
+   Keeps the greeting below the sticky shell header and device safe area. */
+@media (max-width: 760px) {
+  .app-shell .page-content > .dashboard-page {
+    padding-top: 16px;
+  }
+}
+
+.dashboard-context .dashboard-date-compact {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .dashboard-context .dashboard-date-full {
+    display: none;
+  }
+
+  .dashboard-context .dashboard-date-compact {
+    display: inline;
+    white-space: nowrap;
+  }
+}
