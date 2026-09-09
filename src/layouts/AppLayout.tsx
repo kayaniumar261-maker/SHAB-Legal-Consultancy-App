@@ -32,6 +32,7 @@ import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { GlobalSearch } from '../components/search/GlobalSearch';
 import { NotificationCenter } from '../components/notifications/NotificationCenter';
 import { supabase } from '../lib/supabase';
+import { resolveUserDisplayName } from '../utils/userDisplayName';
 import '../styles/MobileExperience.css';
 import '../styles/MobileFormAccess.css';
 import '../styles/CompactWorkspace.css';
@@ -129,7 +130,11 @@ export function AppLayout() {
   const { signOut, user } = useAuth();
   const { profile } = useAccessProfile();
   const administrator = profile?.access_role === 'administrator' && profile.is_active;
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email || 'SHAB User';
+  const displayName = resolveUserDisplayName(
+    profile?.full_name,
+    user?.user_metadata?.full_name,
+    user?.email,
+  );
   const avatarUrl = typeof user?.user_metadata?.avatar_url === 'string'
     ? user.user_metadata.avatar_url
     : '';
