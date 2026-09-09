@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { useAccessProfile } from '../../hooks/useAccessProfile';
 import { useAuth } from '../../hooks/useAuth';
+import { resolveUserDisplayName } from '../../utils/userDisplayName';
 
 const LOCATIONS = {
   Sharjah: { latitude: 25.3463, longitude: 55.4209 },
@@ -29,7 +30,11 @@ export function DashboardGreeting() {
     })(),
   );
   const [temperature, setTemperature] = useState<number | null>(null);
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || 'SHAB User';
+  const displayName = resolveUserDisplayName(
+    profile?.full_name,
+    user?.user_metadata?.full_name,
+    user?.email,
+  );
   const firstName = displayName.trim().split(/\s+/)[0];
 
   useEffect(() => {
