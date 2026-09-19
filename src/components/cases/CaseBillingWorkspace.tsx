@@ -9,6 +9,7 @@ import {
   Pencil,
   Plus,
   ReceiptText,
+  ScrollText,
   X,
 } from 'lucide-react';
 
@@ -22,6 +23,7 @@ import {
   updateFeeAgreement,
   updateFeeInstallment,
 } from '../../services/feeAgreementService';
+import { generateAndFileServiceAgreement } from '../../services/serviceAgreementDocumentService';
 import { getCompanySettings, type CompanySettings } from '../../services/companySettingsService';
 import {
   getFinancialLedger,
@@ -40,7 +42,17 @@ import './CaseBillingWorkspace.css';
 type CaseBillingWorkspaceProps = {
   caseId: string;
   clientId: string;
+  caseReference?: string | null;
 };
+
+const serviceCategories = [
+  'Legal Consultation', 'Legal Notice', 'Contract Drafting and Review',
+  'Debt Recovery', 'Civil and Commercial Disputes',
+  'Real Estate and Rental Disputes', 'Labour and Employment',
+  'Criminal Matters', 'Arbitration', 'Corporate and Commercial',
+  'Banking and Financial Disputes', 'Family and Personal Status',
+  'Execution and Enforcement', 'Retainer Services', 'Others',
+];
 
 const billingModels: Array<{ value: FeeBillingModel; label: string }> = [
   { value: 'fixed', label: 'Fixed fee' },
@@ -70,6 +82,7 @@ const emptyLedgerSummary: FinancialLedgerSummary = {
 export function CaseBillingWorkspace({
   caseId,
   clientId,
+  caseReference,
 }: CaseBillingWorkspaceProps) {
   const [agreements, setAgreements] = useState<FeeAgreementWithInstallments[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -129,6 +142,24 @@ export function CaseBillingWorkspace({
   const defaultVatRate = vatEnabled ? Number(companySettings?.default_vat_rate ?? 0) : 0;
   const netBillable = Math.max(0, ledgerSummary.totalBilled - ledgerSummary.totalCredited);
   const unbilledAgreementBalance = Math.max(0, (summary?.agreedFee ?? 0) - netBillable);
+
+  async function generateAgreementDocument() {
+    if (!selected) return;
+    if (!selected.service_category || selected.scope_items.length === 0) {
+      setError('Add the service category and at least one scope item before generating the agreement.');
+      return;
+    }
+    try {
+      setBusyId(selected.id);
+      setError(null);
+      await generateAndFileServiceAgreement({ agreement: selected, caseReference });
+      await loadAgreements();
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'Unable to generate the service agreement.');
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   async function changeAgreementStatus(status: 'completed' | 'cancelled') {
     if (!selected) return;
@@ -235,10 +266,12 @@ export function CaseBillingWorkspace({
                   <div>
                     <span>{selected.agreement_number}</span>
                     <h4>{selected.title}</h4>
-                    <p>{billingModels.find((model) => model.value === selected.billing_model)?.label} · {selected.vat_rate}% VAT · {selected.status}</p>
+                    <p>{selected.service_category || 'Service category pending'} · {billingModels.find((model) => model.value === selected.billing_model)?.label} · {selected.vat_rate}% VAT · {selected.status}</p>
+                    <p>Document: {selected.document_status}{selected.agreement_document_version ? ` · version ${selected.agreement_document_version}` : ''}</p>
                   </div>
                   {['draft', 'active'].includes(selected.status) && <div className="fee-agreement-actions">
                     <button className="fee-secondary-button" type="button" onClick={() => setEditingAgreement(selected)}><Pencil size={15} /> Edit</button>
+                    <button className="fee-secondary-button" type="button" disabled={busyId === selected.id} onClick={() => void generateAgreementDocument()}><ScrollText size={15} /> {selected.agreement_document_id ? 'New document version' : 'Generate agreement'}</button>
                     <button className="fee-secondary-button" type="button" onClick={() => setShowInstallmentForm(true)}><CalendarClock size={16} /> Add Installment</button>
                     <button className="fee-secondary-button" type="button" disabled={busyId === selected.id} onClick={() => void changeAgreementStatus('completed')}>Complete</button>
                     <button className="fee-danger-button" type="button" disabled={busyId === selected.id} onClick={() => void changeAgreementStatus('cancelled')}>Cancel agreement</button>
@@ -352,6 +385,9 @@ function AgreementModal({ caseId, clientId, agreement, vatEnabled, defaultVatRat
     title: agreement?.title ?? 'Professional Legal Fees', billing_model: agreement?.billing_model ?? 'installments' as FeeBillingModel,
     agreed_fee: agreement ? String(agreement.agreed_fee) : '', vat_rate: String(vatEnabled ? (agreement?.vat_rate ?? defaultVatRate) : 0), currency: agreement?.currency ?? 'AED', agreement_date: agreement?.agreement_date ?? today(),
     valid_from: agreement?.valid_from ?? today(), valid_until: agreement?.valid_until ?? '', hourly_rate: agreement?.hourly_rate ? String(agreement.hourly_rate) : '', success_fee_percentage: agreement?.success_fee_percentage ? String(agreement.success_fee_percentage) : '', notes: agreement?.notes ?? '',
+    service_category: agreement?.service_category ?? 'Legal Consultation', service_subcategory: agreement?.service_subcategory ?? '',
+    scope_items: agreement?.scope_items?.join('\n') ?? '', payment_terms_days: String(agreement?.payment_terms_days ?? 7),
+    client_signatory_name: agreement?.client_signatory_name ?? '', client_signatory_title: agreement?.client_signatory_title ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -368,6 +404,10 @@ function AgreementModal({ caseId, clientId, agreement, vatEnabled, defaultVatRat
       success_fee_percentage: form.success_fee_percentage ? Number(form.success_fee_percentage) : null,
       agreement_date: form.agreement_date, valid_from: form.valid_from || null, valid_until: form.valid_until || null,
       notes: form.notes.trim() || null, status: 'active',
+      service_category: form.service_category, service_subcategory: form.service_subcategory.trim() || null,
+      scope_items: form.scope_items.split('\n').map((item) => item.trim()).filter(Boolean),
+      payment_terms_days: Number(form.payment_terms_days), client_signatory_name: form.client_signatory_name.trim() || null,
+      client_signatory_title: form.client_signatory_title.trim() || null,
     };
     try { setSaving(true); setError(null); if (agreement) { const { client_id, case_id, status, ...update } = payload; void client_id; void case_id; void status; await updateFeeAgreement(agreement.id, update); } else { await createFeeAgreement(payload); } await onSaved(); }
     catch (saveError) { setError(saveError instanceof Error ? saveError.message : 'Unable to create agreement.'); }
@@ -375,6 +415,9 @@ function AgreementModal({ caseId, clientId, agreement, vatEnabled, defaultVatRat
   }
 
   return <FeeModal title={agreement ? 'Edit Fee Agreement' : 'New Fee Agreement'} onClose={onClose} saving={saving} onSubmit={submit} error={error}>
+    <label className="fee-field">Service category<select value={form.service_category} onChange={(e) => setForm({ ...form, service_category: e.target.value })}>{serviceCategories.map((category) => <option key={category} value={category}>{category}</option>)}</select></label>
+    <label className="fee-field">Service or subcategory<input placeholder="e.g. Cheque dispute recovery" value={form.service_subcategory} onChange={(e) => setForm({ ...form, service_subcategory: e.target.value })} /></label>
+    <label className="fee-field fee-field-wide">Scope of services<textarea rows={5} placeholder={'Enter one service per line\nLegal advice and case assessment\nCorrespondence with the opposing party'} value={form.scope_items} onChange={(e) => setForm({ ...form, scope_items: e.target.value })} required /></label>
     <label className="fee-field fee-field-wide">Agreement title<input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></label>
     <label className="fee-field">Billing model<select value={form.billing_model} onChange={(e) => setForm({ ...form, billing_model: e.target.value as FeeBillingModel })}>{billingModels.map((model) => <option key={model.value} value={model.value}>{model.label}</option>)}</select></label>
     <label className="fee-field">Agreement date<input type="date" value={form.agreement_date} onChange={(e) => setForm({ ...form, agreement_date: e.target.value })} required /></label>
@@ -383,6 +426,9 @@ function AgreementModal({ caseId, clientId, agreement, vatEnabled, defaultVatRat
     <label className="fee-field">Currency<input maxLength={3} value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} required /></label>
     <label className="fee-field">Valid from<input type="date" value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} /></label>
     <label className="fee-field">Valid until<input type="date" value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} /></label>
+    <label className="fee-field">Invoice payment days<input type="number" min="0" max="365" value={form.payment_terms_days} onChange={(e) => setForm({ ...form, payment_terms_days: e.target.value })} required /></label>
+    <label className="fee-field">Client signatory<input value={form.client_signatory_name} onChange={(e) => setForm({ ...form, client_signatory_name: e.target.value })} /></label>
+    <label className="fee-field">Signatory title<input value={form.client_signatory_title} onChange={(e) => setForm({ ...form, client_signatory_title: e.target.value })} /></label>
     {form.billing_model === 'hourly' && <label className="fee-field">Hourly rate<input type="number" min="0" step="0.01" value={form.hourly_rate} onChange={(e) => setForm({ ...form, hourly_rate: e.target.value })} /></label>}
     {['success_fee', 'mixed'].includes(form.billing_model) && <label className="fee-field">Success fee %<input type="number" min="0" max="100" step="0.01" value={form.success_fee_percentage} onChange={(e) => setForm({ ...form, success_fee_percentage: e.target.value })} /></label>}
     <label className="fee-field fee-field-wide">Notes<textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></label>
