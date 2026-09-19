@@ -113,6 +113,7 @@ export function DocumentDetailsModal({
 }: DocumentDetailsModalProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [textPreview, setTextPreview] = useState<string | null>(null);
+  const [htmlPreview, setHtmlPreview] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
@@ -129,6 +130,10 @@ export function DocumentDetailsModal({
       return 'image';
     }
 
+    if (document.mime_type === 'text/html') {
+      return 'html';
+    }
+
     if (
       document.mime_type.startsWith('text/') &&
       (document.size_bytes ?? 0) <= TEXT_PREVIEW_MAX_BYTES
@@ -143,6 +148,7 @@ export function DocumentDetailsModal({
     if (!open || !document) {
       setPreviewUrl(null);
       setTextPreview(null);
+      setHtmlPreview(null);
       setPreviewError(null);
       setPreviewLoading(false);
       return;
@@ -159,6 +165,7 @@ export function DocumentDetailsModal({
       setPreviewError(null);
       setPreviewUrl(null);
       setTextPreview(null);
+      setHtmlPreview(null);
       setPreviewLoading(true);
 
       try {
@@ -171,7 +178,7 @@ export function DocumentDetailsModal({
           return;
         }
 
-        if (previewType === 'text') {
+        if (previewType === 'text' || previewType === 'html') {
           const response = await fetch(signedUrl);
 
           if (!response.ok) {
@@ -186,7 +193,11 @@ export function DocumentDetailsModal({
             return;
           }
 
-          setTextPreview(rawText.slice(0, 15000));
+          if (previewType === 'html') {
+            setHtmlPreview(addPreviewContentPolicy(rawText));
+          } else {
+            setTextPreview(rawText.slice(0, 15000));
+          }
           setPreviewUrl(signedUrl);
           return;
         }
@@ -363,6 +374,13 @@ export function DocumentDetailsModal({
                       alt={document.name}
                       className="document-preview-image"
                     />
+                  ) : previewType === 'html' ? (
+                    <iframe
+                      title="Agreement preview"
+                      srcDoc={htmlPreview ?? ''}
+                      sandbox=""
+                      className="document-preview-frame document-preview-html"
+                    />
                   ) : previewType === 'text' ? (
                     <pre className="document-preview-text">
                       {textPreview || 'Loading preview…'}
@@ -430,4 +448,14 @@ export function DocumentDetailsModal({
       </section>
     </div>
   );
+}
+
+function addPreviewContentPolicy(html: string) {
+  const policy = '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data: blob: https:; style-src \'unsafe-inline\'; font-src data:;">';
+
+  if (/<head(?:\s[^>]*)?>/i.test(html)) {
+    return html.replace(/<head(?:\s[^>]*)?>/i, (head) => `${head}${policy}`);
+  }
+
+  return `<!doctype html><html><head>${policy}</head><body>${html}</body></html>`;
 }
