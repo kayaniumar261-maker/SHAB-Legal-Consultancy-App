@@ -90,6 +90,11 @@ const Documents = lazyNamed(
   'Documents',
 );
 
+const ServiceAgreements = lazyNamed(
+  () => import('./pages/ServiceAgreements'),
+  'ServiceAgreements',
+);
+
 const Settings = lazyNamed(
   () => import('./pages/Settings'),
   'Settings',
@@ -240,6 +245,7 @@ function App() {
             />
 
             <Route element={<AdministratorRoute />}>
+              <Route path="/agreements" element={<ServiceAgreements />} />
               <Route path="/imports" element={<Imports />} />
               <Route path="/payments" element={<Payments />} />
               <Route path="/payments/vendor-bills" element={<VendorBills />} />
