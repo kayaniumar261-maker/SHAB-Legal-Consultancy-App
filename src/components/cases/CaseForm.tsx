@@ -490,12 +490,15 @@ export function CaseForm({
   const draftStorageKey =
     caseRecord?.id
       ? `shab-case-form-draft-${caseRecord.id}`
-      : 'shab-case-form-draft-new';
+      : `shab-case-form-draft-new-${initialClientId || 'unassigned'}`;
 
   const [formState, setFormState] = useState<FormState>(
     () => {
-      const fallback =
-        buildFormState(caseRecord);
+      const fallback = buildFormState(caseRecord);
+
+      if (!caseRecord && initialClientId) {
+        fallback.client_id = initialClientId;
+      }
 
       return loadSavedCaseDraft(
         draftStorageKey,
@@ -520,8 +523,11 @@ export function CaseForm({
   }, [caseRecord, initialClientId]);
 
   useEffect(() => {
-    const fallback =
-      buildFormState(caseRecord);
+    const fallback = buildFormState(caseRecord);
+
+    if (!caseRecord && initialClientId) {
+      fallback.client_id = initialClientId;
+    }
 
     setFormState(
       loadSavedCaseDraft(
@@ -532,6 +538,7 @@ export function CaseForm({
   }, [
     caseRecord,
     draftStorageKey,
+    initialClientId,
   ]);
 
   useEffect(() => {
@@ -642,7 +649,8 @@ export function CaseForm({
     const payload = {
       client_id: formState.client_id,
       case_number:
-        optionalText(formState.case_number) ?? '',
+        optionalText(formState.case_number) ??
+        `PENDING-${Date.now()}`,
       matter_number:
         optionalText(formState.matter_number),
       case_type: formState.case_type.trim(),
@@ -733,7 +741,7 @@ export function CaseForm({
       closed_at: optionalDate(formState.closed_at),
 
       case_value:
-        optionalNumber(formState.case_value),
+        optionalNumber(formState.case_value) ?? 0,
       claim_amount:
         optionalNumber(formState.claim_amount),
       settlement_amount:
