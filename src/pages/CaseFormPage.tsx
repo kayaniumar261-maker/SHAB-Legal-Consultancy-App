@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { CaseForm } from '../components/cases/CaseForm';
 import { createCase, getCaseById, getClientOptions, updateCase } from '../services/caseService';
@@ -18,6 +18,9 @@ export function CaseFormPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const agreementFlow = searchParams.get('agreement') === '1';
+  const initialClientId = searchParams.get('clientId') || undefined;
 
   useEffect(() => {
     async function loadData() {
@@ -59,11 +62,11 @@ export function CaseFormPage() {
     try {
       if (isEditMode && id) {
         await updateCase(id, data as Parameters<typeof updateCase>[1]);
+        navigate(`/cases/${id}${agreementFlow ? '?tab=agreement' : ''}`);
       } else {
-        await createCase(data as Parameters<typeof createCase>[0]);
+        const created = await createCase(data as Parameters<typeof createCase>[0]);
+        navigate(`/cases/${created.id}${agreementFlow ? '?tab=agreement' : ''}`);
       }
-
-      navigate('/cases');
     } catch (submitError) {
       if (submitError instanceof Error) {
         setError(submitError.message);
@@ -113,6 +116,7 @@ export function CaseFormPage() {
         loading={saving}
         onSubmit={handleSubmit}
         submitLabel={isEditMode ? 'Update Case' : 'Create Case'}
+        initialClientId={initialClientId}
       />
     </div>
   );

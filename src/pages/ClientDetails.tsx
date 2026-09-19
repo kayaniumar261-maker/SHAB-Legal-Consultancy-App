@@ -19,6 +19,7 @@ import {
   Plus,
   Scale,
   ShieldAlert,
+  ScrollText,
   Star,
   UserRound,
 } from 'lucide-react';
@@ -367,10 +368,10 @@ export function ClientDetails() {
 
           <Link
             className="primary-action-button"
-            to={`/cases/new?clientId=${client.id}`}
+            to={`/cases/new?clientId=${client.id}${administrator ? '&agreement=1' : ''}`}
           >
-            <Plus size={17} />
-            New Case
+            {administrator ? <ScrollText size={17} /> : <Plus size={17} />}
+            {administrator ? 'New Agreement' : 'New Case'}
           </Link>
         </div>
       </section>

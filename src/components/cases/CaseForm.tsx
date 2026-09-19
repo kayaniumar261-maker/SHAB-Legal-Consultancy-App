@@ -61,6 +61,7 @@ export type CaseFormProps = {
     data: CaseInsert | CaseUpdate,
   ) => Promise<void>;
   submitLabel: string;
+  initialClientId?: string;
 };
 
 type FormState = {
@@ -484,6 +485,7 @@ export function CaseForm({
   loading,
   onSubmit,
   submitLabel,
+  initialClientId,
 }: CaseFormProps) {
   const draftStorageKey =
     caseRecord?.id
@@ -507,6 +509,15 @@ export function CaseForm({
   );
 
   const isOnline = useOnlineStatus();
+
+  useEffect(() => {
+    if (!caseRecord && initialClientId) {
+      setFormState((current) => ({
+        ...current,
+        client_id: current.client_id || initialClientId,
+      }));
+    }
+  }, [caseRecord, initialClientId]);
 
   useEffect(() => {
     const fallback =

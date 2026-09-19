@@ -1143,6 +1143,14 @@ export function ClientWorkspace({
 
         {isAdministrator && (
           <QuickAction
+            icon={<FileText size={17} />}
+            label="Create Agreement"
+            to={`/cases/new?clientId=${client.id}&agreement=1`}
+          />
+        )}
+
+        {isAdministrator && (
+          <QuickAction
           icon={
             <ReceiptText
               size={17}

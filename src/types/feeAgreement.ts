@@ -14,6 +14,14 @@ export type FeeAgreementStatus =
   | 'expired'
   | 'cancelled';
 
+export type AgreementDocumentStatus =
+  | 'draft'
+  | 'generated'
+  | 'sent'
+  | 'signed'
+  | 'superseded'
+  | 'cancelled';
+
 export type FeeInstallmentStatus =
   | 'planned'
   | 'ready'
@@ -39,6 +47,19 @@ export interface FeeAgreement {
   valid_from: string | null;
   valid_until: string | null;
   notes: string | null;
+  service_category: string | null;
+  service_subcategory: string | null;
+  scope_items: string[];
+  payment_terms_days: number;
+  client_signatory_name: string | null;
+  client_signatory_title: string | null;
+  standard_terms_version: string;
+  document_status: AgreementDocumentStatus;
+  agreement_document_id: string | null;
+  agreement_document_version: number;
+  generated_at: string | null;
+  sent_at: string | null;
+  signed_at: string | null;
   cancellation_reason: string | null;
   created_by: string | null;
   created_at: string;
@@ -102,6 +123,12 @@ export type FeeAgreementInsert = Pick<
   | 'valid_from'
   | 'valid_until'
   | 'notes'
+  | 'service_category'
+  | 'service_subcategory'
+  | 'scope_items'
+  | 'payment_terms_days'
+  | 'client_signatory_name'
+  | 'client_signatory_title'
 > & {
   status?: FeeAgreementStatus;
 };
@@ -110,6 +137,12 @@ export type FeeAgreementUpdate = Partial<
   Omit<FeeAgreementInsert, 'client_id' | 'case_id'>
 > & {
   cancellation_reason?: string | null;
+  document_status?: AgreementDocumentStatus;
+  agreement_document_id?: string | null;
+  agreement_document_version?: number;
+  generated_at?: string | null;
+  sent_at?: string | null;
+  signed_at?: string | null;
 };
 
 export type FeeInstallmentInsert = Pick<
