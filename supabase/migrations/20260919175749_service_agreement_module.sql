@@ -83,9 +83,7 @@ end;
 $$;
 
 revoke all on function public.shab_validate_service_agreement_fields()
-from public, anon;
-grant execute on function public.shab_validate_service_agreement_fields()
-to authenticated;
+from public, anon, authenticated;
 
 drop trigger if exists shab_validate_service_agreement_fields_before_write
 on public.fee_agreements;
