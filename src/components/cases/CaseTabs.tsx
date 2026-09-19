@@ -13,6 +13,7 @@ import {
 
 import {
   Link,
+  useSearchParams,
 } from 'react-router-dom';
 
 import type { Case } from '../../types/case';
@@ -41,7 +42,7 @@ const tabs = [
   'Hearings',
   'Documents',
   'Tasks',
-  'Billing',
+  'Agreement & Billing',
   'Timeline',
   'Notes',
 ] as const;
@@ -57,7 +58,12 @@ export function CaseTabs({
   clientName,
   isAdministrator,
 }: CaseTabsProps) {
-  const [activeTab, setActiveTab] = useState<typeof tabs[number]>('Workspace');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<typeof tabs[number]>(
+    searchParams.get('tab') === 'agreement' && isAdministrator
+      ? 'Agreement & Billing'
+      : 'Workspace',
+  );
   const [hearings, setHearings] = useState<Hearing[]>([]);
   const [loadingHearings, setLoadingHearings] = useState(false);
   const [hearingError, setHearingError] =
@@ -851,7 +857,7 @@ export function CaseTabs({
           </div>
         );
 
-      case 'Billing':
+      case 'Agreement & Billing':
         if (!isAdministrator) {
           return null;
         }
@@ -860,6 +866,7 @@ export function CaseTabs({
           <CaseBillingWorkspace
             caseId={caseRecord.id}
             clientId={caseRecord.client_id}
+            caseReference={caseRecord.matter_number || caseRecord.case_number}
           />
         );
 
@@ -903,7 +910,7 @@ export function CaseTabs({
   return (
     <div className="case-tabs">
       <div className="case-tabs-navigation">
-        {tabs.filter((tab) => isAdministrator || tab !== 'Billing').map((tab) => (
+        {tabs.filter((tab) => isAdministrator || tab !== 'Agreement & Billing').map((tab) => (
           <button
             key={tab}
             type="button"
