@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Menu,
   ReceiptText,
+  ScrollText,
   Settings,
   Store,
   Users,
@@ -72,6 +73,12 @@ const navigationItems = [
     label: 'Documents',
     path: '/documents',
     icon: FolderOpen,
+  },
+  {
+    label: 'Agreements',
+    adminOnly: true,
+    path: '/agreements',
+    icon: ScrollText,
   },
   {
     label: 'Import Centre',
