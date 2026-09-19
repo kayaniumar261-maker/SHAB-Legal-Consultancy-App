@@ -57,6 +57,26 @@ export async function getFeeAgreements(options: {
   }));
 }
 
+export type ServiceAgreementRegisterRow = FeeAgreementWithInstallments & {
+  client?: { id: string; full_name: string; company_name: string | null } | null;
+  case?: { id: string; case_number: string | null; matter_number: string | null; case_type: string } | null;
+};
+
+export async function getServiceAgreementRegister(): Promise<ServiceAgreementRegisterRow[]> {
+  const rows = unwrap(await supabase
+    .from('fee_agreements')
+    .select(`*, installments:fee_installments(*), client:clients(id,full_name,company_name), case:cases(id,case_number,matter_number,case_type)`)
+    .order('agreement_date', { ascending: false })
+    .order('created_at', { ascending: false })) as ServiceAgreementRegisterRow[];
+
+  return rows.map((agreement) => ({
+    ...agreement,
+    installments: [...(agreement.installments ?? [])].sort(
+      (left, right) => left.sequence_number - right.sequence_number,
+    ),
+  }));
+}
+
 export async function createFeeAgreement(
   data: FeeAgreementInsert,
 ): Promise<FeeAgreement> {
