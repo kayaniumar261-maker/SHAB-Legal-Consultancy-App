@@ -130,7 +130,7 @@ export function DocumentDetailsModal({
       return 'image';
     }
 
-    if (document.mime_type === 'text/html') {
+    if (document.mime_type.startsWith('text/html')) {
       return 'html';
     }
 
