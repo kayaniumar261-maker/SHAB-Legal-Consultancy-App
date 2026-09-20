@@ -11,6 +11,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import type {
   DocumentWithRelations,
 } from '../../types/document';
@@ -233,7 +234,7 @@ export function DocumentDetailsModal({
     document?.document_type ||
     getFileTypeLabel(document?.mime_type);
 
-  return (
+  return createPortal(
     <div className="document-details-layer" role="presentation">
       <button
         type="button"
@@ -446,7 +447,8 @@ export function DocumentDetailsModal({
           </div>
         </footer>
       </section>
-    </div>
+    </div>,
+    window.document.body,
   );
 }
 
