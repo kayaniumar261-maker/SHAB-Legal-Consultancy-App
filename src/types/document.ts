@@ -20,6 +20,7 @@ export interface Document {
   description: string | null;
 
   uploaded_by: string | null;
+  uploaded_by_name: string | null;
 
   created_at: string;
   updated_at: string;
@@ -30,6 +31,7 @@ export type DocumentInsert = Omit<
   'id' | 'created_at' | 'updated_at'
 > & {
   uploaded_by?: string | null;
+  uploaded_by_name?: string | null;
 };
 
 export type DocumentUpdate = Partial<

@@ -1708,9 +1708,9 @@ function ClientDocumentsTab({
                     </span>
                   </td>
                   <td>
-                    {document.uploaded_by_staff
-                      ?.full_name ??
-                      document.uploaded_by ??
+                    {document.uploaded_by_name ??
+                      document.uploaded_by_staff
+                        ?.full_name ??
                       'Unknown'}
                   </td>
                   <td>

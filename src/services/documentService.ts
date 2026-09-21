@@ -62,8 +62,10 @@ function createStoragePath(
   clientId?: string | null,
 ): string {
   const ownerFolder =
-    caseId
-      ? `cases/${caseId}`
+    clientId && caseId
+      ? `clients/${clientId}/cases/${caseId}`
+      : caseId
+        ? `cases/${caseId}`
       : clientId
         ? `clients/${clientId}`
         : 'general';
@@ -388,6 +390,8 @@ export async function uploadDocument(
       uploaded_by:
         authData.user?.id ??
         null,
+
+      uploaded_by_name: null,
     };
 
     return await createDocument(insertData);

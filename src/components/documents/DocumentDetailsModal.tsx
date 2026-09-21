@@ -306,7 +306,9 @@ export function DocumentDetailsModal({
                 <div className="document-summary-field">
                   <span>Uploaded by</span>
                   <strong>
-                    {document.uploaded_by_staff?.full_name ?? document.uploaded_by ?? 'Unknown'}
+                    {document.uploaded_by_name ??
+                      document.uploaded_by_staff?.full_name ??
+                      'Unknown'}
                   </strong>
                 </div>
 

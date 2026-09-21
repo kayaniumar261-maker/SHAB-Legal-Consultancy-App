@@ -2,6 +2,10 @@ import {
   Download,
   Eye,
   FileText,
+  Folder,
+  FolderOpen,
+  LayoutGrid,
+  List,
   LockKeyhole,
   Plus,
   Search,
@@ -56,6 +60,17 @@ type UploadFormState = {
   case_id: string;
   description: string;
   is_confidential: boolean;
+};
+
+type DocumentFolder = {
+  id: string;
+  name: string;
+  cases: Array<{
+    id: string;
+    name: string;
+    documents: DocumentWithRelations[];
+  }>;
+  documentCount: number;
 };
 
 const emptyUploadForm: UploadFormState = {
@@ -135,6 +150,9 @@ export function Documents() {
 
   const [actionDocumentId, setActionDocumentId] =
     useState<string | null>(null);
+
+  const [viewMode, setViewMode] =
+    useState<'folders' | 'list'>('folders');
 
   const [detailsError, setDetailsError] =
     useState<string | null>(null);
@@ -301,6 +319,74 @@ export function Documents() {
     1,
     Math.ceil(totalCount / PAGE_SIZE),
   );
+
+  const documentFolders = useMemo<DocumentFolder[]>(() => {
+    const clientFolders = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        cases: Map<
+          string,
+          {
+            id: string;
+            name: string;
+            documents: DocumentWithRelations[];
+          }
+        >;
+      }
+    >();
+
+    documents.forEach((document) => {
+      const clientId = document.client?.id ?? 'unlinked';
+      const clientName = document.client?.full_name ?? 'Unlinked documents';
+      const caseId = document.case?.id ?? 'client-files';
+      const caseName = document.case
+        ? document.case.case_number || document.case.case_type
+        : 'General client documents';
+
+      let clientFolder = clientFolders.get(clientId);
+
+      if (!clientFolder) {
+        clientFolder = {
+          id: clientId,
+          name: clientName,
+          cases: new Map(),
+        };
+        clientFolders.set(clientId, clientFolder);
+      }
+
+      let caseFolder = clientFolder.cases.get(caseId);
+
+      if (!caseFolder) {
+        caseFolder = {
+          id: caseId,
+          name: caseName,
+          documents: [],
+        };
+        clientFolder.cases.set(caseId, caseFolder);
+      }
+
+      caseFolder.documents.push(document);
+    });
+
+    return Array.from(clientFolders.values())
+      .map((clientFolder) => {
+        const caseFolders = Array.from(clientFolder.cases.values())
+          .sort((left, right) => left.name.localeCompare(right.name));
+
+        return {
+          id: clientFolder.id,
+          name: clientFolder.name,
+          cases: caseFolders,
+          documentCount: caseFolders.reduce(
+            (total, caseFolder) => total + caseFolder.documents.length,
+            0,
+          ),
+        };
+      })
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }, [documents]);
 
   const clearFilters = () => {
     setSearch('');
@@ -726,6 +812,27 @@ export function Documents() {
             Clear filters
           </button>
         )}
+
+        <div className="documents-view-switch" aria-label="Document view">
+          <button
+            type="button"
+            className={viewMode === 'folders' ? 'active' : ''}
+            onClick={() => setViewMode('folders')}
+            aria-pressed={viewMode === 'folders'}
+          >
+            <LayoutGrid size={15} />
+            Folders
+          </button>
+          <button
+            type="button"
+            className={viewMode === 'list' ? 'active' : ''}
+            onClick={() => setViewMode('list')}
+            aria-pressed={viewMode === 'list'}
+          >
+            <List size={15} />
+            List
+          </button>
+        </div>
       </section>
 
       {error && (
@@ -737,7 +844,115 @@ export function Documents() {
         </div>
       )}
 
-      <section className="documents-table-wrapper">
+      {viewMode === 'folders' && (
+        <section className="documents-folder-view">
+          {loading ? (
+            <div className="documents-folder-state">Loading folders…</div>
+          ) : documentFolders.length === 0 ? (
+            <div className="documents-folder-state">No documents found.</div>
+          ) : (
+            documentFolders.map((clientFolder) => (
+              <details
+                className="documents-client-folder"
+                key={clientFolder.id}
+                open
+              >
+                <summary>
+                  <span className="documents-folder-icon">
+                    <FolderOpen size={21} />
+                  </span>
+                  <span>
+                    <strong>{clientFolder.name}</strong>
+                    <small>
+                      {clientFolder.documentCount}{' '}
+                      {clientFolder.documentCount === 1
+                        ? 'document'
+                        : 'documents'}
+                    </small>
+                  </span>
+                </summary>
+
+                <div className="documents-case-folders">
+                  {clientFolder.cases.map((caseFolder) => (
+                    <details
+                      className="documents-case-folder"
+                      key={caseFolder.id}
+                      open
+                    >
+                      <summary>
+                        <Folder size={18} />
+                        <strong>{caseFolder.name}</strong>
+                        <small>{caseFolder.documents.length}</small>
+                      </summary>
+
+                      <div className="documents-folder-files">
+                        {caseFolder.documents.map((document) => {
+                          const actionLoading = actionDocumentId === document.id;
+
+                          return (
+                            <article
+                              className="documents-folder-file"
+                              key={document.id}
+                            >
+                              <div className="document-file-icon">
+                                <FileText size={18} />
+                              </div>
+                              <div className="documents-folder-file-main">
+                                <strong>{document.name}</strong>
+                                <span>
+                                  {document.document_type ??
+                                    getFileTypeLabel(document.mime_type)}
+                                  {' · '}
+                                  {formatFileSize(document.size_bytes)}
+                                  {' · '}Uploaded by{' '}
+                                  {document.uploaded_by_name ??
+                                    document.uploaded_by_staff?.full_name ??
+                                    'Unknown'}
+                                </span>
+                              </div>
+                              <time>{formatDate(document.created_at)}</time>
+                              <div className="document-actions">
+                                <button
+                                  type="button"
+                                  onClick={() => handleShowDetails(document)}
+                                  disabled={actionLoading}
+                                  title="View details"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleDownload(document)}
+                                  disabled={actionLoading}
+                                  title="Download"
+                                >
+                                  <Download size={16} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="danger"
+                                  onClick={() => void beginDelete(document)}
+                                  disabled={actionLoading}
+                                  title={administrator ? 'Delete' : 'Request deletion'}
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </details>
+            ))
+          )}
+        </section>
+      )}
+
+      {viewMode === 'list' && (
+        <section className="documents-table-wrapper">
         <table className="documents-table">
           <thead>
             <tr>
@@ -748,6 +963,7 @@ export function Documents() {
               <th>Privacy</th>
               <th>Size</th>
               <th>Uploaded</th>
+              <th>Uploaded by</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -756,7 +972,7 @@ export function Documents() {
             {loading ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={9}
                   className="documents-state-cell"
                 >
                   Loading documents…
@@ -765,7 +981,7 @@ export function Documents() {
             ) : documents.length === 0 ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={9}
                   className="documents-state-cell"
                 >
                   No documents found.
@@ -842,6 +1058,12 @@ export function Documents() {
                     </td>
 
                     <td>
+                      {document.uploaded_by_name ??
+                        document.uploaded_by_staff?.full_name ??
+                        'Unknown'}
+                    </td>
+
+                    <td>
                       <div className="document-actions">
                         <button
                           type="button"
@@ -890,7 +1112,8 @@ export function Documents() {
             )}
           </tbody>
         </table>
-      </section>
+        </section>
+      )}
 
       {totalPages > 1 && (
         <section className="documents-pagination">
