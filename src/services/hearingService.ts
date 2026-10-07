@@ -16,6 +16,16 @@ import type {
   HearingFilterOptions,
 } from '../types/hearing';
 
+// Keep the hearing visible even when its linked case is unavailable under RLS.
+const HEARING_CASE_SELECT = `
+  case:cases (
+    case_number,
+    matter_number,
+    court_case_number,
+    client:clients (full_name)
+  )
+`;
+
 function handleError<T>(result: {
   error: PostgrestError | null;
   data: T | null;
@@ -127,7 +137,8 @@ export async function getHearings(
         reminder_minutes,
         created_by,
         created_at,
-        updated_at
+        updated_at,
+        ${HEARING_CASE_SELECT}
       `,
       {
         count: 'exact',
@@ -200,12 +211,13 @@ export async function getHearings(
     .order('hearing_at', {
       ascending: true,
     })
-    .range(from, to);
+    .range(from, to)
+    .overrideTypes<Hearing[], { merge: false }>();
 
   const data = handleError(result);
 
   return {
-    data: data as Hearing[],
+    data,
     count: result.count ?? 0,
   };
 }
@@ -219,9 +231,10 @@ export async function getHearingById(
 ): Promise<Hearing | null> {
   const result = await supabase
     .from('hearings')
-    .select('*')
+    .select(`*, ${HEARING_CASE_SELECT}`)
     .eq('id', id)
-    .single();
+    .single()
+    .overrideTypes<Hearing, { merge: false }>();
 
   if (result.error) {
     if (result.error.code === 'PGRST116') {

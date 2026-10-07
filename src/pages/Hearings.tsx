@@ -61,6 +61,7 @@ import {
 import { DeletionRequestModal } from '../components/staff/DeletionRequestModal';
 import { useAccessProfile } from '../hooks/useAccessProfile';
 import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
+import { getHearingCaseReference } from '../utils/hearingReference';
 
 import './Hearings.css';
 
@@ -1532,8 +1533,14 @@ export function Hearings() {
 
                           <p>
                             Case reference:{' '}
-                            {hearing.case_id}
+                            {getHearingCaseReference(hearing)}
                           </p>
+                          {hearing.case?.matter_number?.trim() && (
+                            <p>Matter reference: {hearing.case.matter_number}</p>
+                          )}
+                          {hearing.case?.client?.full_name?.trim() && (
+                            <p>Client: {hearing.case.client.full_name}</p>
+                          )}
                         </div>
                       </div>
 
