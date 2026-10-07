@@ -260,7 +260,7 @@ export async function getExpenseCaseOptions(clientId?: string): Promise<Array<{
 }>> {
   let query = supabase
     .from('cases')
-    .select('id, client_id, case_number, matter_number, case_type')
+    .select('id, client_id, case_number, court_case_number')
     .order('created_at', { ascending: false });
   if (clientId) query = query.eq('client_id', clientId);
   const { data, error } = await query;
@@ -268,6 +268,6 @@ export async function getExpenseCaseOptions(clientId?: string): Promise<Array<{
   return (data ?? []).map((caseRecord) => ({
     id: caseRecord.id,
     clientId: caseRecord.client_id,
-    label: caseRecord.matter_number ?? caseRecord.case_number ?? caseRecord.case_type ?? 'Legal matter',
+    label: caseRecord.court_case_number?.trim() || caseRecord.case_number?.trim() || 'Case number unavailable',
   }));
 }
