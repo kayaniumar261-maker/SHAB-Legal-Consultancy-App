@@ -1,7 +1,7 @@
 {
   "name": "shab-legal-consultancy-app",
   "private": true,
-  "version": "2.4.3",
+  "version": "2.4.4",
   "type": "module",
   "scripts": {
     "dev": "node ./scripts/start-dev.mjs --start",
@@ -31,7 +31,7 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
-    "electron": "^43.2.0",
+    "electron": "^43.7.8",
     "electron-builder": "^26.15.3",
     "typescript": "^5.7.2",
     "vite": "^6.0.3"
