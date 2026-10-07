@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import type { Hearing } from '../../types/hearing';
+import { getHearingCaseReference } from '../../utils/hearingReference';
 import './HearingDetailsModal.css';
 
 type HearingDetailsModalProps = {
@@ -13,8 +14,8 @@ type HearingDetailsModalProps = {
 
 export function HearingDetailsModal({
   hearing,
-  caseNumber,
-  clientName,
+  caseNumber = getHearingCaseReference(hearing),
+  clientName = hearing.case?.client?.full_name?.trim(),
   staffName,
   onClose,
 }: HearingDetailsModalProps) {
@@ -101,6 +102,12 @@ export function HearingDetailsModal({
               <div className="hearing-details-row">
                 <span className="hearing-details-label">Client</span>
                 <span className="hearing-details-value">{clientName}</span>
+              </div>
+            )}
+            {hearing.case?.matter_number?.trim() && (
+              <div className="hearing-details-row">
+                <span className="hearing-details-label">Matter Reference</span>
+                <span className="hearing-details-value">{hearing.case.matter_number}</span>
               </div>
             )}
           </div>
