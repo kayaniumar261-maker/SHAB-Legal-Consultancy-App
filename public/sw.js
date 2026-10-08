@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shab-legal-shell-v10';
+const CACHE_NAME = 'shab-legal-shell-v11';
 
 const SHELL_ASSETS = [
   '/offline.html',
@@ -25,7 +25,7 @@ self.addEventListener('activate', (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key !== CACHE_NAME)
+            .filter((key) => key.startsWith('shab-legal-shell-') && key !== CACHE_NAME)
             .map((key) => caches.delete(key))
         )
       )

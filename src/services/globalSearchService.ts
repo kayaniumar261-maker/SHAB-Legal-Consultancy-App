@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { containsFilterValue } from '../utils/searchFilter';
 
 export type GlobalSearchCategory =
   | 'Clients'
@@ -26,7 +27,6 @@ export type GlobalSearchResponse = {
 function sanitiseSearch(value: string): string {
   return value
     .trim()
-    .replace(/[%_,]/g, ' ')
     .replace(/\s+/g, ' ');
 }
 
@@ -43,7 +43,7 @@ export async function searchEverything(
     };
   }
 
-  const term = `%${search}%`;
+  const term = containsFilterValue(search);
 
   const searches = await Promise.allSettled([
     supabase

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 import { FilePlus2, ScrollText, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getServiceAgreementRegister, type ServiceAgreementRegisterRow } from '../services/feeAgreementService';
@@ -10,14 +11,16 @@ export function ServiceAgreements() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let active = true;
-    getServiceAgreementRegister()
-      .then((data) => { if (active) setRows(data); })
-      .catch((reason) => { if (active) setError(reason instanceof Error ? reason.message : 'Unable to load agreements.'); })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+  const load = useCallback(async () => {
+    try {
+      setError(null); setLoading(true);
+      setRows(await getServiceAgreementRegister());
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Unable to load agreements.');
+    } finally { setLoading(false); }
   }, []);
+  useEffect(() => { void load(); }, [load]);
+  useRealtimeRefresh(['fee_agreements', 'fee_installments', 'clients', 'cases'], load);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();

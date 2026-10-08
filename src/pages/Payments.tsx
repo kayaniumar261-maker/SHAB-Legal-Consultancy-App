@@ -112,6 +112,7 @@ import {
 } from '../components/documents/PaymentReversalDocument';
 
 import './Payments.css';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 
 const PAGE_SIZE = 12;
 
@@ -697,6 +698,7 @@ export function Payments() {
   useEffect(() => {
     void loadFinanceData();
   }, [loadFinanceData]);
+  useRealtimeRefresh(['invoices', 'payments', 'credit_notes', 'payment_reversals', 'client_fund_receipts', 'payment_allocations', 'payment_allocation_reversals', 'client_fund_reversals'], loadFinanceData);
 
   useEffect(() => {
     setSearch('');

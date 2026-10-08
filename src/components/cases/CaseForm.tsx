@@ -26,6 +26,8 @@ import type {
 import type { Client } from '../../types/client';
 import type { Staff } from '../../types/staff';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus';
+import { useAuth } from '../../hooks/useAuth';
+import { draftKeyForUser } from '../../utils/draftStorage';
 import './CaseForm.css';
 
 type CaseStatus =
@@ -311,6 +313,7 @@ function loadSavedCaseDraft(
   storageKey: string,
   fallback: FormState,
 ): FormState {
+  if (!storageKey) return fallback;
   try {
     const saved =
       window.localStorage.getItem(storageKey);
@@ -332,6 +335,7 @@ function saveCaseDraft(
   storageKey: string,
   state: FormState,
 ): void {
+  if (!storageKey) return;
   try {
     window.localStorage.setItem(
       storageKey,
@@ -345,6 +349,7 @@ function saveCaseDraft(
 function clearCaseDraft(
   storageKey: string,
 ): void {
+  if (!storageKey) return;
   try {
     window.localStorage.removeItem(storageKey);
   } catch {
@@ -487,10 +492,12 @@ export function CaseForm({
   submitLabel,
   initialClientId,
 }: CaseFormProps) {
-  const draftStorageKey =
+  const { user } = useAuth();
+  const draftStorageKey = draftKeyForUser(user?.id,
     caseRecord?.id
       ? `shab-case-form-draft-${caseRecord.id}`
-      : `shab-case-form-draft-new-${initialClientId || 'unassigned'}`;
+      : `shab-case-form-draft-new-${initialClientId || 'unassigned'}`);
+  const [hydratedDraftKey, setHydratedDraftKey] = useState<string | null>(null);
 
   const [formState, setFormState] = useState<FormState>(
     () => {
@@ -535,6 +542,7 @@ export function CaseForm({
         fallback,
       ),
     );
+    setHydratedDraftKey(draftStorageKey);
   }, [
     caseRecord,
     draftStorageKey,
@@ -542,6 +550,7 @@ export function CaseForm({
   ]);
 
   useEffect(() => {
+    if (!draftStorageKey || hydratedDraftKey !== draftStorageKey) return;
     saveCaseDraft(
       draftStorageKey,
       formState,
@@ -549,6 +558,7 @@ export function CaseForm({
   }, [
     draftStorageKey,
     formState,
+    hydratedDraftKey,
   ]);
 
   const clientOptions = useMemo(

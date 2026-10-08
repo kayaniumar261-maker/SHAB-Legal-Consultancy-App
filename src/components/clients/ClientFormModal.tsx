@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Client } from '../../types/client';
 import type { ClientInsert, ClientUpdate } from '../../services/clientService';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus';
+import { useAuth } from '../../hooks/useAuth';
+import { draftKeyForUser } from '../../utils/draftStorage';
 import './ClientFormModal.css';
 
 type ClientFormModalProps = {
@@ -50,6 +52,7 @@ function loadSavedClientDraft(
   storageKey: string,
   fallback: FormState,
 ): FormState {
+  if (!storageKey) return fallback;
   try {
     const saved = window.localStorage.getItem(storageKey);
 
@@ -70,6 +73,7 @@ function saveClientDraft(
   storageKey: string,
   state: FormState,
 ): void {
+  if (!storageKey) return;
   try {
     window.localStorage.setItem(
       storageKey,
@@ -81,6 +85,7 @@ function saveClientDraft(
 }
 
 function clearClientDraft(storageKey: string): void {
+  if (!storageKey) return;
   try {
     window.localStorage.removeItem(storageKey);
   } catch {
@@ -95,9 +100,10 @@ export function ClientFormModal({
   onSave,
   loading,
 }: ClientFormModalProps) {
-  const draftStorageKey = client?.id
+  const { user } = useAuth();
+  const draftStorageKey = draftKeyForUser(user?.id, client?.id
     ? `shab-client-form-draft-${client.id}`
-    : 'shab-client-form-draft-new';
+    : 'shab-client-form-draft-new');
 
   const [formState, setFormState] = useState<FormState>(() =>
     loadSavedClientDraft(draftStorageKey, emptyState),

@@ -56,8 +56,8 @@ export function useRealtimeRefresh(
 
       refreshPending = false;
 
-      void Promise.resolve(
-        callbackRef.current(),
+      void Promise.resolve().then(
+        () => active && callbackRef.current(),
       ).catch((error) => {
         console.error(
           'Realtime screen refresh failed:',
@@ -131,13 +131,20 @@ export function useRealtimeRefresh(
             reconnectTimer = null;
           }
 
+          if (refreshPending) {
+            scheduleRefresh();
+          }
+
           return;
         }
 
         if (
           status === 'CHANNEL_ERROR' ||
-          status === 'TIMED_OUT'
+          status === 'TIMED_OUT' ||
+          status === 'CLOSED'
         ) {
+          // Changes during an outage cannot be replayed by this subscription.
+          refreshPending = true;
           if (reconnectTimer !== null) {
             return;
           }
@@ -172,9 +179,6 @@ export function useRealtimeRefresh(
           if (canConnect()) {
             startChannel();
 
-            if (refreshPending) {
-              scheduleRefresh();
-            }
           }
         });
     };

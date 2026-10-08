@@ -41,19 +41,15 @@ export function Login() {
     setError(null);
     setLoading(true);
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (signInError) {
-      setError(signInError.message);
-      return;
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (signInError) throw signInError;
+      navigate('/', { replace: true });
+    } catch (signInError) {
+      setError(signInError instanceof Error ? signInError.message : 'Unable to sign in. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    navigate('/', { replace: true });
   }
 
   async function handlePasswordReset() {
@@ -107,6 +103,7 @@ export function Login() {
           <input
             id="email"
             type="email"
+            autoComplete="username"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="login-input"
@@ -120,6 +117,7 @@ export function Login() {
           <input
             id="password"
             type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className="login-input"

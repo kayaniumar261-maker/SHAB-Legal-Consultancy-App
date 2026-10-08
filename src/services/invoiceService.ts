@@ -1,6 +1,7 @@
 import type { PostgrestError } from '@supabase/supabase-js';
 
 import { supabase } from '../lib/supabase';
+import { readAllRows } from './paginatedRead';
 
 import type {
   Invoice,
@@ -212,11 +213,7 @@ export async function getFinanceSummary(
     );
   }
 
-  const result = await query;
-
-  const rows = handleError(
-    result,
-  ) as FinanceSummaryRow[];
+  const rows = await readAllRows<FinanceSummaryRow>(() => query.order('id'));
 
   const today = new Date();
 
@@ -253,6 +250,7 @@ export async function getFinanceSummary(
       '';
 
     if (
+      status === 'draft' ||
       status === 'cancelled' ||
       status === 'written_off'
     ) {

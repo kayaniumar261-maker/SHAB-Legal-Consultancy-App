@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { readAllRows } from './paginatedRead';
 import type { CreditNote } from '../types/creditNote';
 import type { Invoice } from '../types/invoice';
 import type { Payment } from '../types/payment';
@@ -53,38 +54,20 @@ async function getFinanceSummaries(
     return {};
   }
 
-  const [invoiceResult, paymentResult, creditNoteResult] =
+  const [invoices, payments, creditNotes] =
     await Promise.all([
-      supabase.from('invoices').select('*').in(scopeField, uniqueIds),
-      supabase.from('payments').select('*').in(scopeField, uniqueIds),
-      supabase.from('credit_notes').select('*').in(scopeField, uniqueIds),
+      readAllRows<Invoice>(() => supabase.from('invoices').select('*').in(scopeField, uniqueIds).order('id')),
+      readAllRows<Payment>(() => supabase.from('payments').select('*').in(scopeField, uniqueIds).order('id')),
+      readAllRows<CreditNote>(() => supabase.from('credit_notes').select('*').in(scopeField, uniqueIds).order('id')),
     ]);
-
-  const error =
-    invoiceResult.error ?? paymentResult.error ?? creditNoteResult.error;
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const invoices = (invoiceResult.data ?? []) as Invoice[];
-  const payments = (paymentResult.data ?? []) as Payment[];
-  const creditNotes = (creditNoteResult.data ?? []) as CreditNote[];
   const invoiceIds = invoices.map((invoice) => invoice.id);
   let paymentReversals: PaymentReversal[] = [];
 
   if (invoiceIds.length > 0) {
-    const reversalResult = await supabase
+    paymentReversals = await readAllRows<PaymentReversal>(() => supabase
       .from('payment_reversals')
       .select('*')
-      .in('invoice_id', invoiceIds);
-
-    if (reversalResult.error) {
-      throw new Error(reversalResult.error.message);
-    }
-
-    paymentReversals =
-      (reversalResult.data ?? []) as PaymentReversal[];
+      .in('invoice_id', invoiceIds).order('id'));
   }
 
   let clientFundReceipts: ClientFundReceipt[] = [];
@@ -93,24 +76,16 @@ async function getFinanceSummaries(
   let paymentAllocationReversals: PaymentAllocationReversal[] = [];
 
   if (scopeField === 'client_id') {
-    const receiptResult = await supabase.from('client_fund_receipts').select('*').in('client_id', uniqueIds);
-    if (receiptResult.error) throw new Error(receiptResult.error.message);
-    clientFundReceipts = (receiptResult.data ?? []) as ClientFundReceipt[];
+    clientFundReceipts = await readAllRows<ClientFundReceipt>(() => supabase.from('client_fund_receipts').select('*').in('client_id', uniqueIds).order('id'));
     const receiptIds = clientFundReceipts.map((receipt) => receipt.id);
     if (receiptIds.length > 0) {
-      const result = await supabase.from('client_fund_reversals').select('*').in('receipt_id', receiptIds);
-      if (result.error) throw new Error(result.error.message);
-      clientFundReversals = (result.data ?? []) as ClientFundReversal[];
+      clientFundReversals = await readAllRows<ClientFundReversal>(() => supabase.from('client_fund_reversals').select('*').in('receipt_id', receiptIds).order('id'));
     }
   } else if (invoiceIds.length > 0) {
-    const allocationResult = await supabase.from('payment_allocations').select('*').in('invoice_id', invoiceIds);
-    if (allocationResult.error) throw new Error(allocationResult.error.message);
-    paymentAllocations = (allocationResult.data ?? []) as PaymentAllocation[];
+    paymentAllocations = await readAllRows<PaymentAllocation>(() => supabase.from('payment_allocations').select('*').in('invoice_id', invoiceIds).order('id'));
     const allocationIds = paymentAllocations.map((allocation) => allocation.id);
     if (allocationIds.length > 0) {
-      const result = await supabase.from('payment_allocation_reversals').select('*').in('allocation_id', allocationIds);
-      if (result.error) throw new Error(result.error.message);
-      paymentAllocationReversals = (result.data ?? []) as PaymentAllocationReversal[];
+      paymentAllocationReversals = await readAllRows<PaymentAllocationReversal>(() => supabase.from('payment_allocation_reversals').select('*').in('allocation_id', allocationIds).order('id'));
     }
   }
 
@@ -154,8 +129,12 @@ async function getFinanceSummaries(
       const fundCurrencies = scopeField === 'client_id'
         ? scopedReceipts.map((row) => row.currency)
         : scopedAllocations.map((row) => scopedInvoices.find((invoice) => invoice.id === row.invoice_id)?.currency);
+      const hasFinancialRecords =
+        scopedInvoices.some((row) => !['draft', 'cancelled', 'written_off'].includes(row.status)) ||
+        scopedPayments.some((row) => ['completed', 'refunded'].includes(row.status)) ||
+        scopedCreditNotes.some((row) => row.status === 'issued') || scopedReversals.length > 0;
       const currencies = new Set([
-        ...(summary.currency ? [summary.currency] : []),
+        ...(summary.currency && hasFinancialRecords ? [summary.currency] : []),
         ...fundCurrencies.map((value) => value?.trim().toUpperCase()).filter((value): value is string => Boolean(value)),
       ]);
       const grossCollected = summary.grossCollected + fundGross;

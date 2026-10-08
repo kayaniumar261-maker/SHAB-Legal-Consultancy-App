@@ -17,23 +17,30 @@ export function useAuth(): AuthResult {
 
   useEffect(() => {
     let active = true;
+    let authEventReceived = false;
 
     async function loadSession() {
-      const { data } = await supabase.auth.getSession();
-
-      if (!active) {
-        return;
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (!active || authEventReceived) return;
+        if (error) throw error;
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+      } catch (error) {
+        if (!active || authEventReceived) return;
+        console.error('Unable to restore session:', error);
+        setSession(null); setUser(null);
+      } finally {
+        if (active && !authEventReceived) setLoading(false);
       }
-
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
     }
 
     loadSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_, session) => {
+        if (!active) return;
+        authEventReceived = true;
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -47,7 +54,8 @@ export function useAuth(): AuthResult {
   }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   }, []);
 
   return {

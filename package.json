@@ -16,7 +16,8 @@
     "desktop:pack": "npm run build && electron-builder --win nsis --x64 --publish never",
     "desktop:release": "npm run build && electron-builder --win nsis --x64 --publish always",
     "check:navigation": "node scripts/check-navigation.mjs",
-    "check:realtime": "node scripts/check-realtime.mjs"
+    "check:realtime": "node scripts/check-realtime.mjs",
+    "check:behavior": "node scripts/check-app-behavior.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",

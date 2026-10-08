@@ -1,8 +1,10 @@
 const { app, BrowserWindow, shell } = require('electron');
 const path = require('node:path');
 const { startDesktopUpdater } = require('./updater.cjs');
+const { isExternalWebUrl, isAppDocument } = require('./navigation.cjs');
 
 const createMainWindow = () => {
+  const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
   const mainWindow = new BrowserWindow({
     width: 1440,
     height: 920,
@@ -25,15 +27,23 @@ const createMainWindow = () => {
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('https://') || url.startsWith('http://')) {
-      void shell.openExternal(url);
+    if (isExternalWebUrl(url)) {
+      void shell.openExternal(url).catch((error) => console.error('Unable to open external link:', error));
     }
 
     return { action: 'deny' };
   });
 
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (isAppDocument(url, indexPath)) return;
+    event.preventDefault();
+    if (isExternalWebUrl(url)) {
+      void shell.openExternal(url).catch((error) => console.error('Unable to open external link:', error));
+    }
+  });
+
   void mainWindow.loadFile(
-    path.join(__dirname, '..', 'dist', 'index.html'),
+    indexPath,
   );
 };
 

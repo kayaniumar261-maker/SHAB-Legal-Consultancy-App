@@ -1,6 +1,7 @@
 import type { PostgrestError } from '@supabase/supabase-js';
 
 import { supabase } from '../lib/supabase';
+import { containsFilterValue } from '../utils/searchFilter';
 import type { Client } from '../types/client';
 
 export type ClientRiskLevel = 'low' | 'medium' | 'high';
@@ -123,12 +124,6 @@ function handleError<T>(
   return result.data;
 }
 
-function escapeSearchTerm(value: string): string {
-  return value
-    .replace(/[%_]/g, (match) => `\\${match}`)
-    .replace(/,/g, '\\,');
-}
-
 function normalizePage(value: number | undefined): number {
   if (!value || !Number.isFinite(value)) {
     return 1;
@@ -174,7 +169,7 @@ export async function getClients(
   const trimmedSearch = search?.trim();
 
   if (trimmedSearch) {
-    const term = `%${escapeSearchTerm(trimmedSearch)}%`;
+    const term = containsFilterValue(trimmedSearch);
 
     query = query.or(
       [
