@@ -1,1 +1,3 @@
-/* /index.html 200
+# SPA fallback is handled by assets.not_found_handling in wrangler.json.
+# Cloudflare Pages also supplies SPA fallback when no top-level 404.html exists.
+# Do not add a catch-all /index.html rewrite: Workers rejects it as a loop.
