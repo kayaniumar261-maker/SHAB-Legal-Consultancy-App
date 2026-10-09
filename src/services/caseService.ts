@@ -1,6 +1,7 @@
 import type { PostgrestError } from '@supabase/supabase-js';
 
 import { supabase } from '../lib/supabase';
+import { containsFilterValue } from '../utils/searchFilter';
 import { getCaseFinanceSummaries } from './financeSummaryService';
 import type { Client } from '../types/client';
 import type {
@@ -165,7 +166,7 @@ export async function getCases(
   }
 
   if (search?.trim()) {
-    const term = `%${search.trim()}%`;
+    const term = containsFilterValue(search);
 
     query.or(
       [

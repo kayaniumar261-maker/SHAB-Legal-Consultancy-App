@@ -63,6 +63,9 @@ jobs:
       - name: Verify realtime synchronization
         run: npm run check:realtime
 
+      - name: Verify application behavior
+        run: npm run check:behavior
+
       - name: Build Windows installer
         run: npm run desktop:pack
 

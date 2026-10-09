@@ -1,6 +1,7 @@
 import type { PostgrestError } from '@supabase/supabase-js';
 
 import { supabase } from '../lib/supabase';
+import { containsFilterValue } from '../utils/searchFilter';
 
 import type {
   Document,
@@ -156,16 +157,14 @@ export async function getDocuments(
   const trimmedSearch = search.trim();
 
   if (trimmedSearch) {
-    const safeSearch = trimmedSearch
-      .replace(/[%_]/g, '')
-      .replace(/,/g, ' ');
+    const term = containsFilterValue(trimmedSearch);
 
     query = query.or(
       [
-        `name.ilike.%${safeSearch}%`,
-        `document_type.ilike.%${safeSearch}%`,
-        `description.ilike.%${safeSearch}%`,
-        `mime_type.ilike.%${safeSearch}%`,
+        `name.ilike.${term}`,
+        `document_type.ilike.${term}`,
+        `description.ilike.${term}`,
+        `mime_type.ilike.${term}`,
       ].join(','),
     );
   }
@@ -509,6 +508,19 @@ export async function deleteDocument(
     document = documentOrId;
   }
 
+  // Authorize and commit the metadata deletion before removing the file.
+  // A rejected database delete must leave the document file intact.
+  const databaseResult = await supabase
+    .from('documents')
+    .delete()
+    .eq('id', document.id)
+    .select('id')
+    .single();
+
+  if (databaseResult.error) {
+    throw new Error(databaseResult.error.message);
+  }
+
   const storageResult =
     await supabase.storage
       .from(document.storage_bucket)
@@ -518,18 +530,7 @@ export async function deleteDocument(
 
   if (storageResult.error) {
     throw new Error(
-      storageResult.error.message,
-    );
-  }
-
-  const databaseResult = await supabase
-    .from('documents')
-    .delete()
-    .eq('id', document.id);
-
-  if (databaseResult.error) {
-    throw new Error(
-      databaseResult.error.message,
+      `The document record was deleted, but its file could not be removed. An administrator must clean up the stored file. ${storageResult.error.message}`,
     );
   }
 }

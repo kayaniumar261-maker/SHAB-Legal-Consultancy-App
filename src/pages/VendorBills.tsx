@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 import { AlertTriangle, CheckCircle2, Clock3, Eye, FileText, History, LoaderCircle, Search, Upload, WalletCards, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
@@ -34,6 +35,7 @@ export function VendorBills() {
     finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
+  useRealtimeRefresh(['expenses', 'expense_vendor_payments', 'expense_vendors'], load);
 
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();

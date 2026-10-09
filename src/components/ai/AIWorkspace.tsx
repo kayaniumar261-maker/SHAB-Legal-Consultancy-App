@@ -50,6 +50,8 @@ import {
 } from '../../services/aiService';
 
 import './AIWorkspace.css';
+import { useAuth } from '../../hooks/useAuth';
+import { draftKeyForUser } from '../../utils/draftStorage';
 
 type AIWorkspaceProps = {
   caseRecord: CaseWithRelations;
@@ -135,6 +137,8 @@ export function AIWorkspace({
   caseRecord,
   clientName,
 }: AIWorkspaceProps) {
+  const { user } = useAuth();
+  const [hydratedDraftKey, setHydratedDraftKey] = useState<string | null>(null);
   const [messages, setMessages] =
     useState<AIMessage[]>([
       {
@@ -149,11 +153,12 @@ export function AIWorkspace({
       },
     ]);
 
-  const draftStorageKey =
-    `shab-ai-draft-${caseRecord.id}`;
+  const draftStorageKey = draftKeyForUser(user?.id,
+    `shab-ai-draft-${caseRecord.id}`);
 
   const [input, setInput] =
     useState(() => {
+      if (!draftStorageKey) return '';
       try {
         return (
           window.localStorage.getItem(
@@ -197,6 +202,7 @@ export function AIWorkspace({
     useRef(1);
 
   useEffect(() => {
+    if (!draftStorageKey) { setInput(''); setHydratedDraftKey(null); return; }
     try {
       const savedDraft =
         window.localStorage.getItem(
@@ -207,9 +213,11 @@ export function AIWorkspace({
     } catch {
       setInput('');
     }
+    setHydratedDraftKey(draftStorageKey);
   }, [draftStorageKey]);
 
   useEffect(() => {
+    if (!draftStorageKey || hydratedDraftKey !== draftStorageKey) return;
     try {
       if (input.trim()) {
         window.localStorage.setItem(
@@ -227,9 +235,11 @@ export function AIWorkspace({
   }, [
     draftStorageKey,
     input,
+    hydratedDraftKey,
   ]);
 
   function clearSavedDraft() {
+    if (!draftStorageKey) return;
     try {
       window.localStorage.removeItem(
         draftStorageKey,

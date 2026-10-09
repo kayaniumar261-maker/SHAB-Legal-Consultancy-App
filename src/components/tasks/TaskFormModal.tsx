@@ -3,6 +3,8 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import type { Task, TaskInsert, TaskPriority, TaskStatus, TaskUpdate } from '../../types/task';
 import type { CaseOption, ClientOption, StaffOption } from '../../services/taskService';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus';
+import { useAuth } from '../../hooks/useAuth';
+import { draftKeyForUser } from '../../utils/draftStorage';
 import './TaskFormModal.css';
 
 export type TaskFormModalProps = {
@@ -47,6 +49,7 @@ function loadSavedTaskDraft(
   storageKey: string,
   fallback: FormState,
 ): FormState {
+  if (!storageKey) return fallback;
   try {
     const saved =
       window.localStorage.getItem(storageKey);
@@ -68,6 +71,7 @@ function saveTaskDraft(
   storageKey: string,
   state: FormState,
 ): void {
+  if (!storageKey) return;
   try {
     window.localStorage.setItem(
       storageKey,
@@ -81,6 +85,7 @@ function saveTaskDraft(
 function clearTaskDraft(
   storageKey: string,
 ): void {
+  if (!storageKey) return;
   try {
     window.localStorage.removeItem(storageKey);
   } catch {
@@ -100,14 +105,15 @@ export function TaskFormModal({
   onSave,
   loading,
 }: TaskFormModalProps) {
-  const draftStorageKey =
+  const { user } = useAuth();
+  const draftStorageKey = draftKeyForUser(user?.id,
     task?.id
       ? `shab-task-form-draft-${task.id}`
       : `shab-task-form-draft-new-${
           preselectedCaseId ??
           preselectedClientId ??
           'general'
-        }`;
+        }`);
 
   const [formState, setFormState] =
     useState<FormState>(() =>
@@ -118,12 +124,15 @@ export function TaskFormModal({
     );
 
   const [error, setError] = useState<string | null>(null);
+  const [hydratedDraftKey, setHydratedDraftKey] = useState<string | null>(null);
   const isOnline = useOnlineStatus();
 
   useEffect(() => {
     if (!open) {
       return;
     }
+
+    setHydratedDraftKey(draftStorageKey);
 
     if (task) {
       const fallback = {
@@ -198,7 +207,7 @@ export function TaskFormModal({
   ]);
 
   useEffect(() => {
-    if (!open) {
+    if (!open || !draftStorageKey || hydratedDraftKey !== draftStorageKey) {
       return;
     }
 
@@ -210,6 +219,7 @@ export function TaskFormModal({
     draftStorageKey,
     formState,
     open,
+    hydratedDraftKey,
   ]);
 
   useEffect(() => {

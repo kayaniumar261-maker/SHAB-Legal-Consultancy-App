@@ -1,0 +1,30 @@
+name: Application Quality
+
+on:
+  pull_request:
+    branches: [shab-2.0]
+  push:
+    branches: [shab-2.0]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      VITE_SUPABASE_URL: https://quality-check.supabase.co
+      VITE_SUPABASE_ANON_KEY: quality-check-public-placeholder
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check:navigation
+      - run: npm run check:realtime
+      - run: npm run check:behavior
+      - run: npm run build

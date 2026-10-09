@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 import {
   AlertTriangle,
   BookOpenCheck,
@@ -74,6 +75,7 @@ export function Accounting() {
   useEffect(() => {
     void load();
   }, [load]);
+  useRealtimeRefresh(['accounting_periods', 'company_settings'], load);
 
   const vatReady = Boolean(
     settings?.vat_registered &&

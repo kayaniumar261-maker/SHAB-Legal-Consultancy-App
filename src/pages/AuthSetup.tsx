@@ -39,18 +39,19 @@ export function AuthSetup() {
     }
 
     setLoading(true);
-    const { error: updateError } = await supabase.auth.updateUser({ password });
-    setLoading(false);
-
-    if (updateError) {
-      setError(updateError.message);
-      return;
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) throw updateError;
+      setSuccess(true);
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : 'Unable to save the password. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setSuccess(true);
   }
 
   if (authLoading) {
-    return <div className="login-loading-screen"><div className="login-loading-card"><p>Checking secure invitation???</p></div></div>;
+    return <div className="login-loading-screen"><div className="login-loading-card"><p>Checking secure invitation…</p></div></div>;
   }
 
   if (success) {
@@ -94,7 +95,7 @@ export function AuthSetup() {
           <label className="login-label" htmlFor="confirm-password">Confirm password</label>
           <input id="confirm-password" type="password" autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} className="login-input" required minLength={8} />
           {error ? <div className="login-error" role="alert">{error}</div> : null}
-          <button type="submit" className="login-submit" disabled={loading}>{loading ? 'Saving password???' : 'Save password'}</button>
+          <button type="submit" className="login-submit" disabled={loading}>{loading ? 'Saving password…' : 'Save password'}</button>
         </form>
       </div>
     </div>

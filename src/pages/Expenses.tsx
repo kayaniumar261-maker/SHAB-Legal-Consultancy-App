@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useRealtimeRefresh } from '../hooks/useRealtimeRefresh';
 import {
   AlertTriangle,
   Building2,
@@ -132,6 +133,7 @@ export function Expenses() {
   useEffect(() => {
     void load();
   }, [load]);
+  useRealtimeRefresh(['expenses', 'expense_vendors', 'clients', 'cases'], load);
 
   const visibleExpenses = useMemo(() => {
     const term = search.trim().toLowerCase();

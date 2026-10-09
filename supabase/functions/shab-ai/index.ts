@@ -72,9 +72,39 @@ Deno.serve(async (request: Request) => {
       );
     }
 
-    const body =
-      await request.json() as
-        AIRequestBody;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return jsonResponse({ error: 'The AI authentication service is not configured.' }, 503);
+    }
+    const authHeaders = { Authorization: authorization, apikey: supabaseAnonKey };
+    // Gateway JWT validation alone also accepts the project's anonymous key.
+    // Validate a user and current account access before any provider call.
+    const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: authHeaders, signal: AbortSignal.timeout(10_000),
+    });
+    const user = await safeJson(userResponse) as { id?: unknown } | null;
+    if (!userResponse.ok || typeof user?.id !== 'string') {
+      return jsonResponse({ error: 'Authentication is required.' }, 401);
+    }
+    const accessResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/shab_is_active_app_user`, {
+      method: 'POST',
+      headers: { ...authHeaders, 'Content-Type': 'application/json' },
+      body: '{}', signal: AbortSignal.timeout(10_000),
+    });
+    if (!accessResponse.ok || await safeJson(accessResponse) !== true) {
+      return jsonResponse({ error: 'An active SHAB account is required.' }, 403);
+    }
+    let body: AIRequestBody;
+    try {
+      const parsed = await request.json();
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        return jsonResponse({ error: 'A request object is required.' }, 400);
+      }
+      body = parsed as AIRequestBody;
+    } catch {
+      return jsonResponse({ error: 'A valid JSON request is required.' }, 400);
+    }
 
     const prompt =
       typeof body.prompt ===
@@ -247,7 +277,7 @@ Deno.serve(async (request: Request) => {
     }
 
     const parsedResponse =
-      responseBody as
+      (responseBody ?? {}) as
         OpenAIResponse;
 
     const outputText =
@@ -311,8 +341,7 @@ Deno.serve(async (request: Request) => {
     if (
       error instanceof
         DOMException &&
-      error.name ===
-        'AbortError'
+      ['AbortError', 'TimeoutError'].includes(error.name)
     ) {
       return jsonResponse(
         {

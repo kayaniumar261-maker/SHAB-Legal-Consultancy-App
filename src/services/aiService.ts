@@ -77,7 +77,7 @@ export async function requestAIResponse(
   }
 
   const data =
-    result.data as
+    (result.data ?? {}) as
       Partial<AIResponse> & {
         error?: unknown;
       };
