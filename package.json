@@ -1,7 +1,7 @@
 {
   "name": "shab-legal-consultancy-app",
   "private": true,
-  "version": "2.4.6",
+  "version": "2.4.7",
   "type": "module",
   "scripts": {
     "dev": "node ./scripts/start-dev.mjs --start",

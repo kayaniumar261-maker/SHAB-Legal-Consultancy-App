@@ -4,6 +4,7 @@ import {
   FormEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -138,6 +139,7 @@ export function Staff() {
     useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const dialogRef = useRef<HTMLElement>(null);
   const [editingStaff, setEditingStaff] =
     useState<StaffRecord | null>(null);
   const [formState, setFormState] =
@@ -164,6 +166,18 @@ export function Staff() {
   useEffect(() => {
     void loadStaff();
   }, []);
+
+  useEffect(() => {
+    if (!isFormOpen) return;
+    const trigger = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialogRef.current?.querySelector<HTMLInputElement>('#staff_full_name')?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (trigger?.isConnected) trigger.focus();
+    };
+  }, [isFormOpen]);
 
 
   const filteredStaff = useMemo(() => {
@@ -600,10 +614,34 @@ export function Staff() {
           }}
         >
           <section
+            ref={dialogRef}
             className="modal-card"
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-labelledby="staff-form-title"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                closeForm();
+              }
+              if (event.key !== 'Tab') return;
+              const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(
+                'button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex="0"]',
+              ));
+              const first = controls[0];
+              const last = controls[controls.length - 1];
+              if (!first) {
+                event.preventDefault();
+                event.currentTarget.focus();
+              } else if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+              } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+              }
+            }}
           >
             <div className="modal-header">
               <div>

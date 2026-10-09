@@ -1,0 +1,47 @@
+/* Eager defaults: controls must work on a cold load of every lazy route. */
+:where(.primary-action-button, .secondary-action-button) {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+}
+:where(.primary-action-button) {
+  border: 1px solid var(--shab-gold);
+  background: var(--shab-gold);
+  color: var(--shab-black);
+}
+:where(.secondary-action-button) {
+  border: 1px solid var(--shab-border);
+  background: #fff;
+  color: #374151;
+}
+:where(.icon-action-button) {
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--shab-border);
+  border-radius: 9px;
+  background: #fff;
+  color: #68707d;
+  cursor: pointer;
+}
+:where(.primary-action-button):hover:not(:disabled) { background: #d6b75d; }
+:where(.secondary-action-button, .icon-action-button):hover:not(:disabled) { background: #f8fafc; }
+:where(.icon-action-button.danger) { color: #b84b4b; }
+:where(.primary-action-button, .secondary-action-button, .icon-action-button):focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+}
+:where(.primary-action-button, .secondary-action-button, .icon-action-button):disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
