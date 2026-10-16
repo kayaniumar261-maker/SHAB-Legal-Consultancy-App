@@ -11,6 +11,9 @@ const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body)
 function allowedRedirect(value: string) {
   try {
     const candidate = new URL(value);
+    // The live Pages app is the canonical destination for staff password setup.
+    if (candidate.origin === 'https://shab-legal-consultancy-app.pages.dev' &&
+        candidate.pathname === '/auth/setup' && !candidate.search && !candidate.hash) return true;
     const configured = Deno.env.get('STAFF_AUTH_REDIRECT_URL')?.trim();
     if (configured) {
       const approved = new URL(configured);
