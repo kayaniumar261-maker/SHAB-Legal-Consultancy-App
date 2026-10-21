@@ -28,3 +28,32 @@ jobs:
       - run: npm run check:realtime
       - run: npm run check:behavior
       - run: npm run build
+      - run: npm run build:desktop
+
+  package-web:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/shab-2.0'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Validate production configuration
+        run: |
+          test -n "$VITE_SUPABASE_URL"
+          test -n "$VITE_SUPABASE_ANON_KEY"
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-artifact@v6
+        with:
+          name: SHAB-Web-Pages-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
