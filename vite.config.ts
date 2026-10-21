@@ -13,7 +13,8 @@ const isCodespaces = Boolean(
 );
 
 export default defineConfig({
-  base: './',
+  // Browser routes load assets from the site root. Desktop builds override this with --base=./.
+  base: '/',
   plugins: [react()],
   define: {
     __APP_VERSION__: JSON.stringify(appVersion),

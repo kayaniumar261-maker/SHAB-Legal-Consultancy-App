@@ -9,15 +9,16 @@
     "dev:clean": "node ./scripts/start-dev.mjs --clean",
     "start": "npm run dev",
     "healthcheck": "node ./scripts/start-dev.mjs --health",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/check-entry-assets.mjs",
     "preview": "vite preview",
     "dev:codespace": "node ./scripts/start-dev.mjs --start",
-    "desktop": "npm run build && electron .",
-    "desktop:pack": "npm run build && electron-builder --win nsis --x64 --publish never",
-    "desktop:release": "npm run build && electron-builder --win nsis --x64 --publish always",
+    "desktop": "npm run build:desktop && electron .",
+    "desktop:pack": "npm run build:desktop && electron-builder --win nsis --x64 --publish never",
+    "desktop:release": "npm run build:desktop && electron-builder --win nsis --x64 --publish always",
     "check:navigation": "node scripts/check-navigation.mjs",
     "check:realtime": "node scripts/check-realtime.mjs",
-    "check:behavior": "node scripts/check-app-behavior.mjs"
+    "check:behavior": "node scripts/check-app-behavior.mjs",
+    "build:desktop": "tsc -b && vite build --base=./ && node scripts/check-entry-assets.mjs --desktop"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",
