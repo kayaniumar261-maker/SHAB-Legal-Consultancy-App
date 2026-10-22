@@ -27,6 +27,7 @@ jobs:
       - run: npm run check:navigation
       - run: npm run check:realtime
       - run: npm run check:behavior
+      - run: npm run check:localization
       - run: npm run build
       - run: npm run build:desktop
 

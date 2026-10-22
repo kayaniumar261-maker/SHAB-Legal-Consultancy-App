@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale, trEnum } from '../../i18n/locale';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
@@ -67,7 +68,7 @@ const billingModels: Array<{ value: FeeBillingModel; label: string }> = [
 const today = () => new Date().toISOString().slice(0, 10);
 
 const money = (amount: number, currency: string) =>
-  new Intl.NumberFormat('en-AE', {
+  new Intl.NumberFormat(getLocale("en-AE"), {
     style: 'currency',
     currency,
     maximumFractionDigits: 2,
@@ -84,6 +85,7 @@ export function CaseBillingWorkspace({
   clientId,
   caseReference,
 }: CaseBillingWorkspaceProps) {
+  const interfaceLanguage = useLocale();
   const [agreements, setAgreements] = useState<FeeAgreementWithInstallments[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -127,11 +129,11 @@ export function CaseBillingWorkspace({
 
   const selected = useMemo(
     () => agreements.find((item) => item.id === selectedId) ?? null,
-    [agreements, selectedId],
+    [agreements, selectedId, interfaceLanguage],
   );
   const summary = useMemo(
     () => selected ? summarizeFeeAgreement(selected) : null,
-    [selected],
+    [selected, interfaceLanguage],
   );
   const hasOpenAgreement = agreements.some((item) => ['draft', 'active'].includes(item.status));
   const vatEnabled = Boolean(
@@ -165,9 +167,9 @@ export function CaseBillingWorkspace({
     if (!selected) return;
     let cancellationReason: string | null = null;
     if (status === 'cancelled') {
-      cancellationReason = window.prompt('Reason for cancelling this fee agreement:')?.trim() || null;
+      cancellationReason = window.prompt(tr("Reason for cancelling this fee agreement:"))?.trim() || null;
       if (!cancellationReason) return;
-    } else if (!window.confirm('Complete this fee agreement? No further installments can be changed afterward.')) {
+    } else if (!window.confirm(tr("Complete this fee agreement? No further installments can be changed afterward."))) {
       return;
     }
     try {
@@ -185,7 +187,7 @@ export function CaseBillingWorkspace({
   ) {
     let reason: string | undefined;
     if (status === 'waived' || status === 'cancelled') {
-      reason = window.prompt(`Reason for marking this installment ${status}:`)?.trim();
+      reason = window.prompt(tr("Reason for marking this installment {0}:", [status]))?.trim();
       if (!reason) return;
     }
 
@@ -220,37 +222,32 @@ export function CaseBillingWorkspace({
       <section className="fee-agreement-panel">
         <header className="fee-agreement-header">
           <div>
-            <span className="case-billing-eyebrow">Engagement terms</span>
-            <h3>Fee Agreement &amp; Installment Plan</h3>
-            <p>Track the agreed professional fee before amounts become invoices and payments.</p>
+            <span className="case-billing-eyebrow">{tr("Engagement terms")}</span>
+            <h3>{tr("Fee Agreement & Installment Plan")}</h3>
+            <p>{tr("Track the agreed professional fee before amounts become invoices and payments.")}</p>
           </div>
           {!hasOpenAgreement && <button className="fee-primary-button" type="button" onClick={() => setShowAgreementForm(true)}>
-            <Plus size={16} /> New Agreement
-          </button>}
+            <Plus size={16} />{" "}{tr("New Agreement")}</button>}
         </header>
 
-        {error && <div className="fee-message error"><AlertCircle size={17} />{error}</div>}
+        {error && <div className="fee-message error"><AlertCircle size={17} />{tr(error)}</div>}
         {!loading && !vatEnabled && (
           <div className="fee-message vat-guard">
-            <AlertCircle size={17} />
-            Company VAT registration is pending. New fee agreements and installments are locked to 0% VAT.
-          </div>
+            <AlertCircle size={17} />{tr("Company VAT registration is pending. New fee agreements and installments are locked to 0% VAT.")}</div>
         )}
 
         {loading ? (
-          <div className="fee-empty"><LoaderCircle className="fee-spin" size={23} /> Loading fee agreement…</div>
+          <div className="fee-empty"><LoaderCircle className="fee-spin" size={23} />{" "}{tr("Loading fee agreement…")}</div>
         ) : agreements.length === 0 ? (
           <div className="fee-empty">
             <CircleDollarSign size={30} />
-            <strong>No fee agreement recorded</strong>
-            <span>Create the engagement terms, then plan installments or milestones.</span>
+            <strong>{tr("No fee agreement recorded")}</strong>
+            <span>{tr("Create the engagement terms, then plan installments or milestones.")}</span>
           </div>
         ) : (
           <>
             {agreements.length > 1 && (
-              <label className="fee-agreement-picker">
-                Agreement
-                <select value={selectedId ?? ''} onChange={(event) => setSelectedId(event.target.value)}>
+              <label className="fee-agreement-picker">{tr("Agreement")}<select value={selectedId ?? ''} onChange={(event) => setSelectedId(event.target.value)}>
                   {agreements.map((agreement) => (
                     <option key={agreement.id} value={agreement.id}>
                       {agreement.agreement_number} — {agreement.title}
@@ -266,46 +263,46 @@ export function CaseBillingWorkspace({
                   <div>
                     <span>{selected.agreement_number}</span>
                     <h4>{selected.title}</h4>
-                    <p>{selected.service_category || 'Service category pending'} · {billingModels.find((model) => model.value === selected.billing_model)?.label} · {selected.vat_rate}% VAT · {selected.status}</p>
-                    <p>Document: {selected.document_status}{selected.agreement_document_version ? ` · version ${selected.agreement_document_version}` : ''}</p>
+                    <p>{selected.service_category || tr("Service category pending")} · {billingModels.find((model) => model.value === selected.billing_model)?.label} · {selected.vat_rate}{tr("% VAT ·")}{" "}{trEnum(selected.status)}</p>
+                    <p>{tr("Document:")}{" "}{selected.document_status}{selected.agreement_document_version ? tr("· version {0}", [selected.agreement_document_version]) : ''}</p>
                   </div>
                   {['draft', 'active'].includes(selected.status) && <div className="fee-agreement-actions">
-                    <button className="fee-secondary-button" type="button" onClick={() => setEditingAgreement(selected)}><Pencil size={15} /> Edit</button>
-                    <button className="fee-secondary-button" type="button" disabled={busyId === selected.id} onClick={() => void generateAgreementDocument()}><ScrollText size={15} /> {selected.agreement_document_id ? 'New document version' : 'Generate agreement'}</button>
-                    <button className="fee-secondary-button" type="button" onClick={() => setShowInstallmentForm(true)}><CalendarClock size={16} /> Add Installment</button>
-                    <button className="fee-secondary-button" type="button" disabled={busyId === selected.id} onClick={() => void changeAgreementStatus('completed')}>Complete</button>
-                    <button className="fee-danger-button" type="button" disabled={busyId === selected.id} onClick={() => void changeAgreementStatus('cancelled')}>Cancel agreement</button>
+                    <button className="fee-secondary-button" type="button" onClick={() => setEditingAgreement(selected)}><Pencil size={15} />{" "}{tr("Edit")}</button>
+                    <button className="fee-secondary-button" type="button" disabled={busyId === selected.id} onClick={() => void generateAgreementDocument()}><ScrollText size={15} /> {selected.agreement_document_id ? tr("New document version") : tr("Generate agreement")}</button>
+                    <button className="fee-secondary-button" type="button" onClick={() => setShowInstallmentForm(true)}><CalendarClock size={16} />{" "}{tr("Add Installment")}</button>
+                    <button className="fee-secondary-button" type="button" disabled={busyId === selected.id} onClick={() => void changeAgreementStatus('completed')}>{tr("Complete")}</button>
+                    <button className="fee-danger-button" type="button" disabled={busyId === selected.id} onClick={() => void changeAgreementStatus('cancelled')}>{tr("Cancel agreement")}</button>
                   </div>}
                 </div>
 
                 <div className="fee-dashboard-heading">
-                  <div><CircleDollarSign size={18} /><strong>Case Financial Position</strong></div>
-                  <span>Agreement and live ledger totals</span>
+                  <div><CircleDollarSign size={18} /><strong>{tr("Case Financial Position")}</strong></div>
+                  <span>{tr("Agreement and live ledger totals")}</span>
                 </div>
                 <div className="fee-summary-grid fee-dashboard-grid">
-                  <FeeStat label="Agreed fee" value={money(summary.agreedFee, selected.currency)} />
-                  <FeeStat label="Total invoiced" value={money(ledgerSummary.totalBilled, selected.currency)} />
-                  <FeeStat label="Credited" value={money(ledgerSummary.totalCredited, selected.currency)} />
-                  <FeeStat label="Net billable" value={money(netBillable, selected.currency)} />
-                  <FeeStat label="Gross collected" value={money(ledgerSummary.grossCollected, selected.currency)} />
-                  <FeeStat label="Reversed" value={money(ledgerSummary.totalReversed, selected.currency)} warning={ledgerSummary.totalReversed > 0} />
-                  <FeeStat label="Net collected" value={money(ledgerSummary.netCollected, selected.currency)} />
-                  <FeeStat label="Outstanding" value={money(ledgerSummary.outstanding, selected.currency)} warning={ledgerSummary.outstanding > 0} />
-                  <FeeStat label="Unbilled agreement" value={money(unbilledAgreementBalance, selected.currency)} warning={unbilledAgreementBalance > 0} />
+                  <FeeStat label={tr("Agreed fee")} value={money(summary.agreedFee, selected.currency)} />
+                  <FeeStat label={tr("Total invoiced")} value={money(ledgerSummary.totalBilled, selected.currency)} />
+                  <FeeStat label={tr("Credited")} value={money(ledgerSummary.totalCredited, selected.currency)} />
+                  <FeeStat label={tr("Net billable")} value={money(netBillable, selected.currency)} />
+                  <FeeStat label={tr("Gross collected")} value={money(ledgerSummary.grossCollected, selected.currency)} />
+                  <FeeStat label={tr("Reversed")} value={money(ledgerSummary.totalReversed, selected.currency)} warning={ledgerSummary.totalReversed > 0} />
+                  <FeeStat label={tr("Net collected")} value={money(ledgerSummary.netCollected, selected.currency)} />
+                  <FeeStat label={tr("Outstanding")} value={money(ledgerSummary.outstanding, selected.currency)} warning={ledgerSummary.outstanding > 0} />
+                  <FeeStat label={tr("Unbilled agreement")} value={money(unbilledAgreementBalance, selected.currency)} warning={unbilledAgreementBalance > 0} />
                 </div>
                 {(summary.nextInstallment || summary.overdueInstallments.length > 0) && <div className={`fee-plan-alert${summary.overdueInstallments.length ? ' overdue' : ''}`}>
                   <CalendarClock size={17} />
-                  <div><strong>{summary.overdueInstallments.length ? `${summary.overdueInstallments.length} overdue installment${summary.overdueInstallments.length === 1 ? '' : 's'}` : 'Next installment'}</strong>
-                  <span>{summary.overdueInstallments.length ? 'Review the overdue schedule before further billing.' : `${summary.nextInstallment?.title}${summary.nextInstallment?.due_date ? ` · ${formatDate(summary.nextInstallment.due_date)}` : ''}`}</span></div>
+                  <div><strong>{summary.overdueInstallments.length ? tr("{0} overdue installment{1}", [summary.overdueInstallments.length, summary.overdueInstallments.length === 1 ? '' : 's']) : tr("Next installment")}</strong>
+                  <span>{summary.overdueInstallments.length ? tr("Review the overdue schedule before further billing.") : `${summary.nextInstallment?.title}${summary.nextInstallment?.due_date ? ` · ${formatDate(summary.nextInstallment.due_date)}` : ''}`}</span></div>
                 </div>}
 
                 <div className="fee-installments-heading">
-                  <div><ReceiptText size={17} /><strong>Installment schedule</strong></div>
-                  <span>{selected.installments.length} item{selected.installments.length === 1 ? '' : 's'}</span>
+                  <div><ReceiptText size={17} /><strong>{tr("Installment schedule")}</strong></div>
+                  <span>{selected.installments.length}{" "}{tr("item")}{selected.installments.length === 1 ? '' : 's'}</span>
                 </div>
 
                 {selected.installments.length === 0 ? (
-                  <div className="fee-installment-empty">No installments have been planned.</div>
+                  <div className="fee-installment-empty">{tr("No installments have been planned.")}</div>
                 ) : (
                   <div className="fee-installment-list">
                     {selected.installments.map((installment) => (
@@ -313,21 +310,21 @@ export function CaseBillingWorkspace({
                         <div className="fee-installment-sequence">{installment.sequence_number}</div>
                         <div className="fee-installment-main">
                           <strong>{installment.title}</strong>
-                          <span>{installment.due_date ? `Due ${formatDate(installment.due_date)}` : 'No due date'}{installment.milestone ? ` · ${installment.milestone}` : ''}</span>
+                          <span>{installment.due_date ? tr("Due {0}", [formatDate(installment.due_date)]) : tr("No due date")}{installment.milestone ? ` · ${installment.milestone}` : ''}</span>
                         </div>
                         <div className="fee-installment-amount">
                           <strong>{money(Number(installment.total_amount), selected.currency)}</strong>
-                          <span>incl. VAT</span>
+                          <span>{tr("incl. VAT")}</span>
                         </div>
-                        <span className={`fee-status ${installment.status}`}>{installment.status}</span>
+                        <span className={`fee-status ${installment.status}`}>{trEnum(installment.status)}</span>
                         <div className="fee-installment-actions">
                           {busyId === installment.id ? <LoaderCircle className="fee-spin" size={18} /> : (
                             <>
-                              {installment.status === 'planned' && <button type="button" onClick={() => void changeStatus(installment, 'ready')}>Mark ready</button>}
-                              {installment.status === 'planned' && <button type="button" onClick={() => setEditingInstallment(installment)}><Pencil size={13} /> Edit</button>}
-                              {installment.status === 'ready' && <button type="button" onClick={() => void invoiceInstallment(installment)}><FilePlus2 size={14} /> Generate invoice</button>}
-                              {['planned', 'ready'].includes(installment.status) && <button type="button" onClick={() => void changeStatus(installment, 'waived')}>Waive</button>}
-                              {['planned', 'ready'].includes(installment.status) && <button type="button" onClick={() => void changeStatus(installment, 'cancelled')}>Cancel</button>}
+                              {installment.status === 'planned' && <button type="button" onClick={() => void changeStatus(installment, 'ready')}>{tr("Mark ready")}</button>}
+                              {installment.status === 'planned' && <button type="button" onClick={() => setEditingInstallment(installment)}><Pencil size={13} />{" "}{tr("Edit")}</button>}
+                              {installment.status === 'ready' && <button type="button" onClick={() => void invoiceInstallment(installment)}><FilePlus2 size={14} />{" "}{tr("Generate invoice")}</button>}
+                              {['planned', 'ready'].includes(installment.status) && <button type="button" onClick={() => void changeStatus(installment, 'waived')}>{tr("Waive")}</button>}
+                              {['planned', 'ready'].includes(installment.status) && <button type="button" onClick={() => void changeStatus(installment, 'cancelled')}>{tr("Cancel")}</button>}
                               {installment.status === 'paid' && <CheckCircle2 size={18} className="fee-paid-icon" />}
                             </>
                           )}
@@ -345,8 +342,8 @@ export function CaseBillingWorkspace({
       <FinancialLedger
         key={`${caseId}-${ledgerVersion}`}
         caseId={caseId}
-        title="Case Financial Ledger"
-        description="Complete invoice, collection, credit-note and payment-reversal history for this legal matter."
+        title={tr("Case Financial Ledger")}
+        description={tr("Complete invoice, collection, credit-note and payment-reversal history for this legal matter.")}
       />
 
       {showAgreementForm && (
@@ -375,12 +372,14 @@ export function CaseBillingWorkspace({
 }
 
 function FeeStat({ label, value, warning = false }: { label: string; value: string; warning?: boolean }) {
+  const interfaceLanguage = useLocale();
   return <div className={`fee-summary-stat${warning ? ' warning' : ''}`}><span>{label}</span><strong>{value}</strong></div>;
 }
 
 function AgreementModal({ caseId, clientId, agreement, vatEnabled, defaultVatRate, onClose, onSaved }: {
   caseId: string; clientId: string; agreement?: FeeAgreementWithInstallments; vatEnabled: boolean; defaultVatRate: number; onClose: () => void; onSaved: () => Promise<void>;
 }) {
+  const interfaceLanguage = useLocale();
   const [form, setForm] = useState({
     title: agreement?.title ?? 'Professional Legal Fees', billing_model: agreement?.billing_model ?? 'installments' as FeeBillingModel,
     agreed_fee: agreement ? String(agreement.agreed_fee) : '', vat_rate: String(vatEnabled ? (agreement?.vat_rate ?? defaultVatRate) : 0), currency: agreement?.currency ?? 'AED', agreement_date: agreement?.agreement_date ?? today(),
@@ -414,30 +413,31 @@ function AgreementModal({ caseId, clientId, agreement, vatEnabled, defaultVatRat
     finally { setSaving(false); }
   }
 
-  return <FeeModal title={agreement ? 'Edit Fee Agreement' : 'New Fee Agreement'} onClose={onClose} saving={saving} onSubmit={submit} error={error}>
-    <label className="fee-field">Service category<select value={form.service_category} onChange={(e) => setForm({ ...form, service_category: e.target.value })}>{serviceCategories.map((category) => <option key={category} value={category}>{category}</option>)}</select></label>
-    <label className="fee-field">Service or subcategory<input placeholder="e.g. Cheque dispute recovery" value={form.service_subcategory} onChange={(e) => setForm({ ...form, service_subcategory: e.target.value })} /></label>
-    <label className="fee-field fee-field-wide">Scope of services<textarea rows={5} placeholder={'Enter one service per line\nLegal advice and case assessment\nCorrespondence with the opposing party'} value={form.scope_items} onChange={(e) => setForm({ ...form, scope_items: e.target.value })} required /></label>
-    <label className="fee-field fee-field-wide">Agreement title<input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></label>
-    <label className="fee-field">Billing model<select value={form.billing_model} onChange={(e) => setForm({ ...form, billing_model: e.target.value as FeeBillingModel })}>{billingModels.map((model) => <option key={model.value} value={model.value}>{model.label}</option>)}</select></label>
-    <label className="fee-field">Agreement date<input type="date" value={form.agreement_date} onChange={(e) => setForm({ ...form, agreement_date: e.target.value })} required /></label>
-    <label className="fee-field">Agreed fee<input type="number" min="0" step="0.01" value={form.agreed_fee} onChange={(e) => setForm({ ...form, agreed_fee: e.target.value })} required /></label>
-    <label className="fee-field">VAT rate %<input type="number" min="0" max="100" step="0.01" value={form.vat_rate} onChange={(e) => setForm({ ...form, vat_rate: e.target.value })} required disabled={!vatEnabled} />{!vatEnabled && <small className="fee-vat-note">Locked at 0% until FTA registration is active.</small>}</label>
-    <label className="fee-field">Currency<input maxLength={3} value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} required /></label>
-    <label className="fee-field">Valid from<input type="date" value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} /></label>
-    <label className="fee-field">Valid until<input type="date" value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} /></label>
-    <label className="fee-field">Invoice payment days<input type="number" min="0" max="365" value={form.payment_terms_days} onChange={(e) => setForm({ ...form, payment_terms_days: e.target.value })} required /></label>
-    <label className="fee-field">Client signatory<input value={form.client_signatory_name} onChange={(e) => setForm({ ...form, client_signatory_name: e.target.value })} /></label>
-    <label className="fee-field">Signatory title<input value={form.client_signatory_title} onChange={(e) => setForm({ ...form, client_signatory_title: e.target.value })} /></label>
-    {form.billing_model === 'hourly' && <label className="fee-field">Hourly rate<input type="number" min="0" step="0.01" value={form.hourly_rate} onChange={(e) => setForm({ ...form, hourly_rate: e.target.value })} /></label>}
-    {['success_fee', 'mixed'].includes(form.billing_model) && <label className="fee-field">Success fee %<input type="number" min="0" max="100" step="0.01" value={form.success_fee_percentage} onChange={(e) => setForm({ ...form, success_fee_percentage: e.target.value })} /></label>}
-    <label className="fee-field fee-field-wide">Notes<textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></label>
+  return <FeeModal title={agreement ? tr("Edit Fee Agreement") : tr("New Fee Agreement")} onClose={onClose} saving={saving} onSubmit={submit} error={tr(error)}>
+    <label className="fee-field">{tr("Service category")}<select value={form.service_category} onChange={(e) => setForm({ ...form, service_category: e.target.value })}>{serviceCategories.map((category) => <option key={category} value={category}>{category}</option>)}</select></label>
+    <label className="fee-field">{tr("Service or subcategory")}<input dir="auto" placeholder={tr("e.g. Cheque dispute recovery")} value={form.service_subcategory} onChange={(e) => setForm({ ...form, service_subcategory: e.target.value })} /></label>
+    <label className="fee-field fee-field-wide">{tr("Scope of services")}<textarea dir="auto" rows={5} placeholder={tr("Enter one service per line Legal advice and case assessment Correspondence with the opposing party")} value={form.scope_items} onChange={(e) => setForm({ ...form, scope_items: e.target.value })} required /></label>
+    <label className="fee-field fee-field-wide">{tr("Agreement title")}<input dir="auto" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></label>
+    <label className="fee-field">{tr("Billing model")}<select value={form.billing_model} onChange={(e) => setForm({ ...form, billing_model: e.target.value as FeeBillingModel })}>{billingModels.map((model) => <option key={model.value} value={model.value}>{model.label}</option>)}</select></label>
+    <label className="fee-field">{tr("Agreement date")}<input dir="ltr" type="date" value={form.agreement_date} onChange={(e) => setForm({ ...form, agreement_date: e.target.value })} required /></label>
+    <label className="fee-field">{tr("Agreed fee")}<input dir="ltr" type="number" min="0" step="0.01" value={form.agreed_fee} onChange={(e) => setForm({ ...form, agreed_fee: e.target.value })} required /></label>
+    <label className="fee-field">{tr("VAT rate %")}<input dir="ltr" type="number" min="0" max="100" step="0.01" value={form.vat_rate} onChange={(e) => setForm({ ...form, vat_rate: e.target.value })} required disabled={!vatEnabled} />{!vatEnabled && <small className="fee-vat-note">{tr("Locked at 0% until FTA registration is active.")}</small>}</label>
+    <label className="fee-field">{tr("Currency")}<input dir="auto" maxLength={3} value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} required /></label>
+    <label className="fee-field">{tr("Valid from")}<input dir="ltr" type="date" value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} /></label>
+    <label className="fee-field">{tr("Valid until")}<input dir="ltr" type="date" value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} /></label>
+    <label className="fee-field">{tr("Invoice payment days")}<input dir="ltr" type="number" min="0" max="365" value={form.payment_terms_days} onChange={(e) => setForm({ ...form, payment_terms_days: e.target.value })} required /></label>
+    <label className="fee-field">{tr("Client signatory")}<input dir="auto" value={form.client_signatory_name} onChange={(e) => setForm({ ...form, client_signatory_name: e.target.value })} /></label>
+    <label className="fee-field">{tr("Signatory title")}<input dir="auto" value={form.client_signatory_title} onChange={(e) => setForm({ ...form, client_signatory_title: e.target.value })} /></label>
+    {form.billing_model === 'hourly' && <label className="fee-field">{tr("Hourly rate")}<input dir="ltr" type="number" min="0" step="0.01" value={form.hourly_rate} onChange={(e) => setForm({ ...form, hourly_rate: e.target.value })} /></label>}
+    {['success_fee', 'mixed'].includes(form.billing_model) && <label className="fee-field">{tr("Success fee %")}<input dir="ltr" type="number" min="0" max="100" step="0.01" value={form.success_fee_percentage} onChange={(e) => setForm({ ...form, success_fee_percentage: e.target.value })} /></label>}
+    <label className="fee-field fee-field-wide">{tr("Notes")}<textarea dir="auto" rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></label>
   </FeeModal>;
 }
 
 function InstallmentModal({ agreement, installment, vatEnabled, defaultVatRate, onClose, onSaved }: {
   agreement: FeeAgreementWithInstallments; installment?: FeeInstallment; vatEnabled: boolean; defaultVatRate: number; onClose: () => void; onSaved: () => Promise<void>;
 }) {
+  const interfaceLanguage = useLocale();
   const [form, setForm] = useState({ title: installment?.title ?? '', planned_subtotal: installment ? String(installment.planned_subtotal) : '', vat_rate: String(vatEnabled ? (installment?.vat_rate ?? agreement.vat_rate ?? defaultVatRate) : 0), due_date: installment?.due_date ?? '', milestone: installment?.milestone ?? '', description: installment?.description ?? '', status: 'planned' as 'planned' | 'ready' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -453,14 +453,14 @@ function InstallmentModal({ agreement, installment, vatEnabled, defaultVatRate, 
     catch (saveError) { setError(saveError instanceof Error ? saveError.message : 'Unable to create installment.'); }
     finally { setSaving(false); }
   }
-  return <FeeModal title={installment ? 'Edit Planned Installment' : 'Add Installment'} onClose={onClose} saving={saving} onSubmit={submit} error={error}>
-    <label className="fee-field fee-field-wide">Title<input placeholder="e.g. Initial engagement payment" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></label>
-    <label className="fee-field">Subtotal ({agreement.currency})<input type="number" min="0.01" step="0.01" value={form.planned_subtotal} onChange={(e) => setForm({ ...form, planned_subtotal: e.target.value })} required /></label>
-    <label className="fee-field">VAT rate %<input type="number" min="0" max="100" step="0.01" value={form.vat_rate} onChange={(e) => setForm({ ...form, vat_rate: e.target.value })} required disabled={!vatEnabled} />{!vatEnabled && <small className="fee-vat-note">Locked at 0% until FTA registration is active.</small>}</label>
-    <label className="fee-field">Due date<input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} /></label>
-    {!installment && <label className="fee-field">Initial state<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as 'planned' | 'ready' })}><option value="planned">Planned</option><option value="ready">Ready to invoice</option></select></label>}
-    <label className="fee-field fee-field-wide">Milestone<input placeholder="Optional milestone or deliverable" value={form.milestone} onChange={(e) => setForm({ ...form, milestone: e.target.value })} /></label>
-    <label className="fee-field fee-field-wide">Description<textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
+  return <FeeModal title={installment ? tr("Edit Planned Installment") : tr("Add Installment")} onClose={onClose} saving={saving} onSubmit={submit} error={tr(error)}>
+    <label className="fee-field fee-field-wide">{tr("Title")}<input dir="auto" placeholder={tr("e.g. Initial engagement payment")} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></label>
+    <label className="fee-field">{tr("Subtotal (")}{agreement.currency})<input dir="ltr" type="number" min="0.01" step="0.01" value={form.planned_subtotal} onChange={(e) => setForm({ ...form, planned_subtotal: e.target.value })} required /></label>
+    <label className="fee-field">{tr("VAT rate %")}<input dir="ltr" type="number" min="0" max="100" step="0.01" value={form.vat_rate} onChange={(e) => setForm({ ...form, vat_rate: e.target.value })} required disabled={!vatEnabled} />{!vatEnabled && <small className="fee-vat-note">{tr("Locked at 0% until FTA registration is active.")}</small>}</label>
+    <label className="fee-field">{tr("Due date")}<input dir="ltr" type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} /></label>
+    {!installment && <label className="fee-field">{tr("Initial state")}<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as 'planned' | 'ready' })}><option value="planned">{tr("Planned")}</option><option value="ready">{tr("Ready to invoice")}</option></select></label>}
+    <label className="fee-field fee-field-wide">{tr("Milestone")}<input dir="auto" placeholder={tr("Optional milestone or deliverable")} value={form.milestone} onChange={(e) => setForm({ ...form, milestone: e.target.value })} /></label>
+    <label className="fee-field fee-field-wide">{tr("Description")}<textarea dir="auto" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
   </FeeModal>;
 }
 
@@ -468,16 +468,17 @@ function FeeModal({ title, onClose, saving, onSubmit, error, children }: {
   title: string; onClose: () => void; saving: boolean; onSubmit: (event: React.FormEvent) => void;
   error: string | null; children: React.ReactNode;
 }) {
+  const interfaceLanguage = useLocale();
   return <div className="fee-modal-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) onClose(); }}>
     <form className="fee-modal" onSubmit={onSubmit}>
-      <header><div><span className="case-billing-eyebrow">Billing setup</span><h3>{title}</h3></div><button type="button" onClick={onClose} disabled={saving} aria-label="Close"><X size={19} /></button></header>
-      {error && <div className="fee-message error"><AlertCircle size={17} />{error}</div>}
+      <header><div><span className="case-billing-eyebrow">{tr("Billing setup")}</span><h3>{title}</h3></div><button type="button" onClick={onClose} disabled={saving} aria-label={tr("Close")}><X size={19} /></button></header>
+      {error && <div className="fee-message error"><AlertCircle size={17} />{tr(error)}</div>}
       <div className="fee-form-grid">{children}</div>
-      <footer><button className="fee-secondary-button" type="button" onClick={onClose} disabled={saving}>Cancel</button><button className="fee-primary-button" type="submit" disabled={saving}>{saving ? <LoaderCircle className="fee-spin" size={16} /> : <Plus size={16} />} Save</button></footer>
+      <footer><button className="fee-secondary-button" type="button" onClick={onClose} disabled={saving}>{tr("Cancel")}</button><button className="fee-primary-button" type="submit" disabled={saving}>{saving ? <LoaderCircle className="fee-spin" size={16} /> : <Plus size={16} />}{" "}{tr("Save")}</button></footer>
     </form>
   </div>;
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en-AE', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${value}T00:00:00`));
+  return new Intl.DateTimeFormat(getLocale("en-AE"), { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${value}T00:00:00`));
 }

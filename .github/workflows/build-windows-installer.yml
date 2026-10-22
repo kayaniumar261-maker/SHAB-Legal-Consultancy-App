@@ -66,6 +66,9 @@ jobs:
       - name: Verify application behavior
         run: npm run check:behavior
 
+      - name: Verify Arabic interface and client ordering
+        run: npm run check:localization
+
       - name: Build Windows installer
         run: npm run desktop:pack
 

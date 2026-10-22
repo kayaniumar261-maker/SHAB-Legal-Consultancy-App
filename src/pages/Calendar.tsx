@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../i18n/locale';
 import {
   AlertCircle,
   CalendarDays,
@@ -49,15 +50,16 @@ const eventLabels: Record<
   CalendarEventType,
   string
 > = {
-  hearing: 'Hearings',
-  task: 'Tasks',
-  invoice: 'Invoices',
-  case_action: 'Case Actions',
-  limitation: 'Limitations',
-  follow_up: 'Follow-ups',
+  get hearing() { return tr("Hearings"); },
+  get task() { return tr("Tasks"); },
+  get invoice() { return tr("Invoices"); },
+  get case_action() { return tr("Case Actions"); },
+  get limitation() { return tr("Limitations"); },
+  get follow_up() { return tr("Follow-ups"); },
 };
 
 export function Calendar() {
+  const interfaceLanguage = useLocale();
   const { profile } = useAccessProfile();
   const administrator = profile?.access_role === 'administrator' && profile.is_active;
 
@@ -166,7 +168,7 @@ export function Calendar() {
       [
         events,
         enabledTypes,
-      ],
+      , interfaceLanguage],
     );
 
   const eventsByDay =
@@ -206,7 +208,7 @@ export function Calendar() {
         },
         {},
       );
-    }, [filteredEvents]);
+    }, [filteredEvents, interfaceLanguage]);
 
   const monthCells =
     useMemo(() => {
@@ -258,7 +260,7 @@ export function Calendar() {
       }
 
       return cells;
-    }, [visibleMonth]);
+    }, [visibleMonth, interfaceLanguage]);
 
   const selectedEvents =
     useMemo(() => {
@@ -270,11 +272,11 @@ export function Calendar() {
     }, [
       eventsByDay,
       selectedDate,
-    ]);
+    , interfaceLanguage]);
 
   const monthLabel =
     new Intl.DateTimeFormat(
-      'en-AE',
+      getLocale("en-AE"),
       {
         month: 'long',
         year: 'numeric',
@@ -285,7 +287,7 @@ export function Calendar() {
 
   const selectedDateLabel =
     new Intl.DateTimeFormat(
-      'en-AE',
+      getLocale("en-AE"),
       {
         weekday: 'long',
         day: '2-digit',
@@ -317,7 +319,7 @@ export function Calendar() {
           follow_up: 0,
         },
       );
-    }, [filteredEvents]);
+    }, [filteredEvents, interfaceLanguage]);
 
   function changeMonth(
     offset: number,
@@ -431,17 +433,11 @@ export function Calendar() {
     <div className="calendar-page page-container">
       <section className="page-heading calendar-heading">
         <div>
-          <p className="page-eyebrow">
-            Firm planner
-          </p>
+          <p className="page-eyebrow">{tr("Firm planner")}</p>
 
-          <h2>
-            Legal Calendar
-          </h2>
+          <h2>{tr("Legal Calendar")}</h2>
 
-          <p className="page-intro">
-            Hearings, tasks and critical matter deadlines in one workspace.
-          </p>
+          <p className="page-intro">{tr("Hearings, tasks and critical matter deadlines in one workspace.")}</p>
         </div>
 
         <div className="calendar-heading-actions">
@@ -465,23 +461,21 @@ export function Calendar() {
               );
             }}
           >
-            <CalendarDays size={17} />
-            Today
-          </button>
+            <CalendarDays size={17} />{tr("Today")}</button>
         </div>
       </section>
 
       <section className="calendar-summary-grid">
         <SummaryCard
           icon={<Gavel size={18} />}
-          label="Hearings"
+          label={tr("Hearings")}
           value={summary.hearing}
           type="hearing"
         />
 
         <SummaryCard
           icon={<ListTodo size={18} />}
-          label="Tasks"
+          label={tr("Tasks")}
           value={summary.task}
           type="task"
         />
@@ -489,7 +483,7 @@ export function Calendar() {
         {administrator && (
           <SummaryCard
             icon={<CreditCard size={18} />}
-            label="Invoice Due"
+            label={tr("Invoice Due")}
             value={summary.invoice}
             type="invoice"
           />
@@ -497,7 +491,7 @@ export function Calendar() {
 
         <SummaryCard
           icon={<FileWarning size={18} />}
-          label="Limitations"
+          label={tr("Limitations")}
           value={summary.limitation}
           type="limitation"
         />
@@ -510,7 +504,7 @@ export function Calendar() {
             onClick={() =>
               changeMonth(-1)
             }
-            aria-label="Previous month"
+            aria-label={tr("Previous month")}
           >
             <ChevronLeft size={18} />
           </button>
@@ -524,7 +518,7 @@ export function Calendar() {
             onClick={() =>
               changeMonth(1)
             }
-            aria-label="Next month"
+            aria-label={tr("Next month")}
           >
             <ChevronRight size={18} />
           </button>
@@ -562,7 +556,7 @@ export function Calendar() {
       {error && (
         <div className="calendar-error">
           <AlertCircle size={18} />
-          {error}
+          {tr(error)}
         </div>
       )}
 
@@ -572,7 +566,7 @@ export function Calendar() {
             {weekDays.map(
               (day) => (
                 <span key={day}>
-                  {day}
+                  {tr(day)}
                 </span>
               ),
             )}
@@ -668,9 +662,7 @@ export function Calendar() {
                         <small>
                           +
                           {dayEvents.length -
-                            3}{' '}
-                          more
-                        </small>
+                            3}{' '}{tr("more")}</small>
                       )}
                     </div>
                   </button>
@@ -683,9 +675,7 @@ export function Calendar() {
         <aside className="calendar-agenda-panel">
           <header>
             <div>
-              <span className="calendar-agenda-eyebrow">
-                Selected day
-              </span>
+              <span className="calendar-agenda-eyebrow">{tr("Selected day")}</span>
 
               <h3>
                 {selectedDateLabel}
@@ -700,21 +690,15 @@ export function Calendar() {
           </header>
 
           {loading ? (
-            <div className="calendar-agenda-state">
-              Loading events…
-            </div>
+            <div className="calendar-agenda-state">{tr("Loading events…")}</div>
           ) : selectedEvents.length ===
             0 ? (
             <div className="calendar-agenda-state">
               <CalendarDays size={26} />
 
-              <strong>
-                No events
-              </strong>
+              <strong>{tr("No events")}</strong>
 
-              <span>
-                Nothing is scheduled for this day.
-              </span>
+              <span>{tr("Nothing is scheduled for this day.")}</span>
             </div>
           ) : (
             <div className="calendar-agenda-list">
@@ -745,6 +729,7 @@ function SummaryCard({
   value: number;
   type: CalendarEventType;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article
       className={`calendar-summary-card ${type}`}
@@ -764,6 +749,7 @@ function EventCard({
 }: {
   event: CalendarEvent;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article
       className={`calendar-agenda-item ${event.type}`}
@@ -828,9 +814,7 @@ function EventCard({
         <Link
           to={event.href}
           className="calendar-agenda-link"
-        >
-          Open details
-        </Link>
+        >{tr("Open details")}</Link>
       </div>
     </article>
   );
@@ -890,7 +874,7 @@ function formatTime(
   }
 
   return new Intl.DateTimeFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       hour: '2-digit',
       minute: '2-digit',
@@ -903,7 +887,7 @@ function formatCurrency(
   currency: string | null,
 ): string {
   return new Intl.NumberFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       style: 'currency',
       currency:

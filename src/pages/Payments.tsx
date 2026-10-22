@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../i18n/locale';
 import {
   AlertCircle,
   Ban,
@@ -237,6 +238,7 @@ const emptyPaymentReversalForm:
   };
 
 export function Payments() {
+  const interfaceLanguage = useLocale();
   const [
     searchParams,
     setSearchParams,
@@ -415,7 +417,7 @@ export function Payments() {
       },
       {},
     );
-  }, [clients]);
+  }, [clients, interfaceLanguage]);
 
   const caseMap = useMemo(() => {
     return cases.reduce<Record<string, string>>(
@@ -429,7 +431,7 @@ export function Payments() {
       },
       {},
     );
-  }, [cases]);
+  }, [cases, interfaceLanguage]);
 
   const invoiceMap = useMemo(() => {
     return invoiceOptions.reduce<
@@ -441,7 +443,7 @@ export function Payments() {
       },
       {},
     );
-  }, [invoiceOptions]);
+  }, [invoiceOptions, interfaceLanguage]);
 
   const payableInvoiceOptions = useMemo(
     () =>
@@ -456,7 +458,7 @@ export function Payments() {
             'written_off',
           ].includes(invoice.status),
       ),
-    [invoiceOptions],
+    [invoiceOptions, interfaceLanguage],
   );
 
   const filteredCases = useMemo(() => {
@@ -468,7 +470,7 @@ export function Payments() {
       (caseItem) =>
         caseItem.client_id === invoiceForm.client_id,
     );
-  }, [cases, invoiceForm.client_id]);
+  }, [cases, invoiceForm.client_id, interfaceLanguage]);
 
   const loadOptions = useCallback(async () => {
     try {
@@ -1030,7 +1032,7 @@ export function Payments() {
       paid,
       outstanding,
     };
-  }, [invoices]);
+  }, [invoices, interfaceLanguage]);
 
   const paymentStats = useMemo(() => {
     const total = payments.reduce(
@@ -1054,7 +1056,7 @@ export function Payments() {
       total,
       completed,
     };
-  }, [payments]);
+  }, [payments, interfaceLanguage]);
 
   const totalPages = Math.max(
     1,
@@ -1791,7 +1793,7 @@ export function Payments() {
     }
 
     const confirmed = window.confirm(
-      `Delete invoice ${invoice.invoice_number}?`,
+      tr("Delete invoice {0}?", [invoice.invoice_number]),
     );
 
     if (!confirmed) {
@@ -1819,7 +1821,7 @@ export function Payments() {
     payment: Payment,
   ) => {
     const confirmed = window.confirm(
-      'Delete this payment record?',
+      tr("Delete this payment record?"),
     );
 
     if (!confirmed) {
@@ -1900,16 +1902,11 @@ export function Payments() {
     <div className="payments-page page-container">
       <section className="page-heading payments-heading">
         <div>
-          <p className="page-eyebrow">
-            Finance management
-          </p>
+          <p className="page-eyebrow">{tr("Finance management")}</p>
 
-          <h2>Payments & Invoices</h2>
+          <h2>{tr("Payments & Invoices")}</h2>
 
-          <p className="page-intro">
-            Track billing, collections and outstanding
-            balances from one central finance workspace.
-          </p>
+          <p className="page-intro">{tr("Track billing, collections and outstanding balances from one central finance workspace.")}</p>
         </div>
 
         <div className="payments-heading-actions">
@@ -1920,9 +1917,7 @@ export function Payments() {
               setPaymentModalOpen(true)
             }
           >
-            <CreditCard size={18} />
-            Record Payment
-          </button>
+            <CreditCard size={18} />{tr("Record Payment")}</button>
 
           <button
             type="button"
@@ -1941,9 +1936,7 @@ export function Payments() {
               setInvoiceModalOpen(true);
             }}
           >
-            <Plus size={18} />
-            New Invoice
-          </button>
+            <Plus size={18} />{tr("New Invoice")}</button>
         </div>
       </section>
 
@@ -1961,9 +1954,7 @@ export function Payments() {
             setPage(1);
           }}
         >
-          <ReceiptText size={17} />
-          Invoices
-        </button>
+          <ReceiptText size={17} />{tr("Invoices")}</button>
 
         <button
           type="button"
@@ -1978,14 +1969,10 @@ export function Payments() {
             setPage(1);
           }}
         >
-          <WalletCards size={17} />
-          Payments
-        </button>
+          <WalletCards size={17} />{tr("Payments")}</button>
 
         <Link to="/payments/vendor-bills" className="finance-vendor-bills-tab">
-          <FileText size={17} />
-          Vendor Bills
-        </Link>
+          <FileText size={17} />{tr("Vendor Bills")}</Link>
 
         <button
           type="button"
@@ -2000,15 +1987,13 @@ export function Payments() {
             setPage(1);
           }}
         >
-          <FileMinus size={17} />
-          Adjustments
-        </button>
+          <FileMinus size={17} />{tr("Adjustments")}</button>
       </section>
 
       <section className="finance-summary-grid executive">
         <FinanceStat
           icon={<FileText size={20} />}
-          label="Total Billed"
+          label={tr("Total Billed")}
           value={formatCurrency(
             financeSummary.totalBilled,
           )}
@@ -2016,7 +2001,7 @@ export function Payments() {
 
         <FinanceStat
           icon={<Banknote size={20} />}
-          label="Total Collected"
+          label={tr("Total Collected")}
           value={formatCurrency(
             financeSummary.totalPaid,
           )}
@@ -2025,7 +2010,7 @@ export function Payments() {
 
         <FinanceStat
           icon={<CreditCard size={20} />}
-          label="Outstanding"
+          label={tr("Outstanding")}
           value={formatCurrency(
             financeSummary.outstanding,
           )}
@@ -2034,7 +2019,7 @@ export function Payments() {
 
         <FinanceStat
           icon={<CircleDollarSign size={20} />}
-          label="Overdue"
+          label={tr("Overdue")}
           value={formatCurrency(
             financeSummary.overdue,
           )}
@@ -2043,7 +2028,7 @@ export function Payments() {
 
         <FinanceStat
           icon={<ReceiptText size={20} />}
-          label="Collection Rate"
+          label={tr("Collection Rate")}
           value={`${financeSummary.collectionRate.toFixed(0)}%`}
           tone={
             financeSummary.collectionRate >= 80
@@ -2059,44 +2044,42 @@ export function Payments() {
       <section className="finance-aging-panel">
 
         <div className="finance-aging-header">
-          <h3>Accounts Receivable Aging</h3>
-          <span>
-            Outstanding invoices grouped by due date
-          </span>
+          <h3>{tr("Accounts Receivable Aging")}</h3>
+          <span>{tr("Outstanding invoices grouped by due date")}</span>
         </div>
 
         <div className="finance-aging-grid">
 
           <FinanceStat
             icon={<WalletCards size={18} />}
-            label="Current"
+            label={tr("Current")}
             value={formatCurrency(financeSummary.aging.current)}
           />
 
           <FinanceStat
             icon={<Clock3 size={18} />}
-            label="1–30 Days"
+            label={tr("1–30 Days")}
             value={formatCurrency(financeSummary.aging.days1To30)}
             tone="warning"
           />
 
           <FinanceStat
             icon={<Clock3 size={18} />}
-            label="31–60 Days"
+            label={tr("31–60 Days")}
             value={formatCurrency(financeSummary.aging.days31To60)}
             tone="warning"
           />
 
           <FinanceStat
             icon={<AlertTriangle size={18} />}
-            label="61–90 Days"
+            label={tr("61–90 Days")}
             value={formatCurrency(financeSummary.aging.days61To90)}
             tone="danger"
           />
 
           <FinanceStat
             icon={<AlertCircle size={18} />}
-            label="90+ Days"
+            label={tr("90+ Days")}
             value={formatCurrency(financeSummary.aging.daysOver90)}
             tone="danger"
           />
@@ -2109,7 +2092,7 @@ export function Payments() {
         <div className="finance-search">
           <Search size={18} />
 
-          <input
+          <input dir="auto"
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
@@ -2117,17 +2100,17 @@ export function Payments() {
             }}
             placeholder={
               activeTab === 'invoices'
-                ? 'Search invoice, client, case or description'
+                ? tr("Search invoice, client, case or description")
                 : activeTab === 'payments'
-                  ? 'Search invoice, client, case or payment reference'
-                  : 'Search adjustment, invoice, client, case or reason'
+                  ? tr("Search invoice, client, case or payment reference")
+                  : tr("Search adjustment, invoice, client, case or reason")
             }
           />
         </div>
 
         {activeTab === 'invoices' ? (
           <label className="finance-filter">
-            <span>Status</span>
+            <span>{tr("Status")}</span>
 
             <select
               value={invoiceStatus}
@@ -2138,31 +2121,21 @@ export function Payments() {
                 setPage(1);
               }}
             >
-              <option value="all">All statuses</option>
-              <option value="draft">Draft</option>
-              <option value="issued">Issued</option>
-              <option value="partially_paid">
-                Partially Paid
-              </option>
-              <option value="partially_credited">
-                Partially Credited
-              </option>
-              <option value="credited">
-                Credited
-              </option>
-              <option value="paid">Paid</option>
-              <option value="overdue">Overdue</option>
-              <option value="cancelled">
-                Cancelled
-              </option>
-              <option value="written_off">
-                Written Off
-              </option>
+              <option value="all">{tr("All statuses")}</option>
+              <option value="draft">{tr("Draft")}</option>
+              <option value="issued">{tr("Issued")}</option>
+              <option value="partially_paid">{tr("Partially Paid")}</option>
+              <option value="partially_credited">{tr("Partially Credited")}</option>
+              <option value="credited">{tr("Credited")}</option>
+              <option value="paid">{tr("Paid")}</option>
+              <option value="overdue">{tr("Overdue")}</option>
+              <option value="cancelled">{tr("Cancelled")}</option>
+              <option value="written_off">{tr("Written Off")}</option>
             </select>
           </label>
         ) : activeTab === 'payments' ? (
           <label className="finance-filter">
-            <span>Status</span>
+            <span>{tr("Status")}</span>
 
             <select
               value={paymentStatus}
@@ -2173,23 +2146,17 @@ export function Payments() {
                 setPage(1);
               }}
             >
-              <option value="all">All statuses</option>
-              <option value="completed">
-                Completed
-              </option>
-              <option value="pending">Pending</option>
-              <option value="failed">Failed</option>
-              <option value="refunded">
-                Refunded
-              </option>
-              <option value="cancelled">
-                Cancelled
-              </option>
+              <option value="all">{tr("All statuses")}</option>
+              <option value="completed">{tr("Completed")}</option>
+              <option value="pending">{tr("Pending")}</option>
+              <option value="failed">{tr("Failed")}</option>
+              <option value="refunded">{tr("Refunded")}</option>
+              <option value="cancelled">{tr("Cancelled")}</option>
             </select>
           </label>
         ) : (
           <label className="finance-filter">
-            <span>Type</span>
+            <span>{tr("Type")}</span>
 
             <select
               value={adjustmentType}
@@ -2201,15 +2168,9 @@ export function Payments() {
                 setPage(1);
               }}
             >
-              <option value="all">
-                All adjustments
-              </option>
-              <option value="credit_note">
-                Credit Notes
-              </option>
-              <option value="payment_reversal">
-                Payment Reversals
-              </option>
+              <option value="all">{tr("All adjustments")}</option>
+              <option value="credit_note">{tr("Credit Notes")}</option>
+              <option value="payment_reversal">{tr("Payment Reversals")}</option>
             </select>
           </label>
         )}
@@ -2217,7 +2178,7 @@ export function Payments() {
 
       {error && (
         <div className="finance-error">
-          {error}
+          {tr(error)}
         </div>
       )}
 
@@ -2232,15 +2193,15 @@ export function Payments() {
           <table className="finance-table finance-invoice-table">
             <thead>
               <tr>
-                <th>Invoice</th>
-                <th>Client</th>
-                <th>Case</th>
-                <th>Status</th>
-                <th>Total</th>
-                <th>Paid</th>
-                <th>Balance</th>
-                <th>Due Date</th>
-                <th>Actions</th>
+                <th>{tr("Invoice")}</th>
+                <th>{tr("Client")}</th>
+                <th>{tr("Case")}</th>
+                <th>{tr("Status")}</th>
+                <th>{tr("Total")}</th>
+                <th>{tr("Paid")}</th>
+                <th>{tr("Balance")}</th>
+                <th>{tr("Due Date")}</th>
+                <th>{tr("Actions")}</th>
               </tr>
             </thead>
 
@@ -2273,14 +2234,14 @@ export function Payments() {
                     <td>
                       {clientMap[
                         invoice.client_id
-                      ] ?? 'Unknown client'}
+                      ] ?? tr("Unknown client")}
                     </td>
 
                     <td>
                       {invoice.case_id
                         ? caseMap[
                             invoice.case_id
-                          ] ?? 'Unknown case'
+                          ] ?? tr("Unknown case")
                         : '—'}
                     </td>
 
@@ -2302,8 +2263,7 @@ export function Payments() {
                       {Number(
                         invoice.credited_amount ?? 0,
                       ) > 0 ? (
-                        <small>
-                          Credited:{' '}
+                        <small>{tr("Credited:")}{' '}
                           {formatCurrency(
                             invoice.credited_amount,
                           )}
@@ -2337,9 +2297,7 @@ export function Payments() {
                           onClick={() =>
                             setViewingInvoice(invoice)
                           }
-                        >
-                          View
-                        </button>
+                        >{tr("View")}</button>
 
                         {invoice.status === 'draft' ||
                         (
@@ -2354,9 +2312,7 @@ export function Payments() {
                           ) > 0
                         ) ? (
                           <details className="finance-actions-menu">
-                            <summary>
-                              Actions
-                              <span aria-hidden="true">▾</span>
+                            <summary>{tr("Actions")}<span aria-hidden="true">▾</span>
                             </summary>
 
                             <div className="finance-actions-popover">
@@ -2403,9 +2359,7 @@ export function Payments() {
 
                                       setInvoiceModalOpen(true);
                                     }}
-                                  >
-                                    Edit Draft
-                                  </button>
+                                  >{tr("Edit Draft")}</button>
 
                                   <button
                                     type="button"
@@ -2418,9 +2372,7 @@ export function Payments() {
                                     disabled={
                                       actionId === invoice.id
                                     }
-                                  >
-                                    Delete Draft
-                                  </button>
+                                  >{tr("Delete Draft")}</button>
                                 </>
                               ) : null}
 
@@ -2447,9 +2399,7 @@ export function Payments() {
                                       ),
                                     });
                                   }}
-                                >
-                                  Issue Credit Note
-                                </button>
+                                >{tr("Issue Credit Note")}</button>
                               ) : null}
 
                               {[
@@ -2468,9 +2418,7 @@ export function Payments() {
                                     );
                                     setCancellationReason('');
                                   }}
-                                >
-                                  Cancel Invoice
-                                </button>
+                                >{tr("Cancel Invoice")}</button>
                               ) : null}
                             </div>
                           </details>
@@ -2486,14 +2434,14 @@ export function Payments() {
           <table className="finance-table finance-payment-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Invoice</th>
-                <th>Client</th>
-                <th>Method</th>
-                <th>Reference</th>
-                <th>Status</th>
-                <th>Amount</th>
-                <th>Actions</th>
+                <th>{tr("Date")}</th>
+                <th>{tr("Invoice")}</th>
+                <th>{tr("Client")}</th>
+                <th>{tr("Method")}</th>
+                <th>{tr("Reference")}</th>
+                <th>{tr("Status")}</th>
+                <th>{tr("Amount")}</th>
+                <th>{tr("Actions")}</th>
               </tr>
             </thead>
 
@@ -2531,7 +2479,7 @@ export function Payments() {
                       <td>
                         {clientMap[
                           payment.client_id
-                        ] ?? 'Unknown client'}
+                        ] ?? tr("Unknown client")}
                       </td>
 
                       <td>
@@ -2562,8 +2510,7 @@ export function Payments() {
                         {Number(
                           payment.reversed_amount ?? 0,
                         ) > 0 ? (
-                          <small>
-                            Reversed:{' '}
+                          <small>{tr("Reversed:")}{' '}
                             {formatCurrency(
                               payment.reversed_amount,
                             )}
@@ -2585,9 +2532,7 @@ export function Payments() {
                                 )
                               }
                             >
-                              <ReceiptText size={16} />
-                              Receipt
-                            </button>
+                              <ReceiptText size={16} />{tr("Receipt")}</button>
                           ) : null}
 
                           {[
@@ -2622,9 +2567,7 @@ export function Payments() {
                                 });
                               }}
                             >
-                              <Undo2 size={16} />
-                              Reverse
-                            </button>
+                              <Undo2 size={16} />{tr("Reverse")}</button>
                           ) : null}
 
                           {payment.status !==
@@ -2659,13 +2602,13 @@ export function Payments() {
           <table className="finance-table finance-adjustments-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Document</th>
-                <th>Client</th>
-                <th>Amount</th>
-                <th>Reason</th>
-                <th>Actions</th>
+                <th>{tr("Date")}</th>
+                <th>{tr("Type")}</th>
+                <th>{tr("Document")}</th>
+                <th>{tr("Client")}</th>
+                <th>{tr("Amount")}</th>
+                <th>{tr("Reason")}</th>
+                <th>{tr("Actions")}</th>
               </tr>
             </thead>
 
@@ -2696,8 +2639,8 @@ export function Payments() {
                         >
                           {adjustment.kind ===
                           'credit_note'
-                            ? 'Credit Note'
-                            : 'Payment Reversal'}
+                            ? tr("Credit Note")
+                            : tr("Payment Reversal")}
                         </span>
                       </td>
 
@@ -2706,8 +2649,7 @@ export function Payments() {
                           {adjustment.documentNumber}
                         </strong>
 
-                        <small>
-                          Invoice:{' '}
+                        <small>{tr("Invoice:")}{' '}
                           {adjustment.originalNumber}
                         </small>
                       </td>
@@ -2715,14 +2657,14 @@ export function Payments() {
                       <td>
                         {clientMap[
                           adjustment.clientId
-                        ] ?? 'Unknown client'}
+                        ] ?? tr("Unknown client")}
 
                         <small>
                           {adjustment.caseId
                             ? caseMap[
                                 adjustment.caseId
-                              ] ?? 'Unknown case'
-                            : 'No linked case'}
+                              ] ?? tr("Unknown case")
+                            : tr("No linked case")}
                         </small>
                       </td>
 
@@ -2758,8 +2700,8 @@ export function Payments() {
                           }
                         >
                           {actionId === adjustment.id
-                            ? 'Loading…'
-                            : 'View'}
+                            ? tr("Loading…")
+                            : tr("View")}
                         </button>
                       </td>
                     </tr>
@@ -2781,12 +2723,9 @@ export function Payments() {
               )
             }
             disabled={page <= 1 || loading}
-          >
-            Previous
-          </button>
+          >{tr("Previous")}</button>
 
-          <span>
-            Page {page} of {totalPages}
+          <span>{tr("Page")}{" "}{page}{" "}{tr("of")}{" "}{totalPages}
           </span>
 
           <button
@@ -2802,9 +2741,7 @@ export function Payments() {
             disabled={
               page >= totalPages || loading
             }
-          >
-            Next
-          </button>
+          >{tr("Next")}</button>
         </section>
       )}
 
@@ -2822,12 +2759,9 @@ export function Payments() {
           <section className="finance-modal finance-cancel-modal">
             <header className="finance-modal-header">
               <div>
-                <p className="page-eyebrow">
-                  Invoice lifecycle
-                </p>
+                <p className="page-eyebrow">{tr("Invoice lifecycle")}</p>
 
-                <h3>
-                  Cancel{' '}
+                <h3>{tr("Cancel")}{' '}
                   {cancellingInvoice.invoice_number}
                 </h3>
               </div>
@@ -2851,23 +2785,16 @@ export function Payments() {
                 <Ban size={22} />
 
                 <div>
-                  <strong>
-                    This action finalizes the invoice.
-                  </strong>
+                  <strong>{tr("This action finalizes the invoice.")}</strong>
 
-                  <p>
-                    The invoice will remain in the
-                    financial history but cannot be
-                    edited, deleted or used for new
-                    payments.
-                  </p>
+                  <p>{tr("The invoice will remain in the financial history but cannot be edited, deleted or used for new payments.")}</p>
                 </div>
               </div>
 
               <label>
-                <span>Cancellation reason</span>
+                <span>{tr("Cancellation reason")}</span>
 
-                <textarea
+                <textarea dir="auto"
                   rows={4}
                   value={cancellationReason}
                   onChange={(event) =>
@@ -2875,7 +2802,7 @@ export function Payments() {
                       event.target.value,
                     )
                   }
-                  placeholder="Explain why this invoice is being cancelled"
+                  placeholder={tr("Explain why this invoice is being cancelled")}
                   required
                   minLength={5}
                   autoFocus
@@ -2891,9 +2818,7 @@ export function Payments() {
                     setCancellationReason('');
                   }}
                   disabled={formLoading}
-                >
-                  Keep Invoice
-                </button>
+                >{tr("Keep Invoice")}</button>
 
                 <button
                   type="submit"
@@ -2908,8 +2833,8 @@ export function Payments() {
                   <Ban size={17} />
 
                   {formLoading
-                    ? 'Cancelling…'
-                    : 'Cancel Invoice'}
+                    ? tr("Cancelling…")
+                    : tr("Cancel Invoice")}
                 </button>
               </footer>
             </form>
@@ -2932,13 +2857,11 @@ export function Payments() {
           <section className="finance-modal">
             <header className="finance-modal-header">
               <div>
-                <p className="page-eyebrow">
-                  Billing
-                </p>
+                <p className="page-eyebrow">{tr("Billing")}</p>
                 <h3>
                   {editingInvoice
-                    ? 'Edit Invoice'
-                    : 'New Invoice'}
+                    ? tr("Edit Invoice")
+                    : tr("New Invoice")}
                 </h3>
               </div>
 
@@ -2959,7 +2882,7 @@ export function Payments() {
               onSubmit={handleCreateInvoice}
             >
               <label>
-                <span>Client</span>
+                <span>{tr("Client")}</span>
 
                 <select
                   value={
@@ -2977,9 +2900,7 @@ export function Payments() {
                   }
                   required
                 >
-                  <option value="">
-                    Select client
-                  </option>
+                  <option value="">{tr("Select client")}</option>
 
                   {clients.map((client) => (
                     <option
@@ -2993,7 +2914,7 @@ export function Payments() {
               </label>
 
               <label>
-                <span>Case</span>
+                <span>{tr("Case")}</span>
 
                 <select
                   value={
@@ -3012,9 +2933,7 @@ export function Payments() {
                     !invoiceForm.client_id
                   }
                 >
-                  <option value="">
-                    No case
-                  </option>
+                  <option value="">{tr("No case")}</option>
 
                   {filteredCases.map(
                     (caseItem) => (
@@ -3031,9 +2950,9 @@ export function Payments() {
               </label>
 
               <label>
-                <span>Invoice Number</span>
+                <span>{tr("Invoice Number")}</span>
 
-                <input
+                <input dir="auto"
                   value={
                     editingInvoice
                       ? invoiceForm.invoice_number
@@ -3045,7 +2964,7 @@ export function Payments() {
               </label>
 
               <label>
-                <span>Status</span>
+                <span>{tr("Status")}</span>
 
                 <select
                   value={invoiceForm.status}
@@ -3060,20 +2979,16 @@ export function Payments() {
                     )
                   }
                 >
-                  <option value="draft">
-                    Draft
-                  </option>
+                  <option value="draft">{tr("Draft")}</option>
 
-                  <option value="issued">
-                    Issued
-                  </option>
+                  <option value="issued">{tr("Issued")}</option>
                 </select>
               </label>
 
               <label>
-                <span>Issue Date</span>
+                <span>{tr("Issue Date")}</span>
 
-                <input
+                <input dir="ltr"
                   type="date"
                   value={
                     invoiceForm.issue_date
@@ -3091,9 +3006,9 @@ export function Payments() {
               </label>
 
               <label>
-                <span>Due Date</span>
+                <span>{tr("Due Date")}</span>
 
-                <input
+                <input dir="ltr"
                   type="date"
                   value={
                     invoiceForm.due_date
@@ -3111,9 +3026,9 @@ export function Payments() {
               </label>
 
               <label>
-                <span>Subtotal</span>
+                <span>{tr("Subtotal")}</span>
 
-                <input
+                <input dir="ltr"
                   type="number"
                   min="0"
                   step="0.01"
@@ -3133,9 +3048,9 @@ export function Payments() {
               </label>
 
               <label>
-                <span>VAT %</span>
+                <span>{tr("VAT %")}</span>
 
-                <input
+                <input dir="ltr"
                   type="number"
                   min="0"
                   step="0.01"
@@ -3156,29 +3071,29 @@ export function Payments() {
               </label>
 
               <label>
-                <span>VAT Treatment</span>
+                <span>{tr("VAT Treatment")}</span>
                 <select disabled={!companySettings?.vat_registered} value={invoiceForm.vat_treatment} onChange={(event) => setInvoiceForm((current) => ({ ...current, vat_treatment: event.target.value as VatTreatment, vat_rate: ['zero_rated', 'out_of_scope'].includes(event.target.value) ? '0' : current.vat_rate === '0' ? String(companySettings?.default_vat_rate ?? 5) : current.vat_rate }))}>
-                  <option value="exclusive">VAT Exclusive</option>
-                  <option value="inclusive">VAT Inclusive</option>
-                  <option value="zero_rated">Zero Rated</option>
-                  <option value="out_of_scope">Out of Scope</option>
+                  <option value="exclusive">{tr("VAT Exclusive")}</option>
+                  <option value="inclusive">{tr("VAT Inclusive")}</option>
+                  <option value="zero_rated">{tr("Zero Rated")}</option>
+                  <option value="out_of_scope">{tr("Out of Scope")}</option>
                 </select>
               </label>
 
               <label>
-                <span>Supply Date</span>
-                <input type="date" value={invoiceForm.supply_date} onChange={(event) => setInvoiceForm((current) => ({ ...current, supply_date: event.target.value }))} required />
+                <span>{tr("Supply Date")}</span>
+                <input dir="ltr" type="date" value={invoiceForm.supply_date} onChange={(event) => setInvoiceForm((current) => ({ ...current, supply_date: event.target.value }))} required />
               </label>
 
               <label className="finance-checkbox-field">
-                <span>Tax document</span>
+                <span>{tr("Tax document")}</span>
                 <input type="checkbox" disabled={!companySettings?.vat_registered} checked={invoiceForm.is_tax_invoice} onChange={(event) => setInvoiceForm((current) => ({ ...current, is_tax_invoice: event.target.checked }))} />
               </label>
 
               <label>
-                <span>Discount</span>
+                <span>{tr("Discount")}</span>
 
-                <input
+                <input dir="ltr"
                   type="number"
                   min="0"
                   step="0.01"
@@ -3198,9 +3113,9 @@ export function Payments() {
               </label>
 
               <label>
-                <span>Currency</span>
+                <span>{tr("Currency")}</span>
 
-                <input
+                <input dir="auto"
                   value={
                     invoiceForm.currency
                   }
@@ -3217,9 +3132,9 @@ export function Payments() {
               </label>
 
               <label className="finance-form-wide">
-                <span>Description</span>
+                <span>{tr("Description")}</span>
 
-                <textarea
+                <textarea dir="auto"
                   value={
                     invoiceForm.description
                   }
@@ -3236,9 +3151,9 @@ export function Payments() {
               </label>
 
               <label className="finance-form-wide">
-                <span>Notes</span>
+                <span>{tr("Notes")}</span>
 
-                <textarea
+                <textarea dir="auto"
                   value={invoiceForm.notes}
                   onChange={(event) =>
                     setInvoiceForm(
@@ -3261,9 +3176,7 @@ export function Payments() {
                     setEditingInvoice(null);
                     setInvoiceForm(emptyInvoiceForm);
                   }}
-                >
-                  Cancel
-                </button>
+                >{tr("Cancel")}</button>
 
                 <button
                   type="submit"
@@ -3271,10 +3184,10 @@ export function Payments() {
                   disabled={formLoading}
                 >
                   {formLoading
-                    ? 'Saving…'
+                    ? tr("Saving…")
                     : editingInvoice
-                      ? 'Save Changes'
-                      : 'Create Invoice'}
+                      ? tr("Save Changes")
+                      : tr("Create Invoice")}
                 </button>
               </footer>
             </form>
@@ -3295,11 +3208,8 @@ export function Payments() {
           <section className="finance-modal finance-adjustment-modal">
             <header className="finance-modal-header">
               <div>
-                <p className="page-eyebrow">
-                  Invoice adjustment
-                </p>
-                <h3>
-                  Credit {creditingInvoice.invoice_number}
+                <p className="page-eyebrow">{tr("Invoice adjustment")}</p>
+                <h3>{tr("Credit")}{" "}{creditingInvoice.invoice_number}
                 </h3>
               </div>
 
@@ -3318,22 +3228,19 @@ export function Payments() {
               onSubmit={handleIssueCreditNote}
             >
               <div className="finance-adjustment-summary">
-                <span>Outstanding balance</span>
+                <span>{tr("Outstanding balance")}</span>
                 <strong>
                   {formatCurrency(
                     creditingInvoice.balance_amount,
                   )}
                 </strong>
-                <p>
-                  The original invoice remains unchanged.
-                  This credit note reduces the amount payable.
-                </p>
+                <p>{tr("The original invoice remains unchanged. This credit note reduces the amount payable.")}</p>
               </div>
 
               <div className="finance-adjustment-grid">
                 <label>
-                  <span>Subtotal to credit</span>
-                  <input
+                  <span>{tr("Subtotal to credit")}</span>
+                  <input dir="ltr"
                     type="number"
                     min="0.01"
                     step="0.01"
@@ -3352,8 +3259,8 @@ export function Payments() {
                 </label>
 
                 <label>
-                  <span>VAT Rate (%)</span>
-                  <input
+                  <span>{tr("VAT Rate (%)")}</span>
+                  <input dir="ltr"
                     type="number"
                     min="0"
                     max="100"
@@ -3373,8 +3280,8 @@ export function Payments() {
                 </label>
 
                 <label>
-                  <span>Issue Date</span>
-                  <input
+                  <span>{tr("Issue Date")}</span>
+                  <input dir="ltr"
                     type="date"
                     value={creditNoteForm.issue_date}
                     onChange={(event) =>
@@ -3391,8 +3298,8 @@ export function Payments() {
                 </label>
 
                 <label className="finance-form-wide">
-                  <span>Reason</span>
-                  <textarea
+                  <span>{tr("Reason")}</span>
+                  <textarea dir="auto"
                     value={creditNoteForm.reason}
                     onChange={(event) =>
                       setCreditNoteForm(
@@ -3403,7 +3310,7 @@ export function Payments() {
                         }),
                       )
                     }
-                    placeholder="Explain why this credit note is being issued"
+                    placeholder={tr("Explain why this credit note is being issued")}
                     required
                   />
                 </label>
@@ -3416,9 +3323,7 @@ export function Payments() {
                   onClick={() =>
                     setCreditingInvoice(null)
                   }
-                >
-                  Keep Invoice
-                </button>
+                >{tr("Keep Invoice")}</button>
 
                 <button
                   type="submit"
@@ -3427,8 +3332,8 @@ export function Payments() {
                 >
                   <FileMinus size={16} />
                   {formLoading
-                    ? 'Issuing…'
-                    : 'Issue Credit Note'}
+                    ? tr("Issuing…")
+                    : tr("Issue Credit Note")}
                 </button>
               </footer>
             </form>
@@ -3449,13 +3354,10 @@ export function Payments() {
           <section className="finance-modal finance-adjustment-modal">
             <header className="finance-modal-header">
               <div>
-                <p className="page-eyebrow">
-                  Payment correction
-                </p>
-                <h3>
-                  Reverse{' '}
+                <p className="page-eyebrow">{tr("Payment correction")}</p>
+                <h3>{tr("Reverse")}{' '}
                   {reversingPayment.receipt_number ??
-                    'payment'}
+                    tr("payment")}
                 </h3>
               </div>
 
@@ -3474,7 +3376,7 @@ export function Payments() {
               onSubmit={handleReversePayment}
             >
               <div className="finance-adjustment-summary danger">
-                <span>Available to reverse</span>
+                <span>{tr("Available to reverse")}</span>
                 <strong>
                   {formatCurrency(
                     Number(reversingPayment.amount) -
@@ -3484,16 +3386,13 @@ export function Payments() {
                       ),
                   )}
                 </strong>
-                <p>
-                  The original receipt remains permanently
-                  available in the financial history.
-                </p>
+                <p>{tr("The original receipt remains permanently available in the financial history.")}</p>
               </div>
 
               <div className="finance-adjustment-grid">
                 <label>
-                  <span>Reversal Amount</span>
-                  <input
+                  <span>{tr("Reversal Amount")}</span>
+                  <input dir="ltr"
                     type="number"
                     min="0.01"
                     step="0.01"
@@ -3514,8 +3413,8 @@ export function Payments() {
                 </label>
 
                 <label>
-                  <span>Reversal Date</span>
-                  <input
+                  <span>{tr("Reversal Date")}</span>
+                  <input dir="ltr"
                     type="date"
                     value={
                       paymentReversalForm.reversal_date
@@ -3534,8 +3433,8 @@ export function Payments() {
                 </label>
 
                 <label className="finance-form-wide">
-                  <span>Reason</span>
-                  <textarea
+                  <span>{tr("Reason")}</span>
+                  <textarea dir="auto"
                     value={
                       paymentReversalForm.reason
                     }
@@ -3548,7 +3447,7 @@ export function Payments() {
                         }),
                       )
                     }
-                    placeholder="Explain why this payment is being reversed"
+                    placeholder={tr("Explain why this payment is being reversed")}
                     required
                   />
                 </label>
@@ -3561,9 +3460,7 @@ export function Payments() {
                   onClick={() =>
                     setReversingPayment(null)
                   }
-                >
-                  Keep Payment
-                </button>
+                >{tr("Keep Payment")}</button>
 
                 <button
                   type="submit"
@@ -3572,8 +3469,8 @@ export function Payments() {
                 >
                   <Undo2 size={16} />
                   {formLoading
-                    ? 'Reversing…'
-                    : 'Confirm Reversal'}
+                    ? tr("Reversing…")
+                    : tr("Confirm Reversal")}
                 </button>
               </footer>
             </form>
@@ -3624,9 +3521,7 @@ export function Payments() {
             <section className="finance-modal finance-view-modal">
               <header className="finance-modal-header">
                 <div>
-                  <p className="page-eyebrow">
-                    Financial adjustment
-                  </p>
+                  <p className="page-eyebrow">{tr("Financial adjustment")}</p>
 
                   <h3>
                     {row.documentNumber}
@@ -3671,9 +3566,7 @@ export function Payments() {
                     }
                   />
                 ) : (
-                  <div className="finance-error">
-                    Adjustment document data is incomplete.
-                  </div>
+                  <div className="finance-error">{tr("Adjustment document data is incomplete.")}</div>
                 )}
               </div>
 
@@ -3685,9 +3578,7 @@ export function Payments() {
                     handlePrintAdjustment
                   }
                 >
-                  <Printer size={17} />
-                  Print / Save PDF
-                </button>
+                  <Printer size={17} />{tr("Print / Save PDF")}</button>
 
                 <button
                   type="button"
@@ -3695,9 +3586,7 @@ export function Payments() {
                   onClick={() =>
                     setViewingAdjustment(null)
                   }
-                >
-                  Close
-                </button>
+                >{tr("Close")}</button>
               </footer>
             </section>
 
@@ -3745,12 +3634,9 @@ export function Payments() {
           <section className="finance-modal finance-view-modal">
             <header className="finance-modal-header">
               <div>
-                <p className="page-eyebrow">
-                  Invoice details
-                </p>
+                <p className="page-eyebrow">{tr("Invoice details")}</p>
 
-                <h3>
-                  Invoice {viewingInvoice.invoice_number}
+                <h3>{tr("Invoice")}{" "}{viewingInvoice.invoice_number}
                 </h3>
               </div>
 
@@ -3770,7 +3656,7 @@ export function Payments() {
                 clientName={
                   clientMap[
                     viewingInvoice.client_id
-                  ] ?? 'Unknown client'
+                  ] ?? tr("Unknown client")
                 }
                 caseReference={
                   viewingInvoice.case_id
@@ -3789,9 +3675,7 @@ export function Payments() {
                 className="primary-action-button"
                 onClick={handlePrintInvoice}
               >
-                <Printer size={17} />
-                Print / Save PDF
-              </button>
+                <Printer size={17} />{tr("Print / Save PDF")}</button>
 
               <button
                 type="button"
@@ -3799,9 +3683,7 @@ export function Payments() {
                 onClick={() =>
                   setViewingInvoice(null)
                 }
-              >
-                Close
-              </button>
+              >{tr("Close")}</button>
             </footer>
           </section>
 
@@ -3810,7 +3692,7 @@ export function Payments() {
             clientName={
               clientMap[
                 viewingInvoice.client_id
-              ] ?? 'Unknown client'
+              ] ?? tr("Unknown client")
             }
             caseReference={
               viewingInvoice.case_id
@@ -3856,9 +3738,7 @@ export function Payments() {
             <section className="finance-modal finance-view-modal">
               <header className="finance-modal-header">
                 <div>
-                  <p className="page-eyebrow">
-                    Payment receipt
-                  </p>
+                  <p className="page-eyebrow">{tr("Payment receipt")}</p>
 
                   <h3>
                     {viewingPayment.receipt_number}
@@ -3911,9 +3791,7 @@ export function Payments() {
                     }, 500);
                   }}
                 >
-                  <Printer size={17} />
-                  Print / Save PDF
-                </button>
+                  <Printer size={17} />{tr("Print / Save PDF")}</button>
 
                 <button
                   type="button"
@@ -3921,9 +3799,7 @@ export function Payments() {
                   onClick={() =>
                     setViewingPayment(null)
                   }
-                >
-                  Close
-                </button>
+                >{tr("Close")}</button>
               </footer>
             </section>
 
@@ -3955,10 +3831,8 @@ export function Payments() {
           <section className="finance-modal">
             <header className="finance-modal-header">
               <div>
-                <p className="page-eyebrow">
-                  Collections
-                </p>
-                <h3>Record Payment</h3>
+                <p className="page-eyebrow">{tr("Collections")}</p>
+                <h3>{tr("Record Payment")}</h3>
               </div>
 
               <button
@@ -3976,7 +3850,7 @@ export function Payments() {
               onSubmit={handleCreatePayment}
             >
               <label className="finance-form-wide">
-                <span>Invoice</span>
+                <span>{tr("Invoice")}</span>
 
                 <select
                   value={
@@ -4008,9 +3882,7 @@ export function Payments() {
                   }}
                   required
                 >
-                  <option value="">
-                    Select invoice
-                  </option>
+                  <option value="">{tr("Select invoice")}</option>
 
                   {payableInvoiceOptions.map((invoice) => (
                     <option
@@ -4020,16 +3892,16 @@ export function Payments() {
                       {invoice.invoice_number} —{' '}
                       {clientMap[
                         invoice.client_id
-                      ] ?? 'Client'}
+                      ] ?? tr("Client")}
                     </option>
                   ))}
                 </select>
               </label>
 
               <label>
-                <span>Amount</span>
+                <span>{tr("Amount")}</span>
 
-                <input
+                <input dir="ltr"
                   type="number"
                   min="0"
                   step="0.01"
@@ -4050,9 +3922,9 @@ export function Payments() {
               </label>
 
               <label>
-                <span>Currency</span>
+                <span>{tr("Currency")}</span>
 
-                <input
+                <input dir="auto"
                   value={
                     paymentForm.currency
                   }
@@ -4069,9 +3941,9 @@ export function Payments() {
               </label>
 
               <label>
-                <span>Payment Date</span>
+                <span>{tr("Payment Date")}</span>
 
-                <input
+                <input dir="ltr"
                   type="date"
                   value={
                     paymentForm.payment_date
@@ -4089,7 +3961,7 @@ export function Payments() {
               </label>
 
               <label>
-                <span>Status</span>
+                <span>{tr("Status")}</span>
 
                 <select
                   value={
@@ -4106,22 +3978,16 @@ export function Payments() {
                     )
                   }
                 >
-                  <option value="completed">
-                    Completed
-                  </option>
-                  <option value="pending">
-                    Pending
-                  </option>
-                  <option value="failed">
-                    Failed
-                  </option>
+                  <option value="completed">{tr("Completed")}</option>
+                  <option value="pending">{tr("Pending")}</option>
+                  <option value="failed">{tr("Failed")}</option>
                 </select>
               </label>
 
               <label>
-                <span>Payment Method</span>
+                <span>{tr("Payment Method")}</span>
 
-                <input
+                <input dir="auto"
                   value={
                     paymentForm.payment_method
                   }
@@ -4134,14 +4000,14 @@ export function Payments() {
                       }),
                     )
                   }
-                  placeholder="Bank transfer, cash..."
+                  placeholder={tr("Bank transfer, cash...")}
                 />
               </label>
 
               <label>
-                <span>Reference</span>
+                <span>{tr("Reference")}</span>
 
-                <input
+                <input dir="auto"
                   value={
                     paymentForm.reference_number
                   }
@@ -4158,7 +4024,7 @@ export function Payments() {
               </label>
 
               <label>
-                <span>Received By</span>
+                <span>{tr("Received By")}</span>
 
                 <select
                   value={
@@ -4174,9 +4040,7 @@ export function Payments() {
                     )
                   }
                 >
-                  <option value="">
-                    Not assigned
-                  </option>
+                  <option value="">{tr("Not assigned")}</option>
 
                   {staff.map((member) => (
                     <option
@@ -4190,9 +4054,9 @@ export function Payments() {
               </label>
 
               <label className="finance-form-wide">
-                <span>Notes</span>
+                <span>{tr("Notes")}</span>
 
-                <textarea
+                <textarea dir="auto"
                   value={
                     paymentForm.notes
                   }
@@ -4215,9 +4079,7 @@ export function Payments() {
                   onClick={() =>
                     setPaymentModalOpen(false)
                   }
-                >
-                  Cancel
-                </button>
+                >{tr("Cancel")}</button>
 
                 <button
                   type="submit"
@@ -4225,8 +4087,8 @@ export function Payments() {
                   disabled={formLoading}
                 >
                   {formLoading
-                    ? 'Saving…'
-                    : 'Record Payment'}
+                    ? tr("Saving…")
+                    : tr("Record Payment")}
                 </button>
               </footer>
             </form>
@@ -4252,6 +4114,7 @@ function FinanceStat({
     | 'warning'
     | 'danger';
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article
       className={`finance-stat-card ${tone}`}
@@ -4275,6 +4138,7 @@ function FinanceStateRow({
   message: string;
   columns: number;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <tr>
       <td
@@ -4473,7 +4337,7 @@ function filterPayments(
 function formatCurrency(
   value: number | string | null | undefined,
 ): string {
-  return new Intl.NumberFormat('en-AE', {
+  return new Intl.NumberFormat(getLocale("en-AE"), {
     style: 'currency',
     currency: 'AED',
     maximumFractionDigits: 2,
@@ -4493,7 +4357,7 @@ function formatDate(
     return '—';
   }
 
-  return new Intl.DateTimeFormat('en-AE', {
+  return new Intl.DateTimeFormat(getLocale("en-AE"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -4503,11 +4367,11 @@ function formatDate(
 function formatLabel(
   value: string,
 ): string {
-  return value
+  return tr(value
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (letter) =>
       letter.toUpperCase(),
-    );
+    ));
 }
 
 function getTodayDate(): string {

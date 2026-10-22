@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import {
   Download,
   ExternalLink,
@@ -44,7 +45,7 @@ function formatDate(value?: string | null): string {
     return '—';
   }
 
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getLocale("en-GB"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -112,6 +113,7 @@ export function DocumentDetailsModal({
   onOpenFile,
   onDelete,
 }: DocumentDetailsModalProps) {
+  const interfaceLanguage = useLocale();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [textPreview, setTextPreview] = useState<string | null>(null);
   const [htmlPreview, setHtmlPreview] = useState<string | null>(null);
@@ -143,7 +145,7 @@ export function DocumentDetailsModal({
     }
 
     return 'none';
-  }, [document]);
+  }, [document, interfaceLanguage]);
 
   useEffect(() => {
     if (!open || !document) {
@@ -240,26 +242,22 @@ export function DocumentDetailsModal({
         type="button"
         className="document-details-backdrop"
         onClick={onClose}
-        aria-label="Close document details"
+        aria-label={tr("Close document details")}
       />
 
       <section className="document-details-modal" role="dialog" aria-modal="true">
         <header className="document-details-header">
           <div>
-            <p className="modal-eyebrow">
-              Document details
-            </p>
-            <h3>{document?.name ?? 'Document details'}</h3>
-            <p className="modal-description">
-              Review document metadata, preview files, and manage access securely.
-            </p>
+            <p className="modal-eyebrow">{tr("Document details")}</p>
+            <h3>{document?.name ?? tr("Document details")}</h3>
+            <p className="modal-description">{tr("Review document metadata, preview files, and manage access securely.")}</p>
           </div>
 
           <button
             type="button"
             className="document-details-close"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={tr("Close")}
           >
             <X size={18} />
           </button>
@@ -267,19 +265,17 @@ export function DocumentDetailsModal({
 
         <div className="document-details-body">
           {loading ? (
-            <div className="document-details-loading">
-              Loading document details…
-            </div>
+            <div className="document-details-loading">{tr("Loading document details…")}</div>
           ) : error ? (
             <div className="document-details-error" role="alert">
-              {error}
+              {tr(error)}
             </div>
           ) : document ? (
             <div className="document-details-grid">
               <div className="document-details-summary">
                 <div className="document-details-badge-row">
                   <span className="document-privacy-badge">
-                    {document.is_confidential ? 'Confidential' : 'Standard'}
+                    {document.is_confidential ? tr("Confidential") : tr("Standard")}
                   </span>
                   <span className="document-type-badge">
                     {documentType}
@@ -287,59 +283,59 @@ export function DocumentDetailsModal({
                 </div>
 
                 <div className="document-summary-field">
-                  <span>Name</span>
+                  <span>{tr("Name")}</span>
                   <strong>{document.name}</strong>
                 </div>
 
                 <div className="document-summary-field">
-                  <span>Client</span>
-                  <strong>{document.client?.full_name ?? 'Unlinked'}</strong>
+                  <span>{tr("Client")}</span>
+                  <strong>{document.client?.full_name ?? tr("Unlinked")}</strong>
                 </div>
 
                 <div className="document-summary-field">
-                  <span>Case</span>
+                  <span>{tr("Case")}</span>
                   <strong>
-                    {document.case?.case_number ?? document.case?.case_type ?? 'Unlinked'}
+                    {document.case?.case_number ?? document.case?.case_type ?? tr("Unlinked")}
                   </strong>
                 </div>
 
                 <div className="document-summary-field">
-                  <span>Uploaded by</span>
+                  <span>{tr("Uploaded by")}</span>
                   <strong>
                     {document.uploaded_by_name ??
                       document.uploaded_by_staff?.full_name ??
-                      'Unknown'}
+                      tr("Unknown")}
                   </strong>
                 </div>
 
                 <div className="document-summary-field">
-                  <span>Created</span>
+                  <span>{tr("Created")}</span>
                   <strong>{formatDate(document.created_at)}</strong>
                 </div>
 
                 <div className="document-summary-field">
-                  <span>Last updated</span>
+                  <span>{tr("Last updated")}</span>
                   <strong>{formatDate(document.updated_at)}</strong>
                 </div>
 
                 <div className="document-summary-field">
-                  <span>File size</span>
+                  <span>{tr("File size")}</span>
                   <strong>{formatFileSize(document.size_bytes)}</strong>
                 </div>
 
                 <div className="document-summary-field">
-                  <span>MIME type</span>
-                  <strong>{document.mime_type ?? 'Unknown'}</strong>
+                  <span>{tr("MIME type")}</span>
+                  <strong>{document.mime_type ?? tr("Unknown")}</strong>
                 </div>
 
                 <div className="document-summary-field">
-                  <span>Version</span>
+                  <span>{tr("Version")}</span>
                   <strong>{document.version}</strong>
                 </div>
 
                 {document.description && (
                   <div className="document-summary-field document-summary-description">
-                    <span>Description</span>
+                    <span>{tr("Description")}</span>
                     <p>{document.description}</p>
                   </div>
                 )}
@@ -348,18 +344,16 @@ export function DocumentDetailsModal({
               <div className="document-details-preview-panel">
                 <div className="document-details-preview-header">
                   <div>
-                    <span>Preview</span>
+                    <span>{tr("Preview")}</span>
                     <strong>{documentType}</strong>
                   </div>
                   <div className="document-details-preview-status">
-                    {previewLoading ? 'Loading preview…' : previewType === 'none' ? 'Preview unavailable' : 'Preview available'}
+                    {previewLoading ? tr("Loading preview…") : previewType === 'none' ? tr("Preview unavailable") : tr("Preview available")}
                   </div>
                 </div>
 
                 {previewLoading ? (
-                  <div className="document-details-preview-loading">
-                    Preparing preview…
-                  </div>
+                  <div className="document-details-preview-loading">{tr("Preparing preview…")}</div>
                 ) : previewError ? (
                   <div className="document-details-preview-error" role="alert">
                     {previewError}
@@ -367,7 +361,7 @@ export function DocumentDetailsModal({
                 ) : previewUrl ? (
                   previewType === 'pdf' ? (
                     <iframe
-                      title="Document preview"
+                      title={tr("Document preview")}
                       src={previewUrl}
                       className="document-preview-frame"
                     />
@@ -379,31 +373,26 @@ export function DocumentDetailsModal({
                     />
                   ) : previewType === 'html' ? (
                     <iframe
-                      title="Agreement preview"
+                      title={tr("Agreement preview")}
                       srcDoc={htmlPreview ?? ''}
                       sandbox=""
                       className="document-preview-frame document-preview-html"
                     />
                   ) : previewType === 'text' ? (
                     <pre className="document-preview-text">
-                      {textPreview || 'Loading preview…'}
+                      {textPreview || tr("Loading preview…")}
                     </pre>
                   ) : null
                 ) : (
                   <div className="document-preview-empty">
                     <FileText size={24} />
-                    <p>
-                      Preview is not available for this file type.
-                      Use Open or Download to view the document.
-                    </p>
+                    <p>{tr("Preview is not available for this file type. Use Open or Download to view the document.")}</p>
                   </div>
                 )}
               </div>
             </div>
           ) : (
-            <div className="document-details-empty">
-              Document details are not available.
-            </div>
+            <div className="document-details-empty">{tr("Document details are not available.")}</div>
           )}
         </div>
 
@@ -412,9 +401,7 @@ export function DocumentDetailsModal({
             type="button"
             className="secondary-action-button"
             onClick={onClose}
-          >
-            Close
-          </button>
+          >{tr("Close")}</button>
 
           <div className="document-details-actions-right">
             <button
@@ -423,9 +410,7 @@ export function DocumentDetailsModal({
               onClick={onOpenFile}
               disabled={loading}
             >
-              <ExternalLink size={16} />
-              Open file
-            </button>
+              <ExternalLink size={16} />{tr("Open file")}</button>
 
             <button
               type="button"
@@ -433,9 +418,7 @@ export function DocumentDetailsModal({
               onClick={onDownload}
               disabled={loading}
             >
-              <Download size={16} />
-              Download
-            </button>
+              <Download size={16} />{tr("Download")}</button>
 
             <button
               type="button"
@@ -443,9 +426,7 @@ export function DocumentDetailsModal({
               onClick={onDelete}
               disabled={loading}
             >
-              <LockKeyhole size={16} />
-              Delete
-            </button>
+              <LockKeyhole size={16} />{tr("Delete")}</button>
           </div>
         </footer>
       </section>

@@ -206,7 +206,7 @@
   background: #ffffff;
   color: inherit;
   font: inherit;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
 }
 
@@ -390,7 +390,7 @@
 }
 
 .ai-message.user time {
-  text-align: right;
+  text-align: end;
 }
 
 .ai-loading-message {

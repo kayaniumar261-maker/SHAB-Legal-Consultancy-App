@@ -1,3 +1,4 @@
+import { tr, useLocale, trEnum } from '../i18n/locale';
 import './StaffSafetyReview.css';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -26,7 +27,7 @@ type Decision = { request: StaffDeletionRequest; kind: 'approve' | 'reject' | 'c
 
 const filters: Filter[] = ['pending', 'approved', 'rejected', 'completed', 'cancelled', 'all'];
 const entityLabels: Record<string, string> = {
-  client: 'Client', case: 'Case', case_note: 'Case note', task: 'Task', hearing: 'Hearing', document: 'Document',
+  get client() { return tr("Client"); }, get case() { return tr("Case"); }, get case_note() { return tr("Case note"); }, get task() { return tr("Task"); }, get hearing() { return tr("Hearing"); }, get document() { return tr("Document"); },
 };
 
 function recordName(request: StaffDeletionRequest) {
@@ -43,6 +44,7 @@ function formatDate(value: string | null) {
 }
 
 export function StaffSafetyReview() {
+  const interfaceLanguage = useLocale();
   const [filter, setFilter] = useState<Filter>('pending');
   const [requests, setRequests] = useState<StaffDeletionRequest[]>([]);
   const [activities, setActivities] = useState<StaffActivityEntry[]>([]);
@@ -71,7 +73,7 @@ export function StaffSafetyReview() {
   }, [filter]);
 
   useEffect(() => { void load(); }, [load]);
-  const pendingCount = useMemo(() => filter === 'pending' ? requests.length : 0, [filter, requests]);
+  const pendingCount = useMemo(() => filter === 'pending' ? requests.length : 0, [filter, requests, interfaceLanguage]);
 
   const submitDecision = async () => {
     if (!decision) return;
@@ -111,73 +113,72 @@ export function StaffSafetyReview() {
     <main className="page-container safety-review-page">
       <section className="page-heading safety-review-heading">
         <div>
-          <Link to="/staff" className="safety-review-back"><ArrowLeft size={17} /> Staff</Link>
-          <p className="page-eyebrow">Administrator control</p>
-          <h2>Safety Review</h2>
-          <p>Review staff deletion requests and edits without weakening existing access rules.</p>
+          <Link to="/staff" className="safety-review-back"><ArrowLeft size={17} />{" "}{tr("Staff")}</Link>
+          <p className="page-eyebrow">{tr("Administrator control")}</p>
+          <h2>{tr("Safety Review")}</h2>
+          <p>{tr("Review staff deletion requests and edits without weakening existing access rules.")}</p>
         </div>
         <button type="button" className="secondary-action-button" onClick={() => void load()} disabled={loading}>
-          <RefreshCw size={17} /> Refresh
-        </button>
+          <RefreshCw size={17} />{" "}{tr("Refresh")}</button>
       </section>
 
       <section className="safety-review-summary">
-        <article><ShieldAlert size={22} /><div><span>Pending requests</span><strong>{pendingCount}</strong></div></article>
-        <article><ClipboardCheck size={22} /><div><span>Staff edits awaiting review</span><strong>{activities.length}</strong></div></article>
+        <article><ShieldAlert size={22} /><div><span>{tr("Pending requests")}</span><strong>{pendingCount}</strong></div></article>
+        <article><ClipboardCheck size={22} /><div><span>{tr("Staff edits awaiting review")}</span><strong>{activities.length}</strong></div></article>
       </section>
 
-      {error ? <div className="safety-review-message error" role="alert">{error}</div> : null}
-      {notice ? <div className="safety-review-message success">{notice}</div> : null}
+      {error ? <div className="safety-review-message error" role="alert">{tr(error)}</div> : null}
+      {notice ? <div className="safety-review-message success">{tr(notice)}</div> : null}
 
       <section className="panel safety-review-panel">
         <header>
-          <div><h3>Deletion requests</h3><p>Approval records authorization only. It never deletes data automatically.</p></div>
-          <label>Status<select value={filter} onChange={(event) => setFilter(event.target.value as Filter)}>
+          <div><h3>{tr("Deletion requests")}</h3><p>{tr("Approval records authorization only. It never deletes data automatically.")}</p></div>
+          <label>{tr("Status")}<select value={filter} onChange={(event) => setFilter(event.target.value as Filter)}>
             {filters.map((value) => <option key={value} value={value}>{value[0].toUpperCase() + value.slice(1)}</option>)}
           </select></label>
         </header>
 
-        {loading ? <p className="safety-review-empty">Loading review queue…</p> : requests.length === 0 ? (
-          <p className="safety-review-empty">No {filter === 'all' ? '' : `${filter} `}deletion requests.</p>
+        {loading ? <p className="safety-review-empty">{tr("Loading review queue…")}</p> : requests.length === 0 ? (
+          <p className="safety-review-empty">{tr("No")}{" "}{filter === 'all' ? '' : `${filter} `}{tr("deletion requests.")}</p>
         ) : <div className="safety-request-list">{requests.map((request) => (
           <article className="safety-request-card" key={request.id}>
             <div className="safety-request-title">
-              <div><span className={`safety-status ${request.status}`}>{request.status}</span><h4>{recordName(request)}</h4><p>{entityLabels[request.entity_type] ?? request.entity_type}</p></div>
+              <div><span className={`safety-status ${request.status}`}>{trEnum(request.status)}</span><h4>{recordName(request)}</h4><p>{entityLabels[request.entity_type] ?? request.entity_type}</p></div>
               <time>{formatDate(request.requested_at)}</time>
             </div>
             <dl>
-              <div><dt>Requested by</dt><dd>{request.requested_by_email}</dd></div>
-              <div><dt>Reason</dt><dd>{request.reason}</dd></div>
-              {request.resolution_note ? <div><dt>Administrator note</dt><dd>{request.resolution_note}</dd></div> : null}
+              <div><dt>{tr("Requested by")}</dt><dd>{request.requested_by_email}</dd></div>
+              <div><dt>{tr("Reason")}</dt><dd>{request.reason}</dd></div>
+              {request.resolution_note ? <div><dt>{tr("Administrator note")}</dt><dd>{request.resolution_note}</dd></div> : null}
             </dl>
-            <details><summary>Record snapshot</summary><pre>{JSON.stringify(request.record_snapshot, null, 2)}</pre></details>
+            <details><summary>{tr("Record snapshot")}</summary><pre>{JSON.stringify(request.record_snapshot, null, 2)}</pre></details>
             {request.status === 'pending' ? <div className="safety-request-actions">
-              <button className="safety-reject" type="button" onClick={() => setDecision({ request, kind: 'reject' })}><XCircle size={17} /> Reject</button>
-              <button className="safety-approve" type="button" onClick={() => setDecision({ request, kind: 'approve' })}><CheckCircle2 size={17} /> Approve request</button>
+              <button className="safety-reject" type="button" onClick={() => setDecision({ request, kind: 'reject' })}><XCircle size={17} />{" "}{tr("Reject")}</button>
+              <button className="safety-approve" type="button" onClick={() => setDecision({ request, kind: 'approve' })}><CheckCircle2 size={17} />{" "}{tr("Approve request")}</button>
             </div> : null}
             {request.status === 'approved' ? <div className="safety-request-actions">
-              <button className="safety-complete" type="button" onClick={() => setDecision({ request, kind: 'complete' })}><ClipboardCheck size={17} /> Mark deletion completed</button>
+              <button className="safety-complete" type="button" onClick={() => setDecision({ request, kind: 'complete' })}><ClipboardCheck size={17} />{" "}{tr("Mark deletion completed")}</button>
             </div> : null}
           </article>
         ))}</div>}
       </section>
 
       <section className="panel safety-review-panel">
-        <header><div><h3>Edits requiring attention</h3><p>Operations Staff edits are logged for administrator awareness.</p></div></header>
-        {activities.length === 0 ? <p className="safety-review-empty">No staff edits require review.</p> : (
+        <header><div><h3>{tr("Edits requiring attention")}</h3><p>{tr("Operations Staff edits are logged for administrator awareness.")}</p></div></header>
+        {activities.length === 0 ? <p className="safety-review-empty">{tr("No staff edits require review.")}</p> : (
           <div className="safety-activity-list">{activities.map((activity) => <article key={activity.id}>
-            <Clock3 size={18} /><div><strong>{entityLabels[activity.entity_type] ?? activity.entity_type} {activity.action}</strong><span>{activity.changed_by_email ?? 'Unknown staff account'} · {formatDate(activity.created_at)}</span></div>
-            <button type="button" className="secondary-action-button" onClick={() => void reviewActivity(activity.id)}>Mark reviewed</button>
+            <Clock3 size={18} /><div><strong>{entityLabels[activity.entity_type] ?? activity.entity_type} {activity.action}</strong><span>{activity.changed_by_email ?? tr("Unknown staff account")} · {formatDate(activity.created_at)}</span></div>
+            <button type="button" className="secondary-action-button" onClick={() => void reviewActivity(activity.id)}>{tr("Mark reviewed")}</button>
           </article>)}</div>
         )}
       </section>
 
       {decision ? <div className="safety-review-overlay" role="presentation"><section className="safety-review-dialog" role="dialog" aria-modal="true" aria-labelledby="safety-decision-title">
-        <p className="page-eyebrow">Administrator decision</p>
-        <h3 id="safety-decision-title">{decision.kind === 'approve' ? 'Approve deletion request' : decision.kind === 'reject' ? 'Reject deletion request' : 'Confirm deletion completed'}</h3>
+        <p className="page-eyebrow">{tr("Administrator decision")}</p>
+        <h3 id="safety-decision-title">{decision.kind === 'approve' ? tr("Approve deletion request") : decision.kind === 'reject' ? tr("Reject deletion request") : tr("Confirm deletion completed")}</h3>
         <p><strong>{recordName(decision.request)}</strong></p>
-        {decision.kind === 'complete' ? <p>Use this only after an administrator has deleted the record in its normal module and verified that the correct record was removed.</p> : <label>Decision note<textarea value={note} onChange={(event) => setNote(event.target.value)} maxLength={1000} placeholder="Explain this decision (minimum 3 characters)." /></label>}
-        <div className="safety-dialog-actions"><button type="button" className="secondary-action-button" onClick={() => { setDecision(null); setNote(''); }} disabled={saving}>Cancel</button><button type="button" className="primary-action-button" onClick={() => void submitDecision()} disabled={saving || (decision.kind !== 'complete' && note.trim().length < 3)}>{saving ? 'Saving…' : 'Confirm'}</button></div>
+        {decision.kind === 'complete' ? <p>{tr("Use this only after an administrator has deleted the record in its normal module and verified that the correct record was removed.")}</p> : <label>{tr("Decision note")}<textarea dir="auto" value={note} onChange={(event) => setNote(event.target.value)} maxLength={1000} placeholder={tr("Explain this decision (minimum 3 characters).")} /></label>}
+        <div className="safety-dialog-actions"><button type="button" className="secondary-action-button" onClick={() => { setDecision(null); setNote(''); }} disabled={saving}>{tr("Cancel")}</button><button type="button" className="primary-action-button" onClick={() => void submitDecision()} disabled={saving || (decision.kind !== 'complete' && note.trim().length < 3)}>{saving ? tr("Saving…") : tr("Confirm")}</button></div>
       </section></div> : null}
     </main>
   );

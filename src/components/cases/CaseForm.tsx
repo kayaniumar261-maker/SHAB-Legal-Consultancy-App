@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 import {
   FormEvent,
   useEffect,
@@ -492,6 +493,7 @@ export function CaseForm({
   submitLabel,
   initialClientId,
 }: CaseFormProps) {
+  const interfaceLanguage = useLocale();
   const { user } = useAuth();
   const draftStorageKey = draftKeyForUser(user?.id,
     caseRecord?.id
@@ -563,33 +565,33 @@ export function CaseForm({
 
   const clientOptions = useMemo(
     () => [
-      { id: '', full_name: 'Select client' },
+      { id: '', full_name: tr('Select client') },
       ...clients,
     ],
-    [clients],
+    [clients, interfaceLanguage],
   );
 
   const staffOptions = useMemo(
     () => [
-      { id: '', full_name: 'Select staff member' },
+      { id: '', full_name: tr('Select staff member') },
       ...staff,
     ],
-    [staff],
+    [staff, interfaceLanguage],
   );
 
   const validationErrors = useMemo(() => {
     const errors: string[] = [];
 
     if (!formState.client_id) {
-      errors.push('Please assign a client.');
+      errors.push(tr("Please assign a client."));
     }
 
     if (!formState.case_type.trim()) {
-      errors.push('Matter type is required.');
+      errors.push(tr("Matter type is required."));
     }
 
     if (!formState.assigned_staff_id) {
-      errors.push('Assigned staff is required.');
+      errors.push(tr("Assigned staff is required."));
     }
 
     if (
@@ -598,7 +600,7 @@ export function CaseForm({
         Number(formState.completion_percentage) > 100)
     ) {
       errors.push(
-        'Completion percentage must be between 0 and 100.',
+        tr("Completion percentage must be between 0 and 100."),
       );
     }
 
@@ -621,12 +623,12 @@ export function CaseForm({
         (Number.isNaN(Number(value)) ||
           Number(value) < 0)
       ) {
-        errors.push(`${label} must be a valid number.`);
+        errors.push(tr("{0} must be a valid number.", [label]));
       }
     });
 
     return errors;
-  }, [formState]);
+  }, [formState, interfaceLanguage]);
 
   const setField = <K extends keyof FormState>(
     field: K,
@@ -856,7 +858,7 @@ export function CaseForm({
         hasValue(formState.ai_risk_assessment) ||
         hasValue(formState.ai_recommended_actions),
     };
-  }, [formState]);
+  }, [formState, interfaceLanguage]);
 
   const completedSectionCount =
     Object.values(sectionProgress).filter(Boolean).length;
@@ -894,10 +896,9 @@ export function CaseForm({
       <div className="case-form-navigation">
         <div className="case-form-navigation-heading">
           <div>
-            <strong>Matter Setup</strong>
+            <strong>{tr("Matter Setup")}</strong>
             <span>
-              {completedSectionCount} of 9 sections started
-            </span>
+              {completedSectionCount}{" "}{tr("of 9 sections started")}</span>
           </div>
 
           <div className="case-form-navigation-progress">
@@ -911,7 +912,7 @@ export function CaseForm({
 
         <nav
           className="case-form-section-nav"
-          aria-label="Matter form sections"
+          aria-label={tr("Matter form sections")}
         >
           {[
             ['case-section-matter', 'Matter'],
@@ -987,12 +988,12 @@ export function CaseForm({
           )
         }
         icon={<BriefcaseBusiness size={20} />}
-        title="Matter Information"
-        description="Core classification and internal references."
+        title={tr("Matter Information")}
+        description={tr("Core classification and internal references.")}
       >
         <SelectField
           id="client_id"
-          label="Client"
+          label={tr("Client")}
           value={formState.client_id}
           onChange={(value) =>
             setField('client_id', value)
@@ -1006,39 +1007,39 @@ export function CaseForm({
 
         <TextField
           id="case_number"
-          label="Internal Case Number"
+          label={tr("Internal Case Number")}
           value={formState.case_number}
           onChange={(value) =>
             setField('case_number', value)
           }
-          placeholder="Leave blank if automatically generated"
+          placeholder={tr("Leave blank if automatically generated")}
         />
 
         <TextField
           id="matter_number"
-          label="Matter Number"
+          label={tr("Matter Number")}
           value={formState.matter_number}
           onChange={(value) =>
             setField('matter_number', value)
           }
-          placeholder="Automatically generated where configured"
+          placeholder={tr("Automatically generated where configured")}
           disabled={!caseRecord}
         />
 
         <TextField
           id="case_type"
-          label="Matter Type"
+          label={tr("Matter Type")}
           value={formState.case_type}
           onChange={(value) =>
             setField('case_type', value)
           }
-          placeholder="e.g. Civil dispute"
+          placeholder={tr("e.g. Civil dispute")}
           required
         />
 
         <SelectField
           id="practice_area"
-          label="Practice Area"
+          label={tr("Practice Area")}
           value={formState.practice_area}
           onChange={(value) =>
             setField('practice_area', value)
@@ -1063,47 +1064,47 @@ export function CaseForm({
 
         <TextField
           id="department"
-          label="Department"
+          label={tr("Department")}
           value={formState.department}
           onChange={(value) =>
             setField('department', value)
           }
-          placeholder="e.g. Litigation"
+          placeholder={tr("e.g. Litigation")}
         />
 
         <TextField
           id="case_category"
-          label="Matter Category"
+          label={tr("Matter Category")}
           value={formState.case_category}
           onChange={(value) =>
             setField('case_category', value)
           }
-          placeholder="e.g. Recovery claim"
+          placeholder={tr("e.g. Recovery claim")}
         />
 
         <TextField
           id="proceeding_type"
-          label="Proceeding Type"
+          label={tr("Proceeding Type")}
           value={formState.proceeding_type}
           onChange={(value) =>
             setField('proceeding_type', value)
           }
-          placeholder="e.g. First instance"
+          placeholder={tr("e.g. First instance")}
         />
 
         <TextField
           id="jurisdiction"
-          label="Jurisdiction"
+          label={tr("Jurisdiction")}
           value={formState.jurisdiction}
           onChange={(value) =>
             setField('jurisdiction', value)
           }
-          placeholder="e.g. Dubai, UAE"
+          placeholder={tr("e.g. Dubai, UAE")}
         />
 
         <TextField
           id="external_reference"
-          label="External Reference"
+          label={tr("External Reference")}
           value={formState.external_reference}
           onChange={(value) =>
             setField('external_reference', value)
@@ -1112,7 +1113,7 @@ export function CaseForm({
 
         <TextField
           id="file_reference"
-          label="File Reference"
+          label={tr("File Reference")}
           value={formState.file_reference}
           onChange={(value) =>
             setField('file_reference', value)
@@ -1131,22 +1132,22 @@ export function CaseForm({
           )
         }
         icon={<Gavel size={20} />}
-        title="Court & Proceedings"
-        description="Court, police, prosecution and execution references."
+        title={tr("Court & Proceedings")}
+        description={tr("Court, police, prosecution and execution references.")}
       >
         <TextField
           id="court"
-          label="Court"
+          label={tr("Court")}
           value={formState.court}
           onChange={(value) =>
             setField('court', value)
           }
-          placeholder="e.g. Dubai Courts"
+          placeholder={tr("e.g. Dubai Courts")}
         />
 
         <TextField
           id="court_division"
-          label="Court Division"
+          label={tr("Court Division")}
           value={formState.court_division}
           onChange={(value) =>
             setField('court_division', value)
@@ -1155,17 +1156,17 @@ export function CaseForm({
 
         <TextField
           id="court_level"
-          label="Court Level"
+          label={tr("Court Level")}
           value={formState.court_level}
           onChange={(value) =>
             setField('court_level', value)
           }
-          placeholder="e.g. First Instance"
+          placeholder={tr("e.g. First Instance")}
         />
 
         <TextField
           id="court_case_number"
-          label="Court Case Number"
+          label={tr("Court Case Number")}
           value={formState.court_case_number}
           onChange={(value) =>
             setField('court_case_number', value)
@@ -1174,7 +1175,7 @@ export function CaseForm({
 
         <TextField
           id="police_case_number"
-          label="Police Case Number"
+          label={tr("Police Case Number")}
           value={formState.police_case_number}
           onChange={(value) =>
             setField('police_case_number', value)
@@ -1183,7 +1184,7 @@ export function CaseForm({
 
         <TextField
           id="prosecution_number"
-          label="Prosecution Number"
+          label={tr("Prosecution Number")}
           value={formState.prosecution_number}
           onChange={(value) =>
             setField('prosecution_number', value)
@@ -1192,7 +1193,7 @@ export function CaseForm({
 
         <TextField
           id="execution_number"
-          label="Execution Number"
+          label={tr("Execution Number")}
           value={formState.execution_number}
           onChange={(value) =>
             setField('execution_number', value)
@@ -1201,7 +1202,7 @@ export function CaseForm({
 
         <TextField
           id="judge_name"
-          label="Judge"
+          label={tr("Judge")}
           value={formState.judge_name}
           onChange={(value) =>
             setField('judge_name', value)
@@ -1220,12 +1221,12 @@ export function CaseForm({
           )
         }
         icon={<Building2 size={20} />}
-        title="Opponent Information"
-        description="Adverse party and opposing legal representatives."
+        title={tr("Opponent Information")}
+        description={tr("Adverse party and opposing legal representatives.")}
       >
         <TextField
           id="opponent_name"
-          label="Opponent Name"
+          label={tr("Opponent Name")}
           value={formState.opponent_name}
           onChange={(value) =>
             setField('opponent_name', value)
@@ -1234,17 +1235,17 @@ export function CaseForm({
 
         <TextField
           id="opponent_type"
-          label="Opponent Type"
+          label={tr("Opponent Type")}
           value={formState.opponent_type}
           onChange={(value) =>
             setField('opponent_type', value)
           }
-          placeholder="Individual, company or authority"
+          placeholder={tr("Individual, company or authority")}
         />
 
         <TextField
           id="opponent_company"
-          label="Opponent Company"
+          label={tr("Opponent Company")}
           value={formState.opponent_company}
           onChange={(value) =>
             setField('opponent_company', value)
@@ -1253,7 +1254,7 @@ export function CaseForm({
 
         <TextField
           id="opponent_lawyer"
-          label="Opponent Lawyer"
+          label={tr("Opponent Lawyer")}
           value={formState.opponent_lawyer}
           onChange={(value) =>
             setField('opponent_lawyer', value)
@@ -1262,7 +1263,7 @@ export function CaseForm({
 
         <TextField
           id="opponent_law_firm"
-          label="Opponent Law Firm"
+          label={tr("Opponent Law Firm")}
           value={formState.opponent_law_firm}
           onChange={(value) =>
             setField('opponent_law_firm', value)
@@ -1271,7 +1272,7 @@ export function CaseForm({
 
         <TextField
           id="opponent_email"
-          label="Opponent Email"
+          label={tr("Opponent Email")}
           type="email"
           value={formState.opponent_email}
           onChange={(value) =>
@@ -1281,7 +1282,7 @@ export function CaseForm({
 
         <TextField
           id="opponent_phone"
-          label="Opponent Phone"
+          label={tr("Opponent Phone")}
           type="tel"
           value={formState.opponent_phone}
           onChange={(value) =>
@@ -1301,12 +1302,12 @@ export function CaseForm({
           )
         }
         icon={<UsersRound size={20} />}
-        title="Legal Team"
-        description="Assign the responsible legal professionals."
+        title={tr("Legal Team")}
+        description={tr("Assign the responsible legal professionals.")}
       >
         <SelectField
           id="assigned_staff_id"
-          label="Primary Assigned Staff"
+          label={tr("Primary Assigned Staff")}
           value={formState.assigned_staff_id}
           onChange={(value) =>
             setField('assigned_staff_id', value)
@@ -1320,7 +1321,7 @@ export function CaseForm({
 
         <SelectField
           id="responsible_lawyer_id"
-          label="Responsible Lawyer"
+          label={tr("Responsible Lawyer")}
           value={formState.responsible_lawyer_id}
           onChange={(value) =>
             setField('responsible_lawyer_id', value)
@@ -1333,7 +1334,7 @@ export function CaseForm({
 
         <SelectField
           id="case_manager_id"
-          label="Case Manager"
+          label={tr("Case Manager")}
           value={formState.case_manager_id}
           onChange={(value) =>
             setField('case_manager_id', value)
@@ -1346,7 +1347,7 @@ export function CaseForm({
 
         <SelectField
           id="legal_assistant_id"
-          label="Legal Assistant"
+          label={tr("Legal Assistant")}
           value={formState.legal_assistant_id}
           onChange={(value) =>
             setField('legal_assistant_id', value)
@@ -1359,12 +1360,12 @@ export function CaseForm({
 
         <TextField
           id="assigned_team"
-          label="Assigned Team"
+          label={tr("Assigned Team")}
           value={formState.assigned_team}
           onChange={(value) =>
             setField('assigned_team', value)
           }
-          placeholder="e.g. Litigation Team A"
+          placeholder={tr("e.g. Litigation Team A")}
         />
       </FormSection>
 
@@ -1379,12 +1380,12 @@ export function CaseForm({
           )
         }
         icon={<CalendarDays size={20} />}
-        title="Important Dates"
-        description="Track filing, deadlines, limitation, judgment and closure dates. Hearing dates are synchronized from the Hearings module."
+        title={tr("Important Dates")}
+        description={tr("Track filing, deadlines, limitation, judgment and closure dates. Hearing dates are synchronized from the Hearings module.")}
       >
         <TextField
           id="filing_date"
-          label="Filing Date"
+          label={tr("Filing Date")}
           type="date"
           value={formState.filing_date}
           onChange={(value) =>
@@ -1394,7 +1395,7 @@ export function CaseForm({
 
         <TextField
           id="opened_at"
-          label="Opened At"
+          label={tr("Opened At")}
           type="datetime-local"
           value={formState.opened_at}
           onChange={(value) =>
@@ -1404,7 +1405,7 @@ export function CaseForm({
 
         <TextField
           id="next_action_at"
-          label="Next Action Due"
+          label={tr("Next Action Due")}
           type="datetime-local"
           value={formState.next_action_at}
           onChange={(value) =>
@@ -1414,7 +1415,7 @@ export function CaseForm({
 
         <TextField
           id="limitation_date"
-          label="Limitation Date"
+          label={tr("Limitation Date")}
           type="date"
           value={formState.limitation_date}
           onChange={(value) =>
@@ -1424,7 +1425,7 @@ export function CaseForm({
 
         <TextField
           id="judgment_at"
-          label="Judgment Date"
+          label={tr("Judgment Date")}
           type="datetime-local"
           value={formState.judgment_at}
           onChange={(value) =>
@@ -1434,7 +1435,7 @@ export function CaseForm({
 
         <TextField
           id="closed_at"
-          label="Closed At"
+          label={tr("Closed At")}
           type="datetime-local"
           value={formState.closed_at}
           onChange={(value) =>
@@ -1454,12 +1455,12 @@ export function CaseForm({
           )
         }
         icon={<CircleDollarSign size={20} />}
-        title="Financial Position"
-        description="Matter value, recovery, billing and payment tracking."
+        title={tr("Financial Position")}
+        description={tr("Matter value, recovery, billing and payment tracking.")}
       >
         <SelectField
           id="currency"
-          label="Currency"
+          label={tr("Currency")}
           value={formState.currency}
           onChange={(value) =>
             setField('currency', value)
@@ -1476,7 +1477,7 @@ export function CaseForm({
 
         <NumberField
           id="case_value"
-          label="Case Value"
+          label={tr("Case Value")}
           value={formState.case_value}
           onChange={(value) =>
             setField('case_value', value)
@@ -1485,7 +1486,7 @@ export function CaseForm({
 
         <NumberField
           id="claim_amount"
-          label="Claim Amount"
+          label={tr("Claim Amount")}
           value={formState.claim_amount}
           onChange={(value) =>
             setField('claim_amount', value)
@@ -1494,7 +1495,7 @@ export function CaseForm({
 
         <NumberField
           id="settlement_amount"
-          label="Settlement Amount"
+          label={tr("Settlement Amount")}
           value={formState.settlement_amount}
           onChange={(value) =>
             setField('settlement_amount', value)
@@ -1503,7 +1504,7 @@ export function CaseForm({
 
         <NumberField
           id="judgment_amount"
-          label="Judgment Amount"
+          label={tr("Judgment Amount")}
           value={formState.judgment_amount}
           onChange={(value) =>
             setField('judgment_amount', value)
@@ -1512,7 +1513,7 @@ export function CaseForm({
 
         <NumberField
           id="recovered_amount"
-          label="Recovered Amount"
+          label={tr("Recovered Amount")}
           value={formState.recovered_amount}
           onChange={(value) =>
             setField('recovered_amount', value)
@@ -1521,12 +1522,12 @@ export function CaseForm({
 
         <TextField
           id="fee_arrangement"
-          label="Fee Arrangement"
+          label={tr("Fee Arrangement")}
           value={formState.fee_arrangement}
           onChange={(value) =>
             setField('fee_arrangement', value)
           }
-          placeholder="Fixed, hourly, retainer or contingency"
+          placeholder={tr("Fixed, hourly, retainer or contingency")}
         />
 
       </FormSection>
@@ -1542,12 +1543,12 @@ export function CaseForm({
           )
         }
         icon={<ShieldCheck size={20} />}
-        title="Matter Management"
-        description="Status, stage, risk and access controls."
+        title={tr("Matter Management")}
+        description={tr("Status, stage, risk and access controls.")}
       >
         <SelectField
           id="status"
-          label="Status"
+          label={tr("Status")}
           value={formState.status}
           onChange={(value) =>
             setField('status', value as CaseStatus)
@@ -1564,7 +1565,7 @@ export function CaseForm({
 
         <SelectField
           id="priority"
-          label="Priority"
+          label={tr("Priority")}
           value={formState.priority}
           onChange={(value) =>
             setField(
@@ -1583,7 +1584,7 @@ export function CaseForm({
 
         <SelectField
           id="case_stage"
-          label="Matter Stage"
+          label={tr("Matter Stage")}
           value={formState.case_stage}
           onChange={(value) =>
             setField('case_stage', value)
@@ -1605,7 +1606,7 @@ export function CaseForm({
 
         <SelectField
           id="risk_level"
-          label="Risk Level"
+          label={tr("Risk Level")}
           value={formState.risk_level}
           onChange={(value) =>
             setField(
@@ -1623,7 +1624,7 @@ export function CaseForm({
 
         <SelectField
           id="confidentiality_level"
-          label="Confidentiality"
+          label={tr("Confidentiality")}
           value={formState.confidentiality_level}
           onChange={(value) =>
             setField(
@@ -1643,7 +1644,7 @@ export function CaseForm({
 
         <NumberField
           id="completion_percentage"
-          label="Completion Percentage"
+          label={tr("Completion Percentage")}
           value={formState.completion_percentage}
           onChange={(value) =>
             setField('completion_percentage', value)
@@ -1656,8 +1657,8 @@ export function CaseForm({
         <div className="case-form-toggle-grid case-form-field-wide">
           <ToggleField
             id="is_vip"
-            label="VIP Matter"
-            description="Flag this matter for priority client handling."
+            label={tr("VIP Matter")}
+            description={tr("Flag this matter for priority client handling.")}
             checked={formState.is_vip}
             onChange={(checked) =>
               setField('is_vip', checked)
@@ -1666,8 +1667,8 @@ export function CaseForm({
 
           <ToggleField
             id="requires_urgent_action"
-            label="Urgent Action Required"
-            description="Display urgent warnings across the matter workspace."
+            label={tr("Urgent Action Required")}
+            description={tr("Display urgent warnings across the matter workspace.")}
             checked={formState.requires_urgent_action}
             onChange={(checked) =>
               setField(
@@ -1679,8 +1680,8 @@ export function CaseForm({
 
           <ToggleField
             id="is_archived"
-            label="Archived"
-            description="Hide this matter from active operational views."
+            label={tr("Archived")}
+            description={tr("Hide this matter from active operational views.")}
             checked={formState.is_archived}
             onChange={(checked) =>
               setField('is_archived', checked)
@@ -1700,67 +1701,67 @@ export function CaseForm({
           )
         }
         icon={<FileText size={20} />}
-        title="Matter Details"
-        description="Facts, objectives, strategy and internal notes."
+        title={tr("Matter Details")}
+        description={tr("Facts, objectives, strategy and internal notes.")}
       >
         <TextAreaField
           id="description"
-          label="Matter Description"
+          label={tr("Matter Description")}
           value={formState.description}
           onChange={(value) =>
             setField('description', value)
           }
-          placeholder="General summary of the legal matter"
+          placeholder={tr("General summary of the legal matter")}
         />
 
         <TextAreaField
           id="facts_summary"
-          label="Facts Summary"
+          label={tr("Facts Summary")}
           value={formState.facts_summary}
           onChange={(value) =>
             setField('facts_summary', value)
           }
-          placeholder="Chronology and material facts"
+          placeholder={tr("Chronology and material facts")}
         />
 
         <TextAreaField
           id="client_objective"
-          label="Client Objective"
+          label={tr("Client Objective")}
           value={formState.client_objective}
           onChange={(value) =>
             setField('client_objective', value)
           }
-          placeholder="What outcome is the client seeking?"
+          placeholder={tr("What outcome is the client seeking?")}
         />
 
         <TextAreaField
           id="legal_strategy"
-          label="Legal Strategy"
+          label={tr("Legal Strategy")}
           value={formState.legal_strategy}
           onChange={(value) =>
             setField('legal_strategy', value)
           }
-          placeholder="Planned legal approach"
+          placeholder={tr("Planned legal approach")}
         />
 
         <TextAreaField
           id="next_actions"
-          label="Next Actions"
+          label={tr("Next Actions")}
           value={formState.next_actions}
           onChange={(value) =>
             setField('next_actions', value)
           }
-          placeholder="Immediate and upcoming action items"
+          placeholder={tr("Immediate and upcoming action items")}
         />
 
         <TextAreaField
           id="internal_notes"
-          label="Internal Notes"
+          label={tr("Internal Notes")}
           value={formState.internal_notes}
           onChange={(value) =>
             setField('internal_notes', value)
           }
-          placeholder="Private notes for the legal team"
+          placeholder={tr("Private notes for the legal team")}
         />
       </FormSection>
 
@@ -1775,12 +1776,12 @@ export function CaseForm({
           )
         }
         icon={<Sparkles size={20} />}
-        title="AI Legal Intelligence"
-        description="Optional AI-generated summaries and recommendations."
+        title={tr("AI Legal Intelligence")}
+        description={tr("Optional AI-generated summaries and recommendations.")}
       >
         <TextAreaField
           id="ai_summary"
-          label="AI Summary"
+          label={tr("AI Summary")}
           value={formState.ai_summary}
           onChange={(value) =>
             setField('ai_summary', value)
@@ -1789,7 +1790,7 @@ export function CaseForm({
 
         <TextAreaField
           id="ai_risk_assessment"
-          label="AI Risk Assessment"
+          label={tr("AI Risk Assessment")}
           value={formState.ai_risk_assessment}
           onChange={(value) =>
             setField('ai_risk_assessment', value)
@@ -1798,7 +1799,7 @@ export function CaseForm({
 
         <TextAreaField
           id="ai_recommended_actions"
-          label="AI Recommended Actions"
+          label={tr("AI Recommended Actions")}
           value={formState.ai_recommended_actions}
           onChange={(value) =>
             setField(
@@ -1815,7 +1816,7 @@ export function CaseForm({
           role="alert"
         >
           <AlertTriangle size={18} />
-          <span>{error}</span>
+          <span>{tr(error)}</span>
         </div>
       ) : null}
 
@@ -1827,8 +1828,8 @@ export function CaseForm({
         }
       >
         {isOnline
-          ? 'Draft is saved locally on this device until the matter is successfully saved.'
-          : 'Offline — draft is saved locally. Reconnect before saving this matter to SHAB.'}
+          ? tr("Draft is saved locally on this device until the matter is successfully saved.")
+          : tr("Offline — draft is saved locally. Reconnect before saving this matter to SHAB.")}
       </div>
 
       <div className="case-form-actions">
@@ -1838,7 +1839,7 @@ export function CaseForm({
           disabled={loading || !isOnline}
         >
           <Save size={18} />
-          {loading ? 'Saving…' : submitLabel}
+          {loading ? tr("Saving…") : submitLabel}
         </button>
       </div>
     </form>
@@ -1862,6 +1863,7 @@ function FormSection({
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <section
       id={id}
@@ -1929,13 +1931,14 @@ function TextField({
   required?: boolean;
   disabled?: boolean;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="case-form-field">
       <label htmlFor={id}>
         {label}
         {required ? <span>*</span> : null}
       </label>
-      <input
+      <input dir="auto"
         id={id}
         type={type}
         value={value}
@@ -1967,10 +1970,11 @@ function NumberField({
   max?: number;
   step?: number;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="case-form-field">
       <label htmlFor={id}>{label}</label>
-      <input
+      <input dir="ltr"
         id={id}
         type="number"
         min={min}
@@ -2003,6 +2007,7 @@ function SelectField({
   }>;
   required?: boolean;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="case-form-field">
       <label htmlFor={id}>
@@ -2043,10 +2048,11 @@ function TextAreaField({
   onChange: (value: string) => void;
   placeholder?: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="case-form-field case-form-field-wide">
       <label htmlFor={id}>{label}</label>
-      <textarea
+      <textarea dir="auto"
         id={id}
         value={value}
         onChange={(event) =>
@@ -2072,6 +2078,7 @@ function ToggleField({
   checked: boolean;
   onChange: (checked: boolean) => void;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <label
       className="case-form-toggle"

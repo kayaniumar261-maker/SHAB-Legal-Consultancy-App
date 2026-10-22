@@ -23,7 +23,7 @@
   flex: 1;
   overflow: hidden;
   font-size: 0.74rem;
-  text-align: left;
+  text-align: start;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -195,7 +195,7 @@
 }
 
 .global-search-group > header small {
-  margin-left: auto;
+  margin-inline-start: auto;
   color: #94a3b8;
   font-size: 0.6rem;
 }
@@ -218,7 +218,7 @@
   background: transparent;
   color: inherit;
   font: inherit;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
 }
 
@@ -271,7 +271,7 @@
   color: #64748b;
   font-size: 0.62rem;
   font-weight: 750;
-  text-align: right;
+  text-align: end;
 }
 
 .global-search-footer {

@@ -210,7 +210,7 @@
   margin-top: 10px;
   color: #958c7e;
   font-size: 11px;
-  text-align: right;
+  text-align: end;
 }
 
 @media (max-width: 760px) {

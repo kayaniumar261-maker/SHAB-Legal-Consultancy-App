@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale, trEnum } from '../../i18n/locale';
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import type { Hearing } from '../../types/hearing';
@@ -19,13 +20,14 @@ export function HearingDetailsModal({
   staffName,
   onClose,
 }: HearingDetailsModalProps) {
+  const interfaceLanguage = useLocale();
   const hearingDate = new Date(hearing.hearing_at);
   const endDate = hearing.end_at ? new Date(hearing.end_at) : null;
   const createdDate = new Date(hearing.created_at);
   const updatedDate = new Date(hearing.updated_at);
 
   const formatDateTime = (date: Date) =>
-    date.toLocaleString('en-AE', {
+    date.toLocaleString(getLocale("en-AE"), {
       year: 'numeric',
       month: 'short',
       day: '2-digit',
@@ -35,7 +37,7 @@ export function HearingDetailsModal({
     });
 
   const formatDate = (date: Date) =>
-    date.toLocaleDateString('en-AE', {
+    date.toLocaleDateString(getLocale("en-AE"), {
       year: 'numeric',
       month: 'short',
       day: '2-digit',
@@ -63,7 +65,7 @@ export function HearingDetailsModal({
             type="button"
             className="hearing-details-close"
             onClick={onClose}
-            aria-label="Close modal"
+            aria-label={tr("Close modal")}
           >
             <X size={20} />
           </button>
@@ -72,16 +74,16 @@ export function HearingDetailsModal({
         <div className="hearing-details-content">
           {/* Date & Time */}
           <div className="hearing-details-section">
-            <h3>Date & Time</h3>
+            <h3>{tr("Date & Time")}</h3>
             <div className="hearing-details-row">
-              <span className="hearing-details-label">Hearing Date & Time</span>
+              <span className="hearing-details-label">{tr("Hearing Date & Time")}</span>
               <span className="hearing-details-value">
                 {formatDateTime(hearingDate)}
               </span>
             </div>
             {endDate && (
               <div className="hearing-details-row">
-                <span className="hearing-details-label">End Date & Time</span>
+                <span className="hearing-details-label">{tr("End Date & Time")}</span>
                 <span className="hearing-details-value">
                   {formatDateTime(endDate)}
                 </span>
@@ -91,37 +93,37 @@ export function HearingDetailsModal({
 
           {/* Case & Client */}
           <div className="hearing-details-section">
-            <h3>Case Information</h3>
+            <h3>{tr("Case Information")}</h3>
             {caseNumber && (
               <div className="hearing-details-row">
-                <span className="hearing-details-label">Case Number</span>
+                <span className="hearing-details-label">{tr("Case Number")}</span>
                 <span className="hearing-details-value">{caseNumber}</span>
               </div>
             )}
             {clientName && (
               <div className="hearing-details-row">
-                <span className="hearing-details-label">Client</span>
+                <span className="hearing-details-label">{tr("Client")}</span>
                 <span className="hearing-details-value">{clientName}</span>
               </div>
             )}
             {hearing.case?.matter_number?.trim() && (
               <div className="hearing-details-row">
-                <span className="hearing-details-label">Matter Reference</span>
-                <span className="hearing-details-value">{hearing.case.matter_number}</span>
+                <span className="hearing-details-label">{tr("Matter Reference")}</span>
+                <span className="hearing-details-value"><bdi dir="ltr">{hearing.case.matter_number}</bdi></span>
               </div>
             )}
           </div>
 
           {/* Court Information */}
           <div className="hearing-details-section">
-            <h3>Court Information</h3>
+            <h3>{tr("Court Information")}</h3>
             <div className="hearing-details-row">
-              <span className="hearing-details-label">Court</span>
+              <span className="hearing-details-label">{tr("Court")}</span>
               <span className="hearing-details-value">{hearing.court}</span>
             </div>
             {hearing.courtroom && (
               <div className="hearing-details-row">
-                <span className="hearing-details-label">Courtroom</span>
+                <span className="hearing-details-label">{tr("Courtroom")}</span>
                 <span className="hearing-details-value">
                   {hearing.courtroom}
                 </span>
@@ -129,7 +131,7 @@ export function HearingDetailsModal({
             )}
             {hearing.location && (
               <div className="hearing-details-row">
-                <span className="hearing-details-label">Location</span>
+                <span className="hearing-details-label">{tr("Location")}</span>
                 <span className="hearing-details-value">
                   {hearing.location}
                 </span>
@@ -139,22 +141,22 @@ export function HearingDetailsModal({
 
           {/* Hearing Details */}
           <div className="hearing-details-section">
-            <h3>Hearing Details</h3>
+            <h3>{tr("Hearing Details")}</h3>
             <div className="hearing-details-row">
-              <span className="hearing-details-label">Hearing Type</span>
+              <span className="hearing-details-label">{tr("Hearing Type")}</span>
               <span className={getHearingTypeBadgeClass(hearing.hearing_type)}>
-                {hearing.hearing_type}
+                {trEnum(hearing.hearing_type)}
               </span>
             </div>
             <div className="hearing-details-row">
-              <span className="hearing-details-label">Status</span>
+              <span className="hearing-details-label">{tr("Status")}</span>
               <span className={getStatusBadgeClass(hearing.status)}>
-                {hearing.status}
+                {trEnum(hearing.status)}
               </span>
             </div>
             {staffName && (
               <div className="hearing-details-row">
-                <span className="hearing-details-label">Assigned Staff</span>
+                <span className="hearing-details-label">{tr("Assigned Staff")}</span>
                 <span className="hearing-details-value">{staffName}</span>
               </div>
             )}
@@ -163,10 +165,10 @@ export function HearingDetailsModal({
           {/* Outcome & Notes */}
           {(hearing.outcome || hearing.notes) && (
             <div className="hearing-details-section">
-              <h3>Additional Information</h3>
+              <h3>{tr("Additional Information")}</h3>
               {hearing.outcome && (
                 <div className="hearing-details-row">
-                  <span className="hearing-details-label">Outcome</span>
+                  <span className="hearing-details-label">{tr("Outcome")}</span>
                   <span className="hearing-details-value">
                     {hearing.outcome}
                   </span>
@@ -174,7 +176,7 @@ export function HearingDetailsModal({
               )}
               {hearing.notes && (
                 <div className="hearing-details-row hearing-details-row-full">
-                  <span className="hearing-details-label">Notes</span>
+                  <span className="hearing-details-label">{tr("Notes")}</span>
                   <p className="hearing-details-notes">{hearing.notes}</p>
                 </div>
               )}
@@ -185,20 +187,19 @@ export function HearingDetailsModal({
           <div className="hearing-details-section hearing-details-meta">
             {hearing.reminder_minutes && (
               <div className="hearing-details-row">
-                <span className="hearing-details-label">Reminder</span>
+                <span className="hearing-details-label">{tr("Reminder")}</span>
                 <span className="hearing-details-value">
-                  {hearing.reminder_minutes} minutes before
-                </span>
+                  {hearing.reminder_minutes}{" "}{tr("minutes before")}</span>
               </div>
             )}
             <div className="hearing-details-row">
-              <span className="hearing-details-label">Created</span>
+              <span className="hearing-details-label">{tr("Created")}</span>
               <span className="hearing-details-value">
                 {formatDate(createdDate)}
               </span>
             </div>
             <div className="hearing-details-row">
-              <span className="hearing-details-label">Updated</span>
+              <span className="hearing-details-label">{tr("Updated")}</span>
               <span className="hearing-details-value">
                 {formatDate(updatedDate)}
               </span>
@@ -211,9 +212,7 @@ export function HearingDetailsModal({
             type="button"
             className="hearing-details-close-button"
             onClick={onClose}
-          >
-            Close
-          </button>
+          >{tr("Close")}</button>
         </div>
       </div>
     </div>

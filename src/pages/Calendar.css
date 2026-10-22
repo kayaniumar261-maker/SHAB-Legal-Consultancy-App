@@ -228,16 +228,16 @@
   min-height: 122px;
   padding: 9px;
   border: 0;
-  border-right: 1px solid #eef2f7;
+  border-inline-end: 1px solid #eef2f7;
   border-bottom: 1px solid #eef2f7;
   background: #ffffff;
   color: #334155;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
 }
 
 .calendar-cell:nth-child(7n) {
-  border-right: 0;
+  border-inline-end: 0;
 }
 
 .calendar-cell.empty {
@@ -404,33 +404,33 @@
   gap: 10px;
   padding: 12px;
   border: 1px solid #e5e7eb;
-  border-left-width: 4px;
+  border-inline-start-width: 4px;
   border-radius: 13px;
   background: #ffffff;
 }
 
 .calendar-agenda-item.hearing {
-  border-left-color: #2563eb;
+  border-inline-start-color: #2563eb;
 }
 
 .calendar-agenda-item.task {
-  border-left-color: #059669;
+  border-inline-start-color: #059669;
 }
 
 .calendar-agenda-item.invoice {
-  border-left-color: #ea580c;
+  border-inline-start-color: #ea580c;
 }
 
 .calendar-agenda-item.case_action {
-  border-left-color: #7c3aed;
+  border-inline-start-color: #7c3aed;
 }
 
 .calendar-agenda-item.limitation {
-  border-left-color: #e11d48;
+  border-inline-start-color: #e11d48;
 }
 
 .calendar-agenda-item.follow_up {
-  border-left-color: #0891b2;
+  border-inline-start-color: #0891b2;
 }
 
 .calendar-agenda-icon {

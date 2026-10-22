@@ -8,7 +8,7 @@
 .deletion-request-record { margin: 20px 0 14px; padding: 12px 14px; border-radius: 10px; background: #f8fafc; color: #334155; font-weight: 700; }
 .deletion-request-modal label { display: grid; gap: 8px; color: #334155; font-weight: 700; }
 .deletion-request-modal textarea { resize: vertical; min-height: 105px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 11px 12px; font: inherit; }
-.deletion-request-modal small { display: block; margin-top: 6px; color: #64748b; text-align: right; }
+.deletion-request-modal small { display: block; margin-top: 6px; color: #64748b; text-align: end; }
 .deletion-request-error { margin-top: 12px; border-radius: 9px; padding: 10px 12px; background: #fef2f2; color: #b91c1c; }
 .deletion-request-modal footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 @media (max-width: 560px) { .deletion-request-modal { padding: 18px; } .deletion-request-modal footer { display: grid; } }

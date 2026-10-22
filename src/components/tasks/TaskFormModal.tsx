@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 
 import type { Task, TaskInsert, TaskPriority, TaskStatus, TaskUpdate } from '../../types/task';
@@ -105,6 +106,7 @@ export function TaskFormModal({
   onSave,
   loading,
 }: TaskFormModalProps) {
+  const interfaceLanguage = useLocale();
   const { user } = useAuth();
   const draftStorageKey = draftKeyForUser(user?.id,
     task?.id
@@ -241,17 +243,17 @@ export function TaskFormModal({
     }
 
     return cases.filter((c) => c.client_id === formState.client_id);
-  }, [cases, formState.client_id]);
+  }, [cases, formState.client_id, interfaceLanguage]);
 
   const validationErrors = useMemo(() => {
     const errors: string[] = [];
 
     if (!formState.title.trim()) {
-      errors.push('Task title is required.');
+      errors.push(tr("Task title is required."));
     }
 
     return errors;
-  }, [formState]);
+  }, [formState, interfaceLanguage]);
 
   if (!open) {
     return null;
@@ -299,24 +301,22 @@ export function TaskFormModal({
         type="button"
         className="task-modal-backdrop"
         onClick={onClose}
-        aria-label="Close task form"
+        aria-label={tr("Close task form")}
       />
 
       <section className="task-modal" role="dialog" aria-modal="true">
         <header className="task-modal-header">
           <div>
-            <p className="modal-eyebrow">Task management</p>
-            <h3>{task ? 'Edit Task' : 'Add New Task'}</h3>
-            <p className="modal-description">
-              Create or update a task and assign it to staff members.
-            </p>
+            <p className="modal-eyebrow">{tr("Task management")}</p>
+            <h3>{task ? tr("Edit Task") : tr("Add New Task")}</h3>
+            <p className="modal-description">{tr("Create or update a task and assign it to staff members.")}</p>
           </div>
 
           <button
             type="button"
             className="task-modal-close"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={tr("Close")}
           >
             ✕
           </button>
@@ -326,10 +326,9 @@ export function TaskFormModal({
           <div className="task-modal-body">
             <div className="task-form-grid">
               <div className="task-form-field task-form-field-wide">
-                <span>
-                  Task Title<strong aria-hidden="true">*</strong>
+                <span>{tr("Task Title")}<strong aria-hidden="true">*</strong>
                 </span>
-                <input
+                <input dir="auto"
                   type="text"
                   value={formState.title}
                   onChange={(event) =>
@@ -338,14 +337,14 @@ export function TaskFormModal({
                       title: event.target.value,
                     }))
                   }
-                  placeholder="Task title"
+                  placeholder={tr("Task title")}
                   autoFocus
                 />
               </div>
 
               <div className="task-form-field task-form-field-wide">
-                <span>Description</span>
-                <textarea
+                <span>{tr("Description")}</span>
+                <textarea dir="auto"
                   value={formState.description}
                   onChange={(event) =>
                     setFormState((current) => ({
@@ -353,12 +352,12 @@ export function TaskFormModal({
                       description: event.target.value,
                     }))
                   }
-                  placeholder="Task details and notes"
+                  placeholder={tr("Task details and notes")}
                 />
               </div>
 
               <div className="task-form-field">
-                <span>Client</span>
+                <span>{tr("Client")}</span>
                 <select
                   value={formState.client_id}
                   onChange={(event) =>
@@ -369,7 +368,7 @@ export function TaskFormModal({
                     }))
                   }
                 >
-                  <option value="">Select client</option>
+                  <option value="">{tr("Select client")}</option>
                   {clients.map((client) => (
                     <option key={client.id} value={client.id}>
                       {client.full_name}
@@ -379,7 +378,7 @@ export function TaskFormModal({
               </div>
 
               <div className="task-form-field">
-                <span>Case</span>
+                <span>{tr("Case")}</span>
                 <select
                   value={formState.case_id}
                   onChange={(event) =>
@@ -390,7 +389,7 @@ export function TaskFormModal({
                   }
                   disabled={!formState.client_id}
                 >
-                  <option value="">Select case</option>
+                  <option value="">{tr("Select case")}</option>
                   {filteredCases.map((caseOption) => (
                     <option key={caseOption.id} value={caseOption.id}>
                       {caseOption.case_number} - {caseOption.case_type}
@@ -400,7 +399,7 @@ export function TaskFormModal({
               </div>
 
               <div className="task-form-field">
-                <span>Assigned To</span>
+                <span>{tr("Assigned To")}</span>
                 <select
                   value={formState.assigned_staff_id}
                   onChange={(event) =>
@@ -410,7 +409,7 @@ export function TaskFormModal({
                     }))
                   }
                 >
-                  <option value="">Unassigned</option>
+                  <option value="">{tr("Unassigned")}</option>
                   {staff.map((member) => (
                     <option key={member.id} value={member.id}>
                       {member.name}
@@ -420,7 +419,7 @@ export function TaskFormModal({
               </div>
 
               <div className="task-form-field">
-                <span>Priority</span>
+                <span>{tr("Priority")}</span>
                 <select
                   value={formState.priority}
                   onChange={(event) =>
@@ -430,15 +429,15 @@ export function TaskFormModal({
                     }))
                   }
                 >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                  <option value="Urgent">Urgent</option>
+                  <option value="Low">{tr("Low")}</option>
+                  <option value="Medium">{tr("Medium")}</option>
+                  <option value="High">{tr("High")}</option>
+                  <option value="Urgent">{tr("Urgent")}</option>
                 </select>
               </div>
 
               <div className="task-form-field">
-                <span>Status</span>
+                <span>{tr("Status")}</span>
                 <select
                   value={formState.status}
                   onChange={(event) =>
@@ -448,16 +447,16 @@ export function TaskFormModal({
                     }))
                   }
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                  <option value="On Hold">On Hold</option>
+                  <option value="Pending">{tr("Pending")}</option>
+                  <option value="In Progress">{tr("In Progress")}</option>
+                  <option value="Completed">{tr("Completed")}</option>
+                  <option value="On Hold">{tr("On Hold")}</option>
                 </select>
               </div>
 
               <div className="task-form-field">
-                <span>Due Date</span>
-                <input
+                <span>{tr("Due Date")}</span>
+                <input dir="ltr"
                   type="date"
                   value={formState.due_at}
                   onChange={(event) =>
@@ -472,7 +471,7 @@ export function TaskFormModal({
 
             {error ? (
               <div className="validation-error" role="alert">
-                {error}
+                {tr(error)}
               </div>
             ) : null}
           </div>
@@ -485,8 +484,8 @@ export function TaskFormModal({
             }
           >
             {isOnline
-              ? 'Draft is saved locally on this device until the task is successfully saved.'
-              : 'Offline — draft is saved locally. Reconnect before saving this task to SHAB.'}
+              ? tr("Draft is saved locally on this device until the task is successfully saved.")
+              : tr("Offline — draft is saved locally. Reconnect before saving this task to SHAB.")}
           </div>
 
           <footer className="task-form-actions">
@@ -495,15 +494,13 @@ export function TaskFormModal({
               className="secondary-action-button"
               onClick={onClose}
               disabled={loading}
-            >
-              Cancel
-            </button>
+            >{tr("Cancel")}</button>
             <button
               type="submit"
               className="primary-action-button"
               disabled={loading || !isOnline}
             >
-              {loading ? 'Saving…' : (task ? 'Update Task' : 'Create Task')}
+              {loading ? tr("Saving…") : (task ? 'Update Task' : 'Create Task')}
             </button>
           </footer>
         </form>

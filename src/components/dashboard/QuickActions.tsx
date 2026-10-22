@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 import {
   CalendarPlus,
   ClipboardPlus,
@@ -15,44 +16,45 @@ import './QuickActions.css';
 
 const actions = [
   {
-    title: 'New Client',
+    get title() { return tr("New Client"); },
     icon: UserPlus,
-    description: 'Register a new client',
+    get description() { return tr("Register a new client"); },
     path: '/clients',
   },
   {
-    title: 'New Case',
+    get title() { return tr("New Case"); },
     icon: Scale,
-    description: 'Open a legal matter',
+    get description() { return tr("Open a legal matter"); },
     path: '/cases',
   },
   {
-    title: 'Schedule Hearing',
+    get title() { return tr("Schedule Hearing"); },
     icon: CalendarPlus,
-    description: 'Create hearing schedule',
+    get description() { return tr("Create hearing schedule"); },
     path: '/hearings',
   },
   {
-    title: 'Upload Document',
+    get title() { return tr("Upload Document"); },
     icon: FilePlus2,
-    description: 'Store legal documents',
+    get description() { return tr("Store legal documents"); },
     path: '/documents',
   },
   {
-    title: 'Create Invoice',
+    get title() { return tr("Create Invoice"); },
     icon: ReceiptText,
-    description: 'Generate client invoice',
+    get description() { return tr("Generate client invoice"); },
     path: '/payments',
   },
   {
-    title: 'Add Task',
+    get title() { return tr("Add Task"); },
     icon: ClipboardPlus,
-    description: 'Assign a new task',
+    get description() { return tr("Assign a new task"); },
     path: '/tasks',
   },
 ];
 
 export function QuickActions({ isAdministrator }: { isAdministrator: boolean }) {
+  const interfaceLanguage = useLocale();
   const navigate =
     useNavigate();
 
@@ -60,15 +62,11 @@ export function QuickActions({ isAdministrator }: { isAdministrator: boolean }) 
     <section className="dashboard-panel quick-actions-panel">
       <div className="panel-heading-row">
         <div>
-          <span className="section-tag">
-            PRODUCTIVITY
-          </span>
+          <span className="section-tag">{tr("PRODUCTIVITY")}</span>
 
-          <h3>Quick Actions</h3>
+          <h3>{tr("Quick Actions")}</h3>
 
-          <p>
-            Launch common workflow steps instantly.
-          </p>
+          <p>{tr("Launch common workflow steps instantly.")}</p>
         </div>
       </div>
 

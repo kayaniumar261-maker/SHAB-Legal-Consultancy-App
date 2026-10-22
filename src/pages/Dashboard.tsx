@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../i18n/locale';
 import {
   AlertTriangle,
   BellRing,
@@ -77,7 +78,7 @@ const emptyDashboardData: DashboardKPIData = {
 };
 
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-AE', {
+  return new Intl.NumberFormat(getLocale("en-AE"), {
     style: 'currency',
     currency: 'AED',
     maximumFractionDigits: 0,
@@ -89,7 +90,7 @@ function formatLoadedTime(value: string | null): string {
     return '';
   }
 
-  return new Intl.DateTimeFormat('en-AE', {
+  return new Intl.DateTimeFormat(getLocale("en-AE"), {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(value));
@@ -106,6 +107,7 @@ function FinanceSummaryItem({
   detail: string;
   tone: 'success' | 'warning' | 'danger';
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article
       className={`dashboard-finance-item ${tone}`}
@@ -134,6 +136,7 @@ function ExecutiveAlert({
   clearMessage: string;
   to: string;
 }) {
+  const interfaceLanguage = useLocale();
   const hasAlert = value > 0;
 
   return (
@@ -167,6 +170,7 @@ function ExecutiveAlert({
 }
 
 export function Dashboard() {
+  const interfaceLanguage = useLocale();
   const { profile } = useAccessProfile();
   const administrator = profile?.access_role === 'administrator' && profile.is_active;
 
@@ -388,7 +392,7 @@ export function Dashboard() {
     [
       dashboardData,
       isLoading,
-    ],
+    , interfaceLanguage],
   );
 
   return (
@@ -404,22 +408,17 @@ export function Dashboard() {
       <section className="dashboard-header dashboard-legacy-heading">
         <div>
           <p className="page-eyebrow">
-            {administrator ? 'Executive overview' : 'Daily operations'}
+            {administrator ? tr("Executive overview") : tr("Daily operations")}
           </p>
 
-          <h2>SHAB Legal Consultants FZC</h2>
+          <h2>{tr("SHAB Legal Consultants FZC")}</h2>
 
-          <p className="page-intro">
-            A centralized command centre for cases,
-            clients, hearings, tasks and documents
-            across the practice.
-          </p>
+          <p className="page-intro">{tr("A centralized command centre for cases, clients, hearings, tasks and documents across the practice.")}</p>
         </div>
 
         <div className="dashboard-header-actions">
           {loadedAt && (
-            <span className="dashboard-updated-time">
-              Updated {formatLoadedTime(loadedAt)}
+            <span className="dashboard-updated-time">{tr("Updated")}{" "}{formatLoadedTime(loadedAt)}
             </span>
           )}
 
@@ -441,8 +440,8 @@ export function Dashboard() {
             />
 
             {isRefreshing
-              ? 'Refreshing'
-              : 'Refresh'}
+              ? tr("Refreshing")
+              : tr("Refresh")}
           </button>
         </div>
       </section>
@@ -452,15 +451,9 @@ export function Dashboard() {
           className="dashboard-data-warning"
           role="status"
         >
-          <strong>
-            Some dashboard information could not be
-            loaded.
-          </strong>
+          <strong>{tr("Some dashboard information could not be loaded.")}</strong>
 
-          <span>
-            The available sections are still displayed.
-            Refresh the page after checking Supabase.
-          </span>
+          <span>{tr("The available sections are still displayed. Refresh the page after checking Supabase.")}</span>
         </section>
       )}
 
@@ -482,16 +475,14 @@ export function Dashboard() {
       <section className="executive-alerts-panel">
         <div className="executive-alerts-header">
           <div>
-            <span className="page-eyebrow">
-              Management attention
-            </span>
+            <span className="page-eyebrow">{tr("Management attention")}</span>
 
-            <h3>{administrator ? 'Executive Alerts' : 'Work Alerts'}</h3>
+            <h3>{administrator ? tr("Executive Alerts") : tr("Work Alerts")}</h3>
 
             <p>
               {administrator
-                ? 'Operational and financial items requiring review.'
-                : 'Tasks and hearings requiring attention.'}
+                ? tr("Operational and financial items requiring review.")
+                : tr("Tasks and hearings requiring attention.")}
             </p>
           </div>
 
@@ -501,7 +492,7 @@ export function Dashboard() {
         <div className="executive-alerts-grid">
           {administrator && (
             <ExecutiveAlert
-              label="Overdue invoices"
+              label={tr("Overdue invoices")}
               value={dashboardData.overdueInvoices}
               message="Invoices require collection follow-up."
               to="/payments"
@@ -510,7 +501,7 @@ export function Dashboard() {
           )}
 
           <ExecutiveAlert
-            label="Overdue tasks"
+            label={tr("Overdue tasks")}
             value={dashboardData.overdueTasks}
             message="Tasks are currently past their deadlines."
             to="/tasks"
@@ -518,7 +509,7 @@ export function Dashboard() {
           />
 
           <ExecutiveAlert
-            label="Hearings tomorrow"
+            label={tr("Hearings tomorrow")}
             value={dashboardData.hearingsTomorrow}
             message="Court appearances are scheduled tomorrow."
             to="/hearings"
@@ -527,7 +518,7 @@ export function Dashboard() {
 
           {administrator && (
             <ExecutiveAlert
-              label="Outstanding receivables"
+              label={tr("Outstanding receivables")}
               value={dashboardData.outstandingPayments}
               formattedValue={formatCurrency(
                 dashboardData.outstandingPayments,
@@ -546,29 +537,22 @@ export function Dashboard() {
         <section className="dashboard-finance-summary">
         <div className="dashboard-finance-heading">
           <div>
-            <span className="page-eyebrow">
-              Financial command centre
-            </span>
+            <span className="page-eyebrow">{tr("Financial command centre")}</span>
 
-            <h3>Executive Finance Summary</h3>
+            <h3>{tr("Executive Finance Summary")}</h3>
 
-            <p>
-              Current collections, receivables and invoice
-              performance across the firm.
-            </p>
+            <p>{tr("Current collections, receivables and invoice performance across the firm.")}</p>
           </div>
 
           <Link
             className="dashboard-finance-link"
             to="/payments"
-          >
-            Open Finance
-          </Link>
+          >{tr("Open Finance")}</Link>
         </div>
 
         <div className="dashboard-finance-grid">
           <FinanceSummaryItem
-            label="Revenue This Month"
+            label={tr("Revenue This Month")}
             value={
               isLoading
                 ? '—'
@@ -576,12 +560,12 @@ export function Dashboard() {
                     dashboardData.monthlyRevenue,
                   )
             }
-            detail="Completed collections"
+            detail={tr("Completed collections")}
             tone="success"
           />
 
           <FinanceSummaryItem
-            label="Outstanding Receivables"
+            label={tr("Outstanding Receivables")}
             value={
               isLoading
                 ? '—'
@@ -589,7 +573,7 @@ export function Dashboard() {
                     dashboardData.outstandingPayments,
                   )
             }
-            detail="Professional fees still unpaid"
+            detail={tr("Professional fees still unpaid")}
             tone={
               dashboardData.outstandingPayments > 0
                 ? 'warning'
@@ -598,13 +582,13 @@ export function Dashboard() {
           />
 
           <FinanceSummaryItem
-            label="Collection Rate"
+            label={tr("Collection Rate")}
             value={
               isLoading
                 ? '—'
                 : `${dashboardData.collectionRate.toFixed(0)}%`
             }
-            detail="Collected against total billed"
+            detail={tr("Collected against total billed")}
             tone={
               dashboardData.collectionRate >= 80
                 ? 'success'
@@ -615,7 +599,7 @@ export function Dashboard() {
           />
 
           <FinanceSummaryItem
-            label="Overdue Invoices"
+            label={tr("Overdue Invoices")}
             value={
               isLoading
                 ? '—'
@@ -623,7 +607,7 @@ export function Dashboard() {
                     dashboardData.overdueInvoices,
                   )
             }
-            detail="Invoices requiring follow-up"
+            detail={tr("Invoices requiring follow-up")}
             tone={
               dashboardData.overdueInvoices > 0
                 ? 'danger'
@@ -634,7 +618,7 @@ export function Dashboard() {
 
         <div className="dashboard-collection-progress">
           <div className="dashboard-collection-progress-head">
-            <span>Collection performance</span>
+            <span>{tr("Collection performance")}</span>
 
             <strong>
               {isLoading

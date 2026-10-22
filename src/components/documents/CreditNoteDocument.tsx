@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import { createPortal } from 'react-dom';
 
 import { companyProfile } from '../../constants/companyProfile';
@@ -19,6 +20,7 @@ type CreditNoteDocumentProps = {
 export function CreditNotePrintPortal(
   props: CreditNoteDocumentProps,
 ) {
+  const interfaceLanguage = useLocale();
   if (typeof document === 'undefined') {
     return null;
   }
@@ -38,6 +40,7 @@ export function CreditNoteDocument({
   caseReference,
   companySettings,
 }: CreditNoteDocumentProps) {
+  const interfaceLanguage = useLocale();
   const currency =
     creditNote.currency ||
     invoice.currency ||
@@ -94,7 +97,7 @@ export function CreditNoteDocument({
       }
     >
       <section className="shab-adjustment-summary credit">
-        <span>Total Credit</span>
+        <span>{tr("Total Credit")}</span>
 
         <strong>
           {formatDocumentCurrency(
@@ -103,8 +106,7 @@ export function CreditNoteDocument({
           )}
         </strong>
 
-        <p>
-          Credit issued against invoice{' '}
+        <p>{tr("Credit issued against invoice")}{' '}
           {invoice.invoice_number}.
         </p>
       </section>
@@ -112,7 +114,7 @@ export function CreditNoteDocument({
       <section className="shab-adjustment-breakdown">
         <dl>
           <div>
-            <dt>Credit Subtotal</dt>
+            <dt>{tr("Credit Subtotal")}</dt>
             <dd>
               {formatDocumentCurrency(
                 creditNote.subtotal,
@@ -122,7 +124,7 @@ export function CreditNoteDocument({
           </div>
 
           <div>
-            <dt>VAT Rate</dt>
+            <dt>{tr("VAT Rate")}</dt>
             <dd>
               {formatRate(
                 creditNote.vat_rate,
@@ -131,7 +133,7 @@ export function CreditNoteDocument({
           </div>
 
           <div>
-            <dt>VAT Credit</dt>
+            <dt>{tr("VAT Credit")}</dt>
             <dd>
               {formatDocumentCurrency(
                 creditNote.vat_amount,
@@ -141,7 +143,7 @@ export function CreditNoteDocument({
           </div>
 
           <div>
-            <dt>Original Invoice Total</dt>
+            <dt>{tr("Original Invoice Total")}</dt>
             <dd>
               {formatDocumentCurrency(
                 invoice.total_amount,
@@ -153,7 +155,7 @@ export function CreditNoteDocument({
       </section>
 
       <section className="shab-adjustment-reason-box">
-        <span>Reason for Credit</span>
+        <span>{tr("Reason for Credit")}</span>
         <p>{creditNote.reason}</p>
       </section>
     </BrandedDocument>
@@ -167,7 +169,7 @@ function formatDocumentCurrency(
   const amount = Number(value ?? 0);
 
   return `${currency} ${new Intl.NumberFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -186,7 +188,7 @@ function formatDocumentDate(
     return value;
   }
 
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getLocale("en-GB"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 import {
   Bell,
   BellRing,
@@ -24,6 +25,7 @@ type DashboardNotification = {
 };
 
 export function Notifications() {
+  const interfaceLanguage = useLocale();
   const [items, setItems] =
     useState<DashboardNotification[]>(
       [],
@@ -86,7 +88,7 @@ export function Notifications() {
         items.filter(
           (item) => !item.read,
         ).length,
-      [items],
+      [items, interfaceLanguage],
     );
 
   async function markRead(
@@ -122,15 +124,11 @@ export function Notifications() {
     <section className="dashboard-panel notifications-panel">
       <div className="panel-heading-row">
         <div>
-          <span className="section-tag">
-            ALERT CENTRE
-          </span>
+          <span className="section-tag">{tr("ALERT CENTRE")}</span>
 
-          <h3>Notifications</h3>
+          <h3>{tr("Notifications")}</h3>
 
-          <p>
-            Unread updates and important alerts.
-          </p>
+          <p>{tr("Unread updates and important alerts.")}</p>
         </div>
 
         <div className="notification-count">
@@ -140,20 +138,16 @@ export function Notifications() {
       </div>
 
       {loading ? (
-        <div className="dashboard-widget-state">
-          Loading notifications…
-        </div>
+        <div className="dashboard-widget-state">{tr("Loading notifications…")}</div>
       ) : error && items.length === 0 ? (
         <div className="dashboard-widget-state error">
-          {error}
+          {tr(error)}
         </div>
       ) : items.length === 0 ? (
         <div className="dashboard-widget-state">
           <Bell size={22} />
 
-          <span>
-            No notifications at this time.
-          </span>
+          <span>{tr("No notifications at this time.")}</span>
         </div>
       ) : (
         <div className="notification-dashboard-list">
@@ -169,7 +163,7 @@ export function Notifications() {
               <div className="notification-dashboard-content">
                 <strong>
                   {item.title ||
-                    'Notification'}
+                    tr("Notification")}
                 </strong>
 
                 {item.body && (
@@ -191,7 +185,7 @@ export function Notifications() {
                   disabled={
                     updatingId === item.id
                   }
-                  title="Mark as read"
+                  title={tr("Mark as read")}
                 >
                   <Check size={15} />
                 </button>
@@ -203,7 +197,7 @@ export function Notifications() {
 
       {error && items.length > 0 && (
         <div className="dashboard-inline-error">
-          {error}
+          {tr(error)}
         </div>
       )}
     </section>

@@ -341,12 +341,12 @@
   gap: 5px;
   min-width: 0;
   padding: 14px 18px;
-  border-right: 1px solid #eef2f7;
+  border-inline-end: 1px solid #eef2f7;
   border-bottom: 1px solid #eef2f7;
 }
 
 .case-details-row:nth-child(even) {
-  border-right: 0;
+  border-inline-end: 0;
 }
 
 .case-details-row span {
@@ -464,7 +464,7 @@
   }
 
   .case-details-row {
-    border-right: 0;
+    border-inline-end: 0;
   }
 
   .case-details-actions {
@@ -498,8 +498,8 @@
 .case-details-actions button,
 .back-button {
   min-height: 38px;
-  padding-left: 13px;
-  padding-right: 13px;
+  padding-inline-start: 13px;
+  padding-inline-end: 13px;
   border-radius: 10px;
   font-size: 0.76rem;
 }

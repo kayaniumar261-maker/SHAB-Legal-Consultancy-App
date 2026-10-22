@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import {
   BarChart3,
   TrendingUp,
@@ -27,10 +28,11 @@ function formatMoney(
     )}K`;
   }
 
-  return `AED ${value.toLocaleString('en-AE')}`;
+  return `AED ${value.toLocaleString(getLocale("en-AE"))}`;
 }
 
 export function RevenueChart() {
+  const interfaceLanguage = useLocale();
   const [data, setData] =
     useState<MonthlyRevenue[]>([]);
 
@@ -83,7 +85,7 @@ export function RevenueChart() {
           total + Number(item.revenue ?? 0),
         0,
       ),
-    [data],
+    [data, interfaceLanguage],
   );
 
   const highest = useMemo(
@@ -95,7 +97,7 @@ export function RevenueChart() {
         ),
         1,
       ),
-    [data],
+    [data, interfaceLanguage],
   );
 
   const hasRevenue =
@@ -105,22 +107,18 @@ export function RevenueChart() {
     <section className="dashboard-panel revenue-chart-panel">
       <div className="panel-heading-row">
         <div>
-          <span className="section-tag">
-            FINANCIAL PERFORMANCE
-          </span>
+          <span className="section-tag">{tr("FINANCIAL PERFORMANCE")}</span>
 
-          <h3>Revenue Overview</h3>
+          <h3>{tr("Revenue Overview")}</h3>
 
-          <p>
-            Completed collections over the last six months.
-          </p>
+          <p>{tr("Completed collections over the last six months.")}</p>
         </div>
 
         <div className="revenue-total-badge">
           <TrendingUp size={13} />
 
           <div>
-            <small>6M Total</small>
+            <small>{tr("6M Total")}</small>
 
             <strong>
               {formatMoney(totalRevenue)}
@@ -130,20 +128,16 @@ export function RevenueChart() {
       </div>
 
       {loading ? (
-        <div className="dashboard-widget-state">
-          Loading revenue…
-        </div>
+        <div className="dashboard-widget-state">{tr("Loading revenue…")}</div>
       ) : error ? (
         <div className="dashboard-widget-state error">
-          {error}
+          {tr(error)}
         </div>
       ) : !hasRevenue ? (
         <div className="dashboard-widget-state revenue-empty-state">
           <BarChart3 size={17} />
 
-          <span>
-            No completed payments recorded in the last six months.
-          </span>
+          <span>{tr("No completed payments recorded in the last six months.")}</span>
         </div>
       ) : (
         <div className="revenue-chart-body">

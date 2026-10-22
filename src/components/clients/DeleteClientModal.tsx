@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 type DeleteClientModalProps = {
   open: boolean;
   clientName: string;
@@ -13,6 +14,7 @@ export function DeleteClientModal({
   onCancel,
   onConfirm,
 }: DeleteClientModalProps) {
+  const interfaceLanguage = useLocale();
   if (!open) {
     return null;
   }
@@ -23,24 +25,20 @@ export function DeleteClientModal({
         type="button"
         className="client-modal-backdrop"
         onClick={onCancel}
-        aria-label="Close delete dialog"
+        aria-label={tr("Close delete dialog")}
       />
 
       <section className="client-modal" role="dialog" aria-modal="true">
         <header className="client-modal-header">
           <div>
-            <p className="modal-eyebrow">Delete client</p>
-            <h3>Confirm deletion</h3>
-            <p className="modal-description">
-              This action cannot be undone. The client record for {clientName} will be removed permanently.
-            </p>
+            <p className="modal-eyebrow">{tr("Delete client")}</p>
+            <h3>{tr("Confirm deletion")}</h3>
+            <p className="modal-description">{tr("This action cannot be undone. The client record for")}{" "}{clientName}{" "}{tr("will be removed permanently.")}</p>
           </div>
         </header>
 
         <div className="client-form" style={{ paddingBottom: '24px' }}>
-          <div className="validation-error" role="alert">
-            Are you sure you want to delete this client?
-          </div>
+          <div className="validation-error" role="alert">{tr("Are you sure you want to delete this client?")}</div>
 
           <footer className="client-form-actions">
             <button
@@ -48,16 +46,14 @@ export function DeleteClientModal({
               className="secondary-action-button"
               onClick={onCancel}
               disabled={loading}
-            >
-              Cancel
-            </button>
+            >{tr("Cancel")}</button>
             <button
               type="button"
               className="primary-action-button"
               onClick={onConfirm}
               disabled={loading}
             >
-              {loading ? 'Deleting…' : 'Delete Client'}
+              {loading ? tr("Deleting…") : tr("Delete Client")}
             </button>
           </footer>
         </div>

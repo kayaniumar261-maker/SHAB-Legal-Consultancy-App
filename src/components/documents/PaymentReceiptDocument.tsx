@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import { createPortal } from 'react-dom';
 
 import { companyProfile } from '../../constants/companyProfile';
@@ -19,6 +20,7 @@ type PaymentReceiptDocumentProps = {
 export function PaymentReceiptPrintPortal(
   props: PaymentReceiptDocumentProps,
 ) {
+  const interfaceLanguage = useLocale();
   if (typeof document === 'undefined') {
     return null;
   }
@@ -38,6 +40,7 @@ export function PaymentReceiptDocument({
   caseReference,
   companySettings,
 }: PaymentReceiptDocumentProps) {
+  const interfaceLanguage = useLocale();
   const currency =
     payment.currency ||
     invoice.currency ||
@@ -90,7 +93,7 @@ export function PaymentReceiptDocument({
       }
     >
       <section className="shab-receipt-summary">
-        <span>Amount Received</span>
+        <span>{tr("Amount Received")}</span>
 
         <strong>
           {formatDocumentCurrency(
@@ -99,8 +102,7 @@ export function PaymentReceiptDocument({
           )}
         </strong>
 
-        <p>
-          Received from {clientName} toward invoice{' '}
+        <p>{tr("Received from")}{" "}{clientName}{" "}{tr("toward invoice")}{' '}
           {invoice.invoice_number}.
         </p>
       </section>
@@ -108,23 +110,23 @@ export function PaymentReceiptDocument({
       <section className="shab-receipt-details">
         <dl>
           <div>
-            <dt>Payment Method</dt>
+            <dt>{tr("Payment Method")}</dt>
             <dd>
               {payment.payment_method ||
-                'Not specified'}
+                tr("Not specified")}
             </dd>
           </div>
 
           <div>
-            <dt>Transaction Reference</dt>
+            <dt>{tr("Transaction Reference")}</dt>
             <dd>
               {payment.reference_number ||
-                'Not provided'}
+                tr("Not provided")}
             </dd>
           </div>
 
           <div>
-            <dt>Invoice Total</dt>
+            <dt>{tr("Invoice Total")}</dt>
             <dd>
               {formatDocumentCurrency(
                 invoice.total_amount,
@@ -134,7 +136,7 @@ export function PaymentReceiptDocument({
           </div>
 
           <div>
-            <dt>Current Invoice Balance</dt>
+            <dt>{tr("Current Invoice Balance")}</dt>
             <dd>
               {formatDocumentCurrency(
                 invoice.balance_amount,
@@ -155,7 +157,7 @@ function formatDocumentCurrency(
   const amount = Number(value ?? 0);
 
   return `${currency} ${new Intl.NumberFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -178,7 +180,7 @@ function formatDocumentDate(
     return value;
   }
 
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getLocale("en-GB"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

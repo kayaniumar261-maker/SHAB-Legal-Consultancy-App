@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import { CloudSun, MapPin } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -14,12 +15,13 @@ const LOCATIONS = {
 type LocationName = keyof typeof LOCATIONS;
 
 function greetingFor(hour: number) {
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (hour < 12) return tr('Good morning');
+  if (hour < 18) return tr('Good afternoon');
+  return tr('Good evening');
 }
 
 export function DashboardGreeting() {
+  const language = useLocale();
   const { profile } = useAccessProfile();
   const { user } = useAuth();
   const [now, setNow] = useState(() => new Date());
@@ -56,19 +58,19 @@ export function DashboardGreeting() {
     return () => controller.abort();
   }, [location]);
 
-  const formattedDate = useMemo(() => new Intl.DateTimeFormat('en-AE', {
+  const formattedDate = useMemo(() => new Intl.DateTimeFormat(getLocale("en-AE"), {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  }).format(now), [now]);
+  }).format(now), [now, language]);
 
-  const compactDate = useMemo(() => new Intl.DateTimeFormat('en-AE', {
+  const compactDate = useMemo(() => new Intl.DateTimeFormat(getLocale("en-AE"), {
     day: 'numeric', month: 'short', year: 'numeric',
-  }).format(now), [now]);
+  }).format(now), [now, language]);
 
   return (
     <section className="dashboard-greeting">
       <div>
         <h2>{greetingFor(now.getHours())}, {firstName}</h2>
-        <p>Here&apos;s what&apos;s happening at SHAB Legal Consultants FZC today.</p>
+        <p>{tr("Here's what's happening at SHAB Legal Consultants FZC today.")}</p>
       </div>
       <div className="dashboard-context">
         <time dateTime={now.toISOString()}>
@@ -78,10 +80,10 @@ export function DashboardGreeting() {
         <label>
           <MapPin size={14} />
           <select value={location} onChange={(event) => setLocation(event.target.value as LocationName)}>
-            {Object.keys(LOCATIONS).map((name) => <option key={name}>{name}</option>)}
+            {Object.keys(LOCATIONS).map((name) => <option key={name} value={name}>{tr(name)}</option>)}
           </select>
         </label>
-        <span><CloudSun size={18} />{temperature === null ? 'Weather unavailable' : `${Math.round(temperature)}°C`}</span>
+        <span><CloudSun size={18} />{temperature === null ? tr("Weather unavailable") : tr("{0}°C", [Math.round(temperature)])}</span>
       </div>
     </section>
   );

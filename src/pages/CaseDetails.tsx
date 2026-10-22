@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../i18n/locale';
 import {
   AlertTriangle,
   Archive,
@@ -31,6 +32,7 @@ import type { CaseWithRelations as Case } from '../types/case';
 import './CaseDetails.css';
 
 export function CaseDetails() {
+  const interfaceLanguage = useLocale();
   const { id } = useParams();
   const navigate = useNavigate();
   const { profile } = useAccessProfile();
@@ -136,15 +138,15 @@ export function CaseDetails() {
   const progress = useMemo(() => {
     const value = Number(caseRecord?.completion_percentage ?? 0);
     return Math.min(100, Math.max(0, value));
-  }, [caseRecord?.completion_percentage]);
+  }, [caseRecord?.completion_percentage, interfaceLanguage]);
 
   if (loading) {
     return (
       <div className="case-details-page page-container">
         <div className="case-details-state">
           <Scale size={30} />
-          <strong>Loading matter details…</strong>
-          <p>Retrieving the latest legal matter information.</p>
+          <strong>{tr("Loading matter details…")}</strong>
+          <p>{tr("Retrieving the latest legal matter information.")}</p>
         </div>
       </div>
     );
@@ -155,25 +157,21 @@ export function CaseDetails() {
       <div className="case-details-page page-container">
         <section className="page-heading">
           <div>
-            <p className="page-eyebrow">Case management</p>
-            <h2>Unable to load matter</h2>
-            <p className="page-intro">
-              There was a problem loading this legal matter.
-            </p>
+            <p className="page-eyebrow">{tr("Case management")}</p>
+            <h2>{tr("Unable to load matter")}</h2>
+            <p className="page-intro">{tr("There was a problem loading this legal matter.")}</p>
           </div>
         </section>
 
         <div className="case-details-state error">
           <AlertTriangle size={30} />
-          <strong>{error}</strong>
+          <strong>{tr(error)}</strong>
           <button
             type="button"
             className="secondary-action-button"
             onClick={() => navigate('/cases')}
           >
-            <ArrowLeft size={16} />
-            Back to Cases
-          </button>
+            <ArrowLeft size={16} />{tr("Back to Cases")}</button>
         </div>
       </div>
     );
@@ -199,7 +197,7 @@ export function CaseDetails() {
     }
 
     const confirmed = window.confirm(
-      `Delete ${matterReference}? This action cannot be undone.`,
+      tr("Delete {0}? This action cannot be undone.", [matterReference]),
     );
 
     if (!confirmed) {
@@ -230,18 +228,14 @@ export function CaseDetails() {
           className="secondary-action-button back-button"
           onClick={() => navigate('/cases')}
         >
-          <ArrowLeft size={16} />
-          Back to Cases
-        </button>
+          <ArrowLeft size={16} />{tr("Back to Cases")}</button>
 
         <div className="case-details-actions">
           <Link
             to={`/cases/${caseRecord.id}/edit`}
             className="primary-action-button"
           >
-            <Edit3 size={18} />
-            Edit Matter
-          </Link>
+            <Edit3 size={18} />{tr("Edit Matter")}</Link>
 
           <button
             type="button"
@@ -250,7 +244,7 @@ export function CaseDetails() {
             disabled={deleting}
           >
             <Trash2 size={18} />
-            {deleting ? 'Deleting…' : administrator ? 'Delete' : 'Request deletion'}
+            {deleting ? tr("Deleting…") : administrator ? tr("Delete") : tr("Request deletion")}
           </button>
         </div>
       </section>
@@ -262,24 +256,20 @@ export function CaseDetails() {
 
             {caseRecord.requires_urgent_action && (
               <span className="urgent-matter-chip">
-                <AlertTriangle size={14} />
-                Urgent action required
-              </span>
+                <AlertTriangle size={14} />{tr("Urgent action required")}</span>
             )}
 
             {caseRecord.is_vip && (
-              <span className="vip-matter-chip">VIP</span>
+              <span className="vip-matter-chip">{tr("VIP")}</span>
             )}
 
             {caseRecord.is_archived && (
               <span className="archived-matter-chip">
-                <Archive size={13} />
-                Archived
-              </span>
+                <Archive size={13} />{tr("Archived")}</span>
             )}
           </div>
 
-          <h1>{caseRecord.case_type || 'Untitled matter'}</h1>
+          <h1>{caseRecord.case_type || tr("Untitled matter")}</h1>
 
           <div className="case-details-subtitle">
             <Link to={`/clients/${caseRecord.client_id}`}>
@@ -287,7 +277,7 @@ export function CaseDetails() {
               {clientName}
             </Link>
             <span>•</span>
-            <span>{caseRecord.court || 'Court not assigned'}</span>
+            <span>{caseRecord.court || tr("Court not assigned")}</span>
           </div>
 
           <div className="case-details-badges">
@@ -296,11 +286,11 @@ export function CaseDetails() {
               className={`status ${normalizeClass(caseRecord.status)}`}
             />
             <Badge
-              label={`${formatLabel(caseRecord.priority)} priority`}
+              label={tr("{0} priority", [formatLabel(caseRecord.priority)])}
               className={`priority ${normalizeClass(caseRecord.priority)}`}
             />
             <Badge
-              label={`${formatLabel(caseRecord.risk_level)} risk`}
+              label={tr("{0} risk", [formatLabel(caseRecord.risk_level)])}
               className={`risk ${normalizeClass(caseRecord.risk_level)}`}
               icon={<ShieldAlert size={13} />}
             />
@@ -315,14 +305,13 @@ export function CaseDetails() {
 
         <div className="case-details-progress-card">
           <div>
-            <span>Matter progress</span>
+            <span>{tr("Matter progress")}</span>
             <strong>{progress}%</strong>
           </div>
           <div className="case-details-progress-track">
             <span style={{ width: `${progress}%` }} />
           </div>
-          <small>
-            Stage: {formatLabel(caseRecord.case_stage)}
+          <small>{tr("Stage:")}{" "}{formatLabel(caseRecord.case_stage)}
           </small>
         </div>
       </section>
@@ -330,7 +319,7 @@ export function CaseDetails() {
       <section className="case-details-kpi-grid">
         <KpiCard
           icon={<CalendarClock size={20} />}
-          label="Next Hearing"
+          label={tr("Next Hearing")}
           value={
             caseRecord.next_hearing_at
               ? formatDateTime(caseRecord.next_hearing_at)
@@ -339,7 +328,7 @@ export function CaseDetails() {
         />
         <KpiCard
           icon={<Clock3 size={20} />}
-          label="Next Action"
+          label={tr("Next Action")}
           value={
             caseRecord.next_action_at
               ? formatDateTime(caseRecord.next_action_at)
@@ -350,7 +339,7 @@ export function CaseDetails() {
           <>
             <KpiCard
               icon={<CircleDollarSign size={20} />}
-              label="Claim Amount"
+              label={tr("Claim Amount")}
               value={formatCurrency(
                 caseRecord.claim_amount ?? caseRecord.case_value,
                 caseRecord.currency,
@@ -358,7 +347,7 @@ export function CaseDetails() {
             />
             <KpiCard
               icon={<CircleDollarSign size={20} />}
-              label="Outstanding"
+              label={tr("Outstanding")}
               value={
                 financialSummary
                   ? formatCurrency(
@@ -375,181 +364,181 @@ export function CaseDetails() {
       <section className="case-details-overview-grid">
         <OverviewCard
           icon={<BriefcaseBusiness size={19} />}
-          title="Matter Information"
+          title={tr("Matter Information")}
         >
           <DetailRow
-            label="Matter Number"
+            label={tr("Matter Number")}
             value={caseRecord.matter_number}
           />
           <DetailRow
-            label="Internal Case Number"
+            label={tr("Internal Case Number")}
             value={caseRecord.case_number}
           />
           <DetailRow
-            label="External Reference"
+            label={tr("External Reference")}
             value={caseRecord.external_reference}
           />
           <DetailRow
-            label="File Reference"
+            label={tr("File Reference")}
             value={caseRecord.file_reference}
           />
           <DetailRow
-            label="Practice Area"
+            label={tr("Practice Area")}
             value={caseRecord.practice_area}
           />
           <DetailRow
-            label="Category"
+            label={tr("Category")}
             value={caseRecord.case_category}
           />
           <DetailRow
-            label="Proceeding Type"
+            label={tr("Proceeding Type")}
             value={caseRecord.proceeding_type}
           />
           <DetailRow
-            label="Jurisdiction"
+            label={tr("Jurisdiction")}
             value={caseRecord.jurisdiction}
           />
         </OverviewCard>
 
         <OverviewCard
           icon={<Gavel size={19} />}
-          title="Court & Proceedings"
+          title={tr("Court & Proceedings")}
         >
-          <DetailRow label="Court" value={caseRecord.court} />
+          <DetailRow label={tr("Court")} value={caseRecord.court} />
           <DetailRow
-            label="Court Division"
+            label={tr("Court Division")}
             value={caseRecord.court_division}
           />
           <DetailRow
-            label="Court Level"
+            label={tr("Court Level")}
             value={caseRecord.court_level}
           />
           <DetailRow
-            label="Court Case Number"
+            label={tr("Court Case Number")}
             value={caseRecord.court_case_number}
           />
           <DetailRow
-            label="Police Case Number"
+            label={tr("Police Case Number")}
             value={caseRecord.police_case_number}
           />
           <DetailRow
-            label="Prosecution Number"
+            label={tr("Prosecution Number")}
             value={caseRecord.prosecution_number}
           />
           <DetailRow
-            label="Execution Number"
+            label={tr("Execution Number")}
             value={caseRecord.execution_number}
           />
           <DetailRow
-            label="Judge"
+            label={tr("Judge")}
             value={caseRecord.judge_name}
           />
         </OverviewCard>
 
         <OverviewCard
           icon={<UsersRound size={19} />}
-          title="Client & Legal Team"
+          title={tr("Client & Legal Team")}
         >
           <DetailRow
-            label="Client"
+            label={tr("Client")}
             value={clientName}
             link={`/clients/${caseRecord.client_id}`}
           />
           <DetailRow
-            label="Responsible Lawyer"
+            label={tr("Responsible Lawyer")}
             value={responsibleLawyer}
           />
           <DetailRow
-            label="Case Manager"
+            label={tr("Case Manager")}
             value={caseRecord.case_manager?.full_name}
           />
           <DetailRow
-            label="Legal Assistant"
+            label={tr("Legal Assistant")}
             value={caseRecord.legal_assistant?.full_name}
           />
           <DetailRow
-            label="Assigned Team"
+            label={tr("Assigned Team")}
             value={caseRecord.assigned_team}
           />
           <DetailRow
-            label="Department"
+            label={tr("Department")}
             value={caseRecord.department}
           />
         </OverviewCard>
 
         <OverviewCard
           icon={<Building2 size={19} />}
-          title="Opponent Information"
+          title={tr("Opponent Information")}
         >
           <DetailRow
-            label="Opponent"
+            label={tr("Opponent")}
             value={
               caseRecord.opponent_name ??
               caseRecord.opponent_company
             }
           />
           <DetailRow
-            label="Opponent Type"
+            label={tr("Opponent Type")}
             value={caseRecord.opponent_type}
           />
           <DetailRow
-            label="Company"
+            label={tr("Company")}
             value={caseRecord.opponent_company}
           />
           <DetailRow
-            label="Opponent Lawyer"
+            label={tr("Opponent Lawyer")}
             value={caseRecord.opponent_lawyer}
           />
           <DetailRow
-            label="Law Firm"
+            label={tr("Law Firm")}
             value={caseRecord.opponent_law_firm}
           />
           <DetailRow
-            label="Email"
+            label={tr("Email")}
             value={caseRecord.opponent_email}
           />
           <DetailRow
-            label="Phone"
+            label={tr("Phone")}
             value={caseRecord.opponent_phone}
           />
         </OverviewCard>
 
         <OverviewCard
           icon={<Landmark size={19} />}
-          title="Key Dates"
+          title={tr("Key Dates")}
         >
           <DetailRow
-            label="Filing Date"
+            label={tr("Filing Date")}
             value={formatOptionalDate(caseRecord.filing_date)}
           />
           <DetailRow
-            label="Opened"
+            label={tr("Opened")}
             value={formatOptionalDate(caseRecord.opened_at)}
           />
           <DetailRow
-            label="First Hearing"
+            label={tr("First Hearing")}
             value={formatOptionalDate(
               caseRecord.first_hearing_at,
             )}
           />
           <DetailRow
-            label="Next Hearing"
+            label={tr("Next Hearing")}
             value={formatOptionalDate(
               caseRecord.next_hearing_at,
             )}
           />
           <DetailRow
-            label="Limitation Date"
+            label={tr("Limitation Date")}
             value={formatOptionalDate(
               caseRecord.limitation_date,
             )}
           />
           <DetailRow
-            label="Judgment Date"
+            label={tr("Judgment Date")}
             value={formatOptionalDate(caseRecord.judgment_at)}
           />
           <DetailRow
-            label="Closed"
+            label={tr("Closed")}
             value={formatOptionalDate(caseRecord.closed_at)}
           />
         </OverviewCard>
@@ -563,23 +552,23 @@ export function CaseDetails() {
         caseRecord.next_actions) && (
         <section className="case-details-narrative-grid">
           <NarrativeCard
-            title="Matter Description"
+            title={tr("Matter Description")}
             value={caseRecord.description}
           />
           <NarrativeCard
-            title="Facts Summary"
+            title={tr("Facts Summary")}
             value={caseRecord.facts_summary}
           />
           <NarrativeCard
-            title="Client Objective"
+            title={tr("Client Objective")}
             value={caseRecord.client_objective}
           />
           <NarrativeCard
-            title="Legal Strategy"
+            title={tr("Legal Strategy")}
             value={caseRecord.legal_strategy}
           />
           <NarrativeCard
-            title="Next Actions"
+            title={tr("Next Actions")}
             value={caseRecord.next_actions}
           />
         </section>
@@ -611,6 +600,7 @@ function KpiCard({
   label: string;
   value: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article className="case-details-kpi-card">
       <div>{icon}</div>
@@ -629,6 +619,7 @@ function OverviewCard({
   title: string;
   children: ReactNode;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article className="case-details-overview-card">
       <header>
@@ -651,6 +642,7 @@ function DetailRow({
   value: string | null | undefined;
   link?: string;
 }) {
+  const interfaceLanguage = useLocale();
   const displayValue =
     value && value.trim() !== '' ? value : 'Not provided';
 
@@ -673,6 +665,7 @@ function NarrativeCard({
   title: string;
   value: string | null | undefined;
 }) {
+  const interfaceLanguage = useLocale();
   if (!value) {
     return null;
   }
@@ -694,6 +687,7 @@ function Badge({
   className: string;
   icon?: ReactNode;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <span className={`case-details-badge ${className}`}>
       {icon}
@@ -715,14 +709,14 @@ function formatLabel(
   value: string | null | undefined,
 ): string {
   if (!value) {
-    return 'Not provided';
+    return tr('Not provided');
   }
 
-  return value
+  return tr(value
     .replace(/_/g, ' ')
     .trim()
     .toLowerCase()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    .replace(/\b\w/g, (letter) => letter.toUpperCase()));
 }
 
 function formatOptionalDate(
@@ -742,7 +736,7 @@ function formatDate(value: string): string {
     return 'Unknown';
   }
 
-  return new Intl.DateTimeFormat('en-AE', {
+  return new Intl.DateTimeFormat(getLocale("en-AE"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -756,7 +750,7 @@ function formatDateTime(value: string): string {
     return 'Unknown';
   }
 
-  return new Intl.DateTimeFormat('en-AE', {
+  return new Intl.DateTimeFormat(getLocale("en-AE"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -769,7 +763,7 @@ function formatCurrency(
   value: number | null | undefined,
   currency: string | null | undefined = 'AED',
 ): string {
-  return new Intl.NumberFormat('en-AE', {
+  return new Intl.NumberFormat(getLocale("en-AE"), {
     style: 'currency',
     currency: currency || 'AED',
     maximumFractionDigits: 2,

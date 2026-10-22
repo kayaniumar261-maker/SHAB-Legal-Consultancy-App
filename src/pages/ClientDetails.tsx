@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale, trEnum } from '../i18n/locale';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -108,17 +109,18 @@ const tabs: Array<{
   id: ClientTab;
   label: string;
 }> = [
-  { id: 'workspace', label: 'Workspace' },
-  { id: 'cases', label: 'Cases' },
-  { id: 'hearings', label: 'Hearings' },
-  { id: 'tasks', label: 'Tasks' },
-  { id: 'documents', label: 'Documents' },
-  { id: 'finance', label: 'Finance' },
-  { id: 'timeline', label: 'Timeline' },
-  { id: 'notes', label: 'Notes' },
+  { id: 'workspace', get label() { return tr("Workspace"); } },
+  { id: 'cases', get label() { return tr("Cases"); } },
+  { id: 'hearings', get label() { return tr("Hearings"); } },
+  { id: 'tasks', get label() { return tr("Tasks"); } },
+  { id: 'documents', get label() { return tr("Documents"); } },
+  { id: 'finance', get label() { return tr("Finance"); } },
+  { id: 'timeline', get label() { return tr("Timeline"); } },
+  { id: 'notes', get label() { return tr("Notes"); } },
 ];
 
 export function ClientDetails() {
+  const interfaceLanguage = useLocale();
   const { id } = useParams();
   const navigate = useNavigate();
   const { profile } = useAccessProfile();
@@ -213,7 +215,7 @@ export function ClientDetails() {
         client.address ||
         'Not provided'
       );
-    }, [client]);
+    }, [client, interfaceLanguage]);
 
   if (loading) {
     return (
@@ -221,13 +223,9 @@ export function ClientDetails() {
         <div className="details-loading">
           <div className="details-loading-spinner" />
 
-          <strong>
-            Loading client profile…
-          </strong>
+          <strong>{tr("Loading client profile…")}</strong>
 
-          <span>
-            Retrieving the latest client and matter information.
-          </span>
+          <span>{tr("Retrieving the latest client and matter information.")}</span>
         </div>
       </div>
     );
@@ -240,13 +238,11 @@ export function ClientDetails() {
           <ShieldAlert size={24} />
 
           <div>
-            <strong>
-              Unable to open client profile
-            </strong>
+            <strong>{tr("Unable to open client profile")}</strong>
 
             <span>
               {error ??
-                'Client not found.'}
+                tr("Client not found.")}
             </span>
           </div>
         </div>
@@ -258,9 +254,7 @@ export function ClientDetails() {
             navigate('/clients')
           }
         >
-          <ArrowLeft size={17} />
-          Back to Clients
-        </button>
+          <ArrowLeft size={17} />{tr("Back to Clients")}</button>
       </div>
     );
   }
@@ -288,7 +282,7 @@ export function ClientDetails() {
             <div className="client-profile-code-line">
               <span className="client-profile-code">
                 {client.client_code ??
-                  'Client code pending'}
+                  tr("Client code pending")}
               </span>
 
               {isVip && (
@@ -296,9 +290,7 @@ export function ClientDetails() {
                   <Star
                     size={14}
                     fill="currentColor"
-                  />
-                  VIP Client
-                </span>
+                  />{tr("VIP Client")}</span>
               )}
 
               <span
@@ -321,9 +313,7 @@ export function ClientDetails() {
 
                 {formatLabel(
                   riskLevel,
-                )}{' '}
-                Risk
-              </span>
+                )}{' '}{tr("Risk")}</span>
             </div>
 
             <h2>
@@ -352,9 +342,7 @@ export function ClientDetails() {
               navigate('/clients')
             }
           >
-            <ArrowLeft size={17} />
-            Back
-          </button>
+            <ArrowLeft size={17} />{tr("Back")}</button>
 
           <Link
             className="secondary-action-button"
@@ -362,16 +350,14 @@ export function ClientDetails() {
           >
             <FolderKanban
               size={17}
-            />
-            View Cases
-          </Link>
+            />{tr("View Cases")}</Link>
 
           <Link
             className="primary-action-button"
             to={`/cases/new?clientId=${client.id}${administrator ? '&agreement=1' : ''}`}
           >
             {administrator ? <ScrollText size={17} /> : <Plus size={17} />}
-            {administrator ? 'New Agreement' : 'New Case'}
+            {administrator ? tr("New Agreement") : tr("New Case")}
           </Link>
         </div>
       </section>
@@ -381,7 +367,7 @@ export function ClientDetails() {
           icon={
             <FolderKanban size={20} />
           }
-          label="Total Cases"
+          label={tr("Total Cases")}
           value={formatNumber(
             client.total_cases,
           )}
@@ -394,7 +380,7 @@ export function ClientDetails() {
           icon={
             <CalendarDays size={20} />
           }
-          label="Hearings"
+          label={tr("Hearings")}
           value={formatNumber(
             client.total_hearings,
           )}
@@ -403,7 +389,7 @@ export function ClientDetails() {
 
         <ProfileStat
           icon={<FileText size={20} />}
-          label="Documents"
+          label={tr("Documents")}
           value={formatNumber(
             client.total_documents,
           )}
@@ -414,7 +400,7 @@ export function ClientDetails() {
 
       <section
         className="client-profile-tabs"
-        aria-label="Client profile sections"
+        aria-label={tr("Client profile sections")}
       >
         {tabs.filter((tab) => administrator || tab.id !== 'finance').map((tab) => (
           <button
@@ -477,8 +463,8 @@ export function ClientDetails() {
             <ClientStatementWorkspace clientId={client.id} clientName={client.full_name} />
             <FinancialLedger
               clientId={client.id}
-              title="Client Financial Ledger"
-              description="Complete financial history across all matters, invoices, payments, credit notes and reversals for this client."
+              title={tr("Client Financial Ledger")}
+              description={tr("Complete financial history across all matters, invoices, payments, credit notes and reversals for this client.")}
             />
           </div>
         )}
@@ -510,6 +496,7 @@ function ClientCasesTab({
   clientId: string;
   isAdministrator: boolean;
 }) {
+  const interfaceLanguage = useLocale();
   const [cases, setCases] =
     useState<
       CaseWithRelations[]
@@ -586,9 +573,7 @@ function ClientCasesTab({
           size={24}
         />
 
-        <h3>
-          Loading client cases…
-        </h3>
+        <h3>{tr("Loading client cases…")}</h3>
       </div>
     );
   }
@@ -600,12 +585,10 @@ function ClientCasesTab({
           size={24}
         />
 
-        <h3>
-          Unable to load cases
-        </h3>
+        <h3>{tr("Unable to load cases")}</h3>
 
         <p>
-          {error}
+          {tr(error)}
         </p>
       </div>
     );
@@ -618,21 +601,15 @@ function ClientCasesTab({
           size={24}
         />
 
-        <h3>
-          No cases yet
-        </h3>
+        <h3>{tr("No cases yet")}</h3>
 
-        <p>
-          This client does not have any active or historical matters recorded.
-        </p>
+        <p>{tr("This client does not have any active or historical matters recorded.")}</p>
 
         <Link
           className="primary-action-button"
           to={`/cases/new?clientId=${clientId}`}
         >
-          <Plus size={17} />
-          Create First Case
-        </Link>
+          <Plus size={17} />{tr("Create First Case")}</Link>
       </div>
     );
   }
@@ -645,30 +622,26 @@ function ClientCasesTab({
             size={20}
           />
 
-          <h3>
-            Client Cases
-          </h3>
+          <h3>{tr("Client Cases")}</h3>
         </div>
 
         <Link
           className="secondary-action-button"
           to={`/cases?clientId=${clientId}`}
-        >
-          View All
-        </Link>
+        >{tr("View All")}</Link>
       </div>
 
       <div className="client-cases-table-wrap">
         <table className="client-cases-table">
           <thead>
             <tr>
-              <th>Matter</th>
-              <th>Court</th>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Next Hearing</th>
-              <th>Lawyer</th>
-              {isAdministrator && <th>Outstanding</th>}
+              <th>{tr("Matter")}</th>
+              <th>{tr("Court")}</th>
+              <th>{tr("Status")}</th>
+              <th>{tr("Priority")}</th>
+              <th>{tr("Next Hearing")}</th>
+              <th>{tr("Lawyer")}</th>
+              {isAdministrator && <th>{tr("Outstanding")}</th>}
               <th />
             </tr>
           </thead>
@@ -686,7 +659,7 @@ function ClientCasesTab({
                       <Link
                         to={`/cases/${caseItem.id}`}
                       >
-                        {caseItem.case_number}
+                        <bdi dir="ltr">{caseItem.case_number}</bdi>
                       </Link>
 
                       <span>
@@ -697,16 +670,14 @@ function ClientCasesTab({
                         <small className="client-case-urgent">
                           <AlertTriangle
                             size={12}
-                          />
-                          Urgent
-                        </small>
+                          />{tr("Urgent")}</small>
                       )}
                     </div>
                   </td>
 
                   <td>
                     {caseItem.court ||
-                      'Not set'}
+                      tr("Not set")}
                   </td>
 
                   <td>
@@ -743,7 +714,7 @@ function ClientCasesTab({
                     {caseItem.responsible_lawyer?.full_name ??
                       caseItem.assigned_staff?.full_name ??
                       caseItem.assigned_lawyer ??
-                      'Unassigned'}
+                      tr("Unassigned")}
                   </td>
 
                   {isAdministrator && (
@@ -760,9 +731,7 @@ function ClientCasesTab({
                     <Link
                       className="action-link"
                       to={`/cases/${caseItem.id}`}
-                    >
-                      Open
-                    </Link>
+                    >{tr("Open")}</Link>
                   </td>
                 </tr>
               ),
@@ -779,6 +748,7 @@ function ClientHearingsTab({
 }: {
   clientId: string;
 }) {
+  const interfaceLanguage = useLocale();
   const [hearings, setHearings] =
     useState<ClientHearing[]>([]);
 
@@ -833,9 +803,7 @@ function ClientHearingsTab({
           size={24}
         />
 
-        <h3>
-          Loading hearings…
-        </h3>
+        <h3>{tr("Loading hearings…")}</h3>
       </div>
     );
   }
@@ -847,11 +815,9 @@ function ClientHearingsTab({
           size={24}
         />
 
-        <h3>
-          Unable to load hearings
-        </h3>
+        <h3>{tr("Unable to load hearings")}</h3>
 
-        <p>{error}</p>
+        <p>{tr(error)}</p>
       </div>
     );
   }
@@ -861,20 +827,14 @@ function ClientHearingsTab({
       <div className="client-module-placeholder">
         <Gavel size={24} />
 
-        <h3>
-          No hearings yet
-        </h3>
+        <h3>{tr("No hearings yet")}</h3>
 
-        <p>
-          No court hearings are currently linked to this client.
-        </p>
+        <p>{tr("No court hearings are currently linked to this client.")}</p>
 
         <Link
           className="secondary-action-button"
           to={`/hearings?clientId=${clientId}`}
-        >
-          Open Hearings Module
-        </Link>
+        >{tr("Open Hearings Module")}</Link>
       </div>
     );
   }
@@ -885,17 +845,13 @@ function ClientHearingsTab({
         <div>
           <Gavel size={20} />
 
-          <h3>
-            Client Hearings
-          </h3>
+          <h3>{tr("Client Hearings")}</h3>
         </div>
 
         <Link
           className="secondary-action-button"
           to={`/hearings?clientId=${clientId}`}
-        >
-          View All
-        </Link>
+        >{tr("View All")}</Link>
       </div>
 
       <div className="client-hearings-list">
@@ -931,7 +887,7 @@ function ClientHearingsTab({
                     {hearing.title ||
                       hearing.case_number ||
                       hearing.case_type ||
-                      'Court Hearing'}
+                      tr("Court Hearing")}
                   </strong>
                 </div>
 
@@ -941,7 +897,7 @@ function ClientHearingsTab({
                       <FolderKanban
                         size={13}
                       />
-                      {hearing.case_number}
+                      <bdi dir="ltr">{hearing.case_number}</bdi>
                     </span>
                   )}
 
@@ -986,9 +942,7 @@ function ClientHearingsTab({
 
                 {hearing.outcome && (
                   <p className="client-hearing-outcome">
-                    <strong>
-                      Outcome:
-                    </strong>{' '}
+                    <strong>{tr("Outcome:")}</strong>{' '}
                     {hearing.outcome}
                   </p>
                 )}
@@ -1019,6 +973,7 @@ function ClientTasksTab({
 }: {
   clientId: string;
 }) {
+  const interfaceLanguage = useLocale();
   const [tasks, setTasks] =
     useState<Task[]>([]);
 
@@ -1087,7 +1042,7 @@ function ClientTasksTab({
     return (
       <div className="client-module-placeholder">
         <ClipboardList size={24} />
-        <h3>Loading tasks…</h3>
+        <h3>{tr("Loading tasks…")}</h3>
       </div>
     );
   }
@@ -1096,8 +1051,8 @@ function ClientTasksTab({
     return (
       <div className="client-module-placeholder">
         <ShieldAlert size={24} />
-        <h3>Unable to load tasks</h3>
-        <p>{error}</p>
+        <h3>{tr("Unable to load tasks")}</h3>
+        <p>{tr(error)}</p>
       </div>
     );
   }
@@ -1107,18 +1062,14 @@ function ClientTasksTab({
       <div className="client-module-placeholder">
         <ClipboardList size={24} />
 
-        <h3>No tasks found</h3>
+        <h3>{tr("No tasks found")}</h3>
 
-        <p>
-          This client does not have any tasks yet.
-        </p>
+        <p>{tr("This client does not have any tasks yet.")}</p>
 
         <Link
           className="primary-action-button"
           to={`/tasks?clientId=${clientId}&create=1`}
-        >
-          Add Task
-        </Link>
+        >{tr("Add Task")}</Link>
       </div>
     );
   }
@@ -1128,26 +1079,24 @@ function ClientTasksTab({
       <div className="client-profile-card-heading client-cases-heading">
         <div>
           <ClipboardList size={20} />
-          <h3>Client Tasks</h3>
+          <h3>{tr("Client Tasks")}</h3>
         </div>
 
         <Link
           className="secondary-action-button"
           to={`/tasks?clientId=${clientId}`}
-        >
-          View in Tasks
-        </Link>
+        >{tr("View in Tasks")}</Link>
       </div>
 
       <div className="client-cases-table-wrap">
         <table className="client-cases-table">
           <thead>
             <tr>
-              <th>Task</th>
-              <th>Assigned To</th>
-              <th>Priority</th>
-              <th>Status</th>
-              <th>Due Date</th>
+              <th>{tr("Task")}</th>
+              <th>{tr("Assigned To")}</th>
+              <th>{tr("Priority")}</th>
+              <th>{tr("Status")}</th>
+              <th>{tr("Due Date")}</th>
             </tr>
           </thead>
 
@@ -1159,8 +1108,8 @@ function ClientTasksTab({
                 </td>
                 <td>
                   {task.assigned_staff_id
-                    ? staffMap[task.assigned_staff_id] ?? 'Unassigned'
-                    : 'Unassigned'}
+                    ? staffMap[task.assigned_staff_id] ?? tr("Unassigned")
+                    : tr("Unassigned")}
                 </td>
                 <td>
                   <span
@@ -1168,7 +1117,7 @@ function ClientTasksTab({
                       task.priority,
                     )}`}
                   >
-                    {task.priority}
+                    {trEnum(task.priority)}
                   </span>
                 </td>
                 <td>
@@ -1177,7 +1126,7 @@ function ClientTasksTab({
                       task.status,
                     )}`}
                   >
-                    {task.status}
+                    {trEnum(task.status)}
                   </span>
                 </td>
                 <td>
@@ -1199,6 +1148,7 @@ function OverviewTab({
   client: ClientOverview;
   displayAddress: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="client-overview-grid">
       <article className="client-profile-card">
@@ -1207,16 +1157,14 @@ function OverviewTab({
             size={20}
           />
 
-          <h3>
-            Contact Information
-          </h3>
+          <h3>{tr("Contact Information")}</h3>
         </div>
 
         <DetailRow
           icon={
             <Phone size={16} />
           }
-          label="Primary phone"
+          label={tr("Primary phone")}
           value={client.phone}
         />
 
@@ -1226,7 +1174,7 @@ function OverviewTab({
               size={16}
             />
           }
-          label="WhatsApp"
+          label={tr("WhatsApp")}
           value={client.whatsapp}
         />
 
@@ -1234,7 +1182,7 @@ function OverviewTab({
           icon={
             <Mail size={16} />
           }
-          label="Primary email"
+          label={tr("Primary email")}
           value={client.email}
         />
 
@@ -1242,7 +1190,7 @@ function OverviewTab({
           icon={
             <Mail size={16} />
           }
-          label="Secondary email"
+          label={tr("Secondary email")}
           value={
             client.secondary_email
           }
@@ -1252,7 +1200,7 @@ function OverviewTab({
           icon={
             <MapPin size={16} />
           }
-          label="Address"
+          label={tr("Address")}
           value={
             displayAddress
           }
@@ -1265,41 +1213,39 @@ function OverviewTab({
             size={20}
           />
 
-          <h3>
-            Identity & Profile
-          </h3>
+          <h3>{tr("Identity & Profile")}</h3>
         </div>
 
         <DetailRow
-          label="Client type"
+          label={tr("Client type")}
           value={formatLabel(
             client.client_type,
           )}
         />
 
         <DetailRow
-          label="Nationality"
+          label={tr("Nationality")}
           value={
             client.nationality
           }
         />
 
         <DetailRow
-          label="Emirates ID"
+          label={tr("Emirates ID")}
           value={
             client.emirates_id
           }
         />
 
         <DetailRow
-          label="Passport number"
+          label={tr("Passport number")}
           value={
             client.passport_number
           }
         />
 
         <DetailRow
-          label="Preferred language"
+          label={tr("Preferred language")}
           value={
             client.preferred_language
           }
@@ -1312,41 +1258,39 @@ function OverviewTab({
             size={20}
           />
 
-          <h3>
-            Company Details
-          </h3>
+          <h3>{tr("Company Details")}</h3>
         </div>
 
         <DetailRow
-          label="Company name"
+          label={tr("Company name")}
           value={
             client.company_name
           }
         />
 
         <DetailRow
-          label="Contact person"
+          label={tr("Contact person")}
           value={
             client.contact_person
           }
         />
 
         <DetailRow
-          label="Trade licence"
+          label={tr("Trade licence")}
           value={
             client.trade_license_number
           }
         />
 
         <DetailRow
-          label="VAT number"
+          label={tr("VAT number")}
           value={
             client.vat_number
           }
         />
 
         <DetailRow
-          label="Source"
+          label={tr("Source")}
           value={
             client.source
           }
@@ -1359,13 +1303,11 @@ function OverviewTab({
             size={20}
           />
 
-          <h3>
-            Account Information
-          </h3>
+          <h3>{tr("Account Information")}</h3>
         </div>
 
         <DetailRow
-          label="Client since"
+          label={tr("Client since")}
           value={formatOptionalDate(
             client.client_since ??
               client.created_at,
@@ -1373,28 +1315,28 @@ function OverviewTab({
         />
 
         <DetailRow
-          label="Next follow-up"
+          label={tr("Next follow-up")}
           value={formatOptionalDateTime(
             client.next_follow_up_at,
           )}
         />
 
         <DetailRow
-          label="Preferred contact"
+          label={tr("Preferred contact")}
           value={
             client.preferred_contact_method
           }
         />
 
         <DetailRow
-          label="Imported from"
+          label={tr("Imported from")}
           value={
             client.imported_from
           }
         />
 
         <DetailRow
-          label="Last updated"
+          label={tr("Last updated")}
           value={formatOptionalDate(
             client.updated_at,
           )}
@@ -1409,6 +1351,7 @@ function TimelineTab({
 }: {
   client: ClientOverview;
 }) {
+  const interfaceLanguage = useLocale();
   const entries = [
     {
       title:
@@ -1454,9 +1397,7 @@ function TimelineTab({
           size={20}
         />
 
-        <h3>
-          Activity Timeline
-        </h3>
+        <h3>{tr("Activity Timeline")}</h3>
       </div>
 
       <div className="client-timeline">
@@ -1496,19 +1437,18 @@ function NotesTab({
 }: {
   notes?: string | null;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article className="client-profile-card notes-card">
       <div className="client-profile-card-heading">
         <FileText size={20} />
 
-        <h3>
-          Internal Notes
-        </h3>
+        <h3>{tr("Internal Notes")}</h3>
       </div>
 
       <p className="client-notes-content">
         {notes?.trim() ||
-          'No internal notes have been added for this client.'}
+          tr("No internal notes have been added for this client.")}
       </p>
     </article>
   );
@@ -1519,6 +1459,7 @@ function ClientDocumentsTab({
 }: {
   clientId: string;
 }) {
+  const interfaceLanguage = useLocale();
   const [documents, setDocuments] = useState<
     DocumentWithRelations[]
   >([]);
@@ -1570,34 +1511,30 @@ function ClientDocumentsTab({
         <div>
           <FileText size={20} />
 
-          <h3>Client documents</h3>
+          <h3>{tr("Client documents")}</h3>
         </div>
 
         <div className="client-documents-actions">
           <Link
             className="secondary-action-button"
             to={`/documents?clientId=${clientId}`}
-          >
-            View all
-          </Link>
+          >{tr("View all")}</Link>
 
           <Link
             className="primary-action-button"
             to={`/documents?clientId=${clientId}&upload=1`}
-          >
-            Upload document
-          </Link>
+          >{tr("Upload document")}</Link>
         </div>
       </div>
 
       <section className="client-documents-summary">
         <div>
-          <span>Total documents</span>
+          <span>{tr("Total documents")}</span>
           <strong>{documents.length}</strong>
         </div>
 
         <div>
-          <span>Confidential</span>
+          <span>{tr("Confidential")}</span>
           <strong>
             {documents.filter(
               (document) =>
@@ -1607,7 +1544,7 @@ function ClientDocumentsTab({
         </div>
 
         <div>
-          <span>Standard</span>
+          <span>{tr("Standard")}</span>
           <strong>
             {documents.filter(
               (document) =>
@@ -1617,14 +1554,14 @@ function ClientDocumentsTab({
         </div>
 
         <div>
-          <span>Latest upload</span>
+          <span>{tr("Latest upload")}</span>
           <strong>
             {documents.length > 0
               ? formatOptionalDateTime(
                   documents[0]
                     .created_at,
                 )
-              : 'No uploads yet'}
+              : tr("No uploads yet")}
           </strong>
         </div>
       </section>
@@ -1633,49 +1570,39 @@ function ClientDocumentsTab({
         <div className="client-module-placeholder">
           <FileText size={24} />
 
-          <h3>
-            Loading client documents…
-          </h3>
+          <h3>{tr("Loading client documents…")}</h3>
         </div>
       ) : error ? (
         <div className="client-module-placeholder">
           <ShieldAlert size={24} />
 
-          <h3>
-            Unable to load documents
-          </h3>
+          <h3>{tr("Unable to load documents")}</h3>
 
-          <p>{error}</p>
+          <p>{tr(error)}</p>
         </div>
       ) : documents.length === 0 ? (
         <div className="client-module-placeholder">
           <FileText size={24} />
 
-          <h3>
-            No documents found
-          </h3>
+          <h3>{tr("No documents found")}</h3>
 
-          <p>
-            This client has no files recorded yet. Upload documents to store case and client evidence centrally.
-          </p>
+          <p>{tr("This client has no files recorded yet. Upload documents to store case and client evidence centrally.")}</p>
 
           <Link
             className="primary-action-button"
             to={`/documents?clientId=${clientId}&upload=1`}
-          >
-            Upload document
-          </Link>
+          >{tr("Upload document")}</Link>
         </div>
       ) : (
         <div className="client-documents-table-wrap">
           <table className="client-cases-table client-documents-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Uploaded</th>
-                <th>Privacy</th>
-                <th>Uploaded by</th>
+                <th>{tr("Name")}</th>
+                <th>{tr("Type")}</th>
+                <th>{tr("Uploaded")}</th>
+                <th>{tr("Privacy")}</th>
+                <th>{tr("Uploaded by")}</th>
                 <th />
               </tr>
             </thead>
@@ -1687,7 +1614,7 @@ function ClientDocumentsTab({
                   <td>
                     {document.document_type ||
                       document.mime_type ||
-                      'File'}
+                      tr("File")}
                   </td>
                   <td>
                     {formatOptionalDateTime(
@@ -1703,24 +1630,22 @@ function ClientDocumentsTab({
                       }`}
                     >
                       {document.is_confidential
-                        ? 'Confidential'
-                        : 'Standard'}
+                        ? tr("Confidential")
+                        : tr("Standard")}
                     </span>
                   </td>
                   <td>
                     {document.uploaded_by_name ??
                       document.uploaded_by_staff
                         ?.full_name ??
-                      'Unknown'}
+                      tr("Unknown")}
                   </td>
                   <td>
                     <div className="client-document-actions">
                       <Link
                         className="secondary-action-button"
                         to={`/documents?clientId=${clientId}&documentId=${document.id}`}
-                      >
-                        Details
-                      </Link>
+                      >{tr("Details")}</Link>
 
                       <button
                         type="button"
@@ -1742,9 +1667,7 @@ function ClientDocumentsTab({
                           }
                         }}
                         disabled={actionId === document.id}
-                      >
-                        Open
-                      </button>
+                      >{tr("Open")}</button>
 
                       <button
                         type="button"
@@ -1766,9 +1689,7 @@ function ClientDocumentsTab({
                           }
                         }}
                         disabled={actionId === document.id}
-                      >
-                        Download
-                      </button>
+                      >{tr("Download")}</button>
                     </div>
                   </td>
                 </tr>
@@ -1782,7 +1703,7 @@ function ClientDocumentsTab({
         <div className="client-module-placeholder">
           <ShieldAlert size={24} />
 
-          <h3>Unable to complete document action</h3>
+          <h3>{tr("Unable to complete document action")}</h3>
 
           <p>{actionError}</p>
         </div>
@@ -1804,6 +1725,7 @@ function ModulePlaceholder({
   actionLabel: string;
   actionTo: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="client-module-placeholder">
       <div className="client-module-placeholder-icon">
@@ -1841,6 +1763,7 @@ function ProfileStat({
   helper: string;
   emphasis?: boolean;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article
       className={[
@@ -1882,6 +1805,7 @@ function DetailRow({
   label: string;
   value?: string | null;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="client-detail-row">
       <div className="client-detail-label">
@@ -1894,7 +1818,7 @@ function DetailRow({
 
       <strong>
         {value?.trim() ||
-          'Not provided'}
+          tr("Not provided")}
       </strong>
     </div>
   );
@@ -1919,13 +1843,13 @@ function getInitials(
 function formatLabel(
   value: string,
 ): string {
-  return value
+  return tr(value
     .replace(/_/g, ' ')
     .replace(
       /\b\w/g,
       (letter) =>
         letter.toUpperCase(),
-    );
+    ));
 }
 
 function normalizeClassName(
@@ -1942,7 +1866,7 @@ function formatNumber(
   value?: number | null,
 ): string {
   return new Intl.NumberFormat(
-    'en-AE',
+    getLocale("en-AE"),
   ).format(
     Number(value ?? 0),
   );
@@ -1952,7 +1876,7 @@ function formatCurrency(
   value?: number | string | null,
 ): string {
   return new Intl.NumberFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       style: 'currency',
       currency: 'AED',
@@ -1972,7 +1896,7 @@ function formatCaseOutstanding(
     return 'Mixed currencies';
   }
 
-  return new Intl.NumberFormat('en-AE', {
+  return new Intl.NumberFormat(getLocale("en-AE"), {
     style: 'currency',
     currency: finance.currency ?? 'AED',
     maximumFractionDigits: 2,
@@ -1999,7 +1923,7 @@ function formatOptionalDate(
   }
 
   return new Intl.DateTimeFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       day: '2-digit',
       month: 'short',
@@ -2028,7 +1952,7 @@ function formatOptionalDateTime(
   }
 
   return new Intl.DateTimeFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       day: '2-digit',
       month: 'short',
@@ -2059,7 +1983,7 @@ function formatTimeOnly(
   }
 
   return new Intl.DateTimeFormat(
-    'en-GB',
+    getLocale("en-GB"),
     {
       hour: '2-digit',
       minute: '2-digit',

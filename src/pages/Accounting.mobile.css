@@ -3,7 +3,7 @@
   .app-shell .vat-summary,
   .app-shell .payables-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .app-shell .report-stat strong { overflow: visible; white-space: normal; }
-  .app-shell .payables-export { width: 100%; min-height: 44px; margin-left: 0; justify-content: center; }
+  .app-shell .payables-export { width: 100%; min-height: 44px; margin-inline-start: 0; justify-content: center; }
   .app-shell .payables-tables { gap: 18px; padding: 0 10px 12px; }
   .app-shell .vat-lines-wrap { overflow: visible; border: 0; border-radius: 0; background: #f7f8fa; }
   .app-shell .vat-lines,

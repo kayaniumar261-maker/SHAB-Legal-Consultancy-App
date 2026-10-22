@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import { createPortal } from 'react-dom';
 
 import { companyProfile } from '../../constants/companyProfile';
@@ -17,6 +18,7 @@ type InvoiceDocumentProps = {
 export function InvoicePrintPortal(
   props: InvoiceDocumentProps,
 ) {
+  const interfaceLanguage = useLocale();
   if (typeof document === 'undefined') {
     return null;
   }
@@ -35,6 +37,7 @@ export function InvoiceDocument({
   caseReference,
   companySettings,
 }: InvoiceDocumentProps) {
+  const interfaceLanguage = useLocale();
   const currency =
     invoice.currency ||
     companyProfile.defaultCurrency;
@@ -94,8 +97,8 @@ export function InvoiceDocument({
         <table>
           <thead>
             <tr>
-              <th>Services</th>
-              <th>Amount</th>
+              <th>{tr("Services")}</th>
+              <th>{tr("Amount")}</th>
             </tr>
           </thead>
 
@@ -104,19 +107,14 @@ export function InvoiceDocument({
               <td>
                 <strong>
                   {invoice.description ||
-                    'Legal consultancy services'}
+                    tr("Legal consultancy services")}
                 </strong>
 
                 {caseReference ? (
-                  <p>
-                    Services rendered in connection with
-                    matter {caseReference}.
+                  <p>{tr("Services rendered in connection with matter")}{" "}{caseReference}.
                   </p>
                 ) : (
-                  <p>
-                    Professional legal consultancy and
-                    related services.
-                  </p>
+                  <p>{tr("Professional legal consultancy and related services.")}</p>
                 )}
               </td>
 
@@ -133,7 +131,7 @@ export function InvoiceDocument({
 
       <section className="shab-invoice-totals">
         <div>
-          <span>Subtotal</span>
+          <span>{tr("Subtotal")}</span>
           <strong>
             {formatDocumentCurrency(
               invoice.subtotal,
@@ -144,7 +142,7 @@ export function InvoiceDocument({
 
         <div>
           <span>
-            {invoice.vat_treatment === 'out_of_scope' ? 'VAT (Out of Scope)' : invoice.vat_treatment === 'zero_rated' ? 'VAT (Zero Rated)' : `VAT (${formatRate(invoice.vat_rate)}%)`}
+            {invoice.vat_treatment === 'out_of_scope' ? tr("VAT (Out of Scope)") : invoice.vat_treatment === 'zero_rated' ? tr("VAT (Zero Rated)") : tr("VAT ({0}%)", [formatRate(invoice.vat_rate)])}
           </span>
           <strong>
             {formatDocumentCurrency(
@@ -156,7 +154,7 @@ export function InvoiceDocument({
 
         {Number(invoice.discount_amount ?? 0) > 0 ? (
           <div>
-            <span>Discount</span>
+            <span>{tr("Discount")}</span>
             <strong>
               -{' '}
               {formatDocumentCurrency(
@@ -168,7 +166,7 @@ export function InvoiceDocument({
         ) : null}
 
         <div className="shab-invoice-total">
-          <span>Invoice Total</span>
+          <span>{tr("Invoice Total")}</span>
           <strong>
             {formatDocumentCurrency(
               invoice.total_amount,
@@ -178,7 +176,7 @@ export function InvoiceDocument({
         </div>
 
         <div>
-          <span>Amount Paid</span>
+          <span>{tr("Amount Paid")}</span>
           <strong>
             {formatDocumentCurrency(
               invoice.paid_amount,
@@ -188,7 +186,7 @@ export function InvoiceDocument({
         </div>
 
         <div className="shab-invoice-balance">
-          <span>Amount Due</span>
+          <span>{tr("Amount Due")}</span>
           <strong>
             {formatDocumentCurrency(
               invoice.balance_amount,
@@ -200,16 +198,16 @@ export function InvoiceDocument({
 
       {invoice.cancellation_reason ? (
         <section className="shab-invoice-cancellation">
-          <span>Invoice Cancelled</span>
+          <span>{tr("Invoice Cancelled")}</span>
 
           <p>
-            <strong>Reason:</strong>{' '}
+            <strong>{tr("Reason:")}</strong>{' '}
             {invoice.cancellation_reason}
           </p>
 
           {invoice.cancelled_at ? (
             <p>
-              <strong>Cancelled:</strong>{' '}
+              <strong>{tr("Cancelled:")}</strong>{' '}
               {formatDocumentTimestamp(
                 invoice.cancelled_at,
               )}
@@ -227,7 +225,7 @@ function formatDocumentCurrency(
 ): string {
   const amount = Number(value ?? 0);
 
-  return `${currency} ${new Intl.NumberFormat('en-AE', {
+  return `${currency} ${new Intl.NumberFormat(getLocale("en-AE"), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(Number.isFinite(amount) ? amount : 0)}`;
@@ -248,7 +246,7 @@ function formatDocumentDate(
     return value;
   }
 
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getLocale("en-GB"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -264,7 +262,7 @@ function formatDocumentTimestamp(
     return value;
   }
 
-  return new Intl.DateTimeFormat('en-AE', {
+  return new Intl.DateTimeFormat(getLocale("en-AE"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

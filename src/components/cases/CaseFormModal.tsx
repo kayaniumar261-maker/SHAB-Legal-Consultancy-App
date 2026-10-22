@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 import React from 'react';
 import './CaseFormModal.css';
 import { CaseForm } from './CaseForm';
@@ -17,13 +18,14 @@ type Props = {
 };
 
 export function CaseFormModal({ open, caseRecord, clients, staff, loading, onSubmit, onClose, submitLabel }: Props) {
+  const interfaceLanguage = useLocale();
   if (!open) return null;
 
   return (
     <div className="modal-backdrop">
       <div className="modal large">
         <header>
-          <h3>{caseRecord ? 'Edit Case' : 'Create Case'}</h3>
+          <h3>{caseRecord ? tr("Edit Case") : tr("Create Case")}</h3>
         </header>
 
         <CaseForm
@@ -39,7 +41,7 @@ export function CaseFormModal({ open, caseRecord, clients, staff, loading, onSub
         />
 
         <div className="modal-footer">
-          <button type="button" className="secondary-action-button" onClick={onClose}>Close</button>
+          <button type="button" className="secondary-action-button" onClick={onClose}>{tr("Close")}</button>
         </div>
       </div>
     </div>

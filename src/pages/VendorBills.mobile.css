@@ -3,7 +3,7 @@
   .app-shell .vendor-bills-toolbar { align-items: stretch; flex-direction: column; gap: 9px; padding: 12px; }
   .app-shell .vendor-bills-toolbar label,
   .app-shell .vendor-bills-toolbar select { width: 100%; min-width: 0; min-height: 44px; box-sizing: border-box; }
-  .app-shell .vendor-bills-toolbar > span { margin-left: 0; padding: 2px 4px; }
+  .app-shell .vendor-bills-toolbar > span { margin-inline-start: 0; padding: 2px 4px; }
   .app-shell .vendor-bills-table-wrap { overflow: visible; padding: 10px; background: #f7f8fa; }
   .app-shell .vendor-bills-table-wrap table,
   .app-shell .vendor-bills-table-wrap tbody,

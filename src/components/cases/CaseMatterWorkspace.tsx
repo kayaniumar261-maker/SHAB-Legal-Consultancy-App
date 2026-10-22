@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import {
   AlertCircle,
   ArrowRight,
@@ -96,6 +97,7 @@ export function CaseMatterWorkspace({
   caseRecord,
   clientName,
 }: CaseMatterWorkspaceProps) {
+  const interfaceLanguage = useLocale();
   const [activities, setActivities] =
     useState<CaseActivity[]>([]);
 
@@ -219,7 +221,7 @@ export function CaseMatterWorkspace({
             normalizeValue(task.status),
           ),
       ),
-    [tasks],
+    [tasks, interfaceLanguage],
   );
 
   const overdueTasks = useMemo(() => {
@@ -238,7 +240,7 @@ export function CaseMatterWorkspace({
         dueTime < now
       );
     });
-  }, [openTasks]);
+  }, [openTasks, interfaceLanguage]);
 
   const nextHearing = useMemo(() => {
     const now = Date.now();
@@ -273,7 +275,7 @@ export function CaseMatterWorkspace({
             second.hearing_at,
           ).getTime(),
       )[0] ?? null;
-  }, [hearings]);
+  }, [hearings, interfaceLanguage]);
 
   const timeline = useMemo<TimelineItem[]>(() => {
     const activityItems =
@@ -349,7 +351,7 @@ export function CaseMatterWorkspace({
     activities,
     notes,
     statusHistory,
-  ]);
+  , interfaceLanguage]);
 
   const recoveryRate = useMemo(() => {
     const claimAmount = Number(
@@ -380,7 +382,7 @@ export function CaseMatterWorkspace({
     caseRecord.case_value,
     caseRecord.claim_amount,
     caseRecord.recovered_amount,
-  ]);
+  , interfaceLanguage]);
 
   const progress = Math.min(
     100,
@@ -432,12 +434,9 @@ export function CaseMatterWorkspace({
       <section className="matter-action-center">
         <div className="matter-section-heading">
           <div>
-            <span>Immediate attention</span>
-            <h3>Action Centre</h3>
-            <p>
-              The next deadlines, risks and financial
-              actions for this matter.
-            </p>
+            <span>{tr("Immediate attention")}</span>
+            <h3>{tr("Action Centre")}</h3>
+            <p>{tr("The next deadlines, risks and financial actions for this matter.")}</p>
           </div>
 
           <ShieldAlert size={22} />
@@ -446,7 +445,7 @@ export function CaseMatterWorkspace({
         <div className="matter-action-grid">
           <ActionItem
             icon={<Gavel size={18} />}
-            label="Next Hearing"
+            label={tr("Next Hearing")}
             value={
               loading
                 ? 'Loading…'
@@ -458,7 +457,7 @@ export function CaseMatterWorkspace({
             }
             detail={
               nextHearing?.court ??
-              'Court schedule'
+              tr("Court schedule")
             }
             to={`/hearings?caseId=${caseRecord.id}`}
             tone={
@@ -470,13 +469,13 @@ export function CaseMatterWorkspace({
 
           <ActionItem
             icon={<ListTodo size={18} />}
-            label="Open Tasks"
+            label={tr("Open Tasks")}
             value={
               loading
                 ? '—'
                 : String(openTasks.length)
             }
-            detail={`${overdueTasks.length} overdue`}
+            detail={tr("{0} overdue", [overdueTasks.length])}
             to={`/tasks?caseId=${caseRecord.id}`}
             tone={
               overdueTasks.length > 0
@@ -490,12 +489,12 @@ export function CaseMatterWorkspace({
           ) > 0 && (
             <ActionItem
               icon={<Banknote size={18} />}
-              label="Outstanding Fees"
+              label={tr("Outstanding Fees")}
               value={formatCurrency(
                 financialSummary?.outstanding ?? 0,
                 caseRecord.currency,
               )}
-              detail="Unpaid case balance"
+              detail={tr("Unpaid case balance")}
               to={`/payments?caseId=${caseRecord.id}`}
               tone="warning"
             />
@@ -503,7 +502,7 @@ export function CaseMatterWorkspace({
 
           <ActionItem
             icon={<Clock3 size={18} />}
-            label="Next Action"
+            label={tr("Next Action")}
             value={
               caseRecord.next_action_at
                 ? formatDateTime(
@@ -513,7 +512,7 @@ export function CaseMatterWorkspace({
             }
             detail={
               caseRecord.next_actions ??
-              'No action description'
+              tr("No action description")
             }
             to={`/tasks?caseId=${caseRecord.id}`}
             tone={
@@ -569,7 +568,7 @@ export function CaseMatterWorkspace({
         <article className="matter-workspace-card matter-progress-card">
           <SectionHeader
             icon={<TrendingUp size={18} />}
-            title="Matter Progress"
+            title={tr("Matter Progress")}
             subtitle={formatLabel(
               caseRecord.status,
             )}
@@ -616,21 +615,21 @@ export function CaseMatterWorkspace({
 
           <div className="matter-progress-details">
             <DetailMetric
-              label="Priority"
+              label={tr("Priority")}
               value={formatLabel(
                 caseRecord.priority,
               )}
             />
 
             <DetailMetric
-              label="Risk"
+              label={tr("Risk")}
               value={formatLabel(
                 caseRecord.risk_level,
               )}
             />
 
             <DetailMetric
-              label="Opened"
+              label={tr("Opened")}
               value={formatDate(
                 caseRecord.opened_at ??
                   caseRecord.filing_date,
@@ -642,13 +641,13 @@ export function CaseMatterWorkspace({
         <article className="matter-workspace-card">
           <SectionHeader
             icon={<UsersRound size={18} />}
-            title="Matter Team"
+            title={tr("Matter Team")}
             subtitle={clientName}
           />
 
           <div className="matter-team-list">
             <TeamMember
-              label="Responsible Lawyer"
+              label={tr("Responsible Lawyer")}
               name={
                 caseRecord
                   .responsible_lawyer
@@ -661,7 +660,7 @@ export function CaseMatterWorkspace({
             />
 
             <TeamMember
-              label="Case Manager"
+              label={tr("Case Manager")}
               name={
                 caseRecord
                   .case_manager
@@ -671,7 +670,7 @@ export function CaseMatterWorkspace({
             />
 
             <TeamMember
-              label="Legal Assistant"
+              label={tr("Legal Assistant")}
               name={
                 caseRecord
                   .legal_assistant
@@ -681,7 +680,7 @@ export function CaseMatterWorkspace({
             />
 
             <TeamMember
-              label="Department"
+              label={tr("Department")}
               name={
                 caseRecord.department ??
                 caseRecord.assigned_team ??
@@ -694,13 +693,13 @@ export function CaseMatterWorkspace({
         <article className="matter-workspace-card matter-financial-card">
           <SectionHeader
             icon={<Scale size={18} />}
-            title="Financial Snapshot"
-            subtitle="Recovery and billing position"
+            title={tr("Financial Snapshot")}
+            subtitle={tr("Recovery and billing position")}
           />
 
           <div className="matter-financial-grid">
             <DetailMetric
-              label="Claim Value"
+              label={tr("Claim Value")}
               value={formatCurrency(
                 caseRecord.claim_amount ??
                   caseRecord.case_value,
@@ -709,7 +708,7 @@ export function CaseMatterWorkspace({
             />
 
             <DetailMetric
-              label="Recovered"
+              label={tr("Recovered")}
               value={formatCurrency(
                 caseRecord.recovered_amount,
                 caseRecord.currency,
@@ -717,7 +716,7 @@ export function CaseMatterWorkspace({
             />
 
             <DetailMetric
-              label="Total Billed"
+              label={tr("Total Billed")}
               value={
                 financialSummary
                   ? formatCurrency(
@@ -729,7 +728,7 @@ export function CaseMatterWorkspace({
             />
 
             <DetailMetric
-              label="Outstanding"
+              label={tr("Outstanding")}
               value={
                 financialSummary
                   ? formatCurrency(
@@ -742,7 +741,7 @@ export function CaseMatterWorkspace({
           </div>
 
           <div className="matter-recovery-heading">
-            <span>Recovery rate</span>
+            <span>{tr("Recovery rate")}</span>
             <strong>
               {recoveryRate.toFixed(0)}%
             </strong>
@@ -761,9 +760,7 @@ export function CaseMatterWorkspace({
           <Link
             className="matter-card-link"
             to={`/payments?caseId=${caseRecord.id}`}
-          >
-            Open case finance
-            <ArrowRight size={14} />
+          >{tr("Open case finance")}<ArrowRight size={14} />
           </Link>
         </article>
       </section>
@@ -772,18 +769,14 @@ export function CaseMatterWorkspace({
         <article className="matter-workspace-card matter-activity-card">
           <SectionHeader
             icon={<History size={18} />}
-            title="Recent Matter Activity"
-            subtitle="Activities, notes and status changes"
+            title={tr("Recent Matter Activity")}
+            subtitle={tr("Activities, notes and status changes")}
           />
 
           {loading ? (
-            <WorkspaceState>
-              Loading activity…
-            </WorkspaceState>
+            <WorkspaceState>{tr("Loading activity…")}</WorkspaceState>
           ) : timeline.length === 0 ? (
-            <WorkspaceState>
-              No activity recorded yet.
-            </WorkspaceState>
+            <WorkspaceState>{tr("No activity recorded yet.")}</WorkspaceState>
           ) : (
             <div className="matter-timeline">
               {timeline.map((item) => (
@@ -829,9 +822,7 @@ export function CaseMatterWorkspace({
                       <span className="matter-private-badge">
                         <LockKeyhole
                           size={11}
-                        />
-                        Private
-                      </span>
+                        />{tr("Private")}</span>
                     ) : null}
                   </div>
                 </div>
@@ -849,9 +840,7 @@ export function CaseMatterWorkspace({
                   )
                   ?.click();
               }}
-            >
-              View full history
-            </button>
+            >{tr("View full history")}</button>
 
             <button
               type="button"
@@ -862,9 +851,7 @@ export function CaseMatterWorkspace({
                   )
                   ?.click();
               }}
-            >
-              Open notes
-            </button>
+            >{tr("Open notes")}</button>
           </div>
         </article>
 
@@ -872,18 +859,14 @@ export function CaseMatterWorkspace({
           <article className="matter-workspace-card">
             <SectionHeader
               icon={<ListTodo size={18} />}
-              title="Priority Tasks"
-              subtitle={`${openTasks.length} open`}
+              title={tr("Priority Tasks")}
+              subtitle={tr("{0} open", [openTasks.length])}
             />
 
             {loading ? (
-              <WorkspaceState>
-                Loading tasks…
-              </WorkspaceState>
+              <WorkspaceState>{tr("Loading tasks…")}</WorkspaceState>
             ) : recentTasks.length === 0 ? (
-              <WorkspaceState>
-                No open tasks.
-              </WorkspaceState>
+              <WorkspaceState>{tr("No open tasks.")}</WorkspaceState>
             ) : (
               <div className="matter-compact-list">
                 {recentTasks.map((task) => (
@@ -901,7 +884,7 @@ export function CaseMatterWorkspace({
                           ? formatDateTime(
                               task.due_at,
                             )
-                          : 'No due date'}
+                          : tr("No due date")}
                       </span>
                     </div>
 
@@ -926,27 +909,21 @@ export function CaseMatterWorkspace({
             <Link
               className="matter-card-link"
               to={`/tasks?caseId=${caseRecord.id}`}
-            >
-              View all tasks
-              <ArrowRight size={14} />
+            >{tr("View all tasks")}<ArrowRight size={14} />
             </Link>
           </article>
 
           <article className="matter-workspace-card">
             <SectionHeader
               icon={<FileText size={18} />}
-              title="Recent Documents"
-              subtitle={`${documents.length} linked files`}
+              title={tr("Recent Documents")}
+              subtitle={tr("{0} linked files", [documents.length])}
             />
 
             {loading ? (
-              <WorkspaceState>
-                Loading documents…
-              </WorkspaceState>
+              <WorkspaceState>{tr("Loading documents…")}</WorkspaceState>
             ) : recentDocuments.length === 0 ? (
-              <WorkspaceState>
-                No documents uploaded.
-              </WorkspaceState>
+              <WorkspaceState>{tr("No documents uploaded.")}</WorkspaceState>
             ) : (
               <div className="matter-compact-list">
                 {recentDocuments.map(
@@ -962,7 +939,7 @@ export function CaseMatterWorkspace({
 
                         <span>
                           {documentRecord.document_type ??
-                            'Document'}
+                            tr("Document")}
                         </span>
                       </div>
 
@@ -984,9 +961,7 @@ export function CaseMatterWorkspace({
             <Link
               className="matter-card-link"
               to={`/documents?caseId=${caseRecord.id}`}
-            >
-              View all documents
-              <ArrowRight size={14} />
+            >{tr("View all documents")}<ArrowRight size={14} />
             </Link>
           </article>
         </div>
@@ -995,25 +970,25 @@ export function CaseMatterWorkspace({
       <section className="matter-quick-links">
         <MatterQuickLink
           icon={<Gavel size={17} />}
-          label="Schedule Hearing"
+          label={tr("Schedule Hearing")}
           to={`/hearings?caseId=${caseRecord.id}&schedule=1`}
         />
 
         <MatterQuickLink
           icon={<ListTodo size={17} />}
-          label="Create Task"
+          label={tr("Create Task")}
           to={`/tasks?caseId=${caseRecord.id}&create=1`}
         />
 
         <MatterQuickLink
           icon={<FileText size={17} />}
-          label="Upload Document"
+          label={tr("Upload Document")}
           to={`/documents?caseId=${caseRecord.id}&upload=1`}
         />
 
         <MatterQuickLink
           icon={<Banknote size={17} />}
-          label="Create Invoice"
+          label={tr("Create Invoice")}
           to={`/payments?caseId=${caseRecord.id}&tab=invoices&createInvoice=1`}
         />
       </section>
@@ -1040,6 +1015,7 @@ function ActionItem({
     | 'danger'
     | 'neutral';
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <Link
       className={`matter-action-item ${tone}`}
@@ -1065,6 +1041,7 @@ function SectionHeader({
   title: string;
   subtitle: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <header className="matter-card-header">
       <div className="matter-card-header-icon">
@@ -1086,6 +1063,7 @@ function TeamMember({
   label: string;
   name: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="matter-team-member">
       <div className="matter-team-avatar">
@@ -1107,6 +1085,7 @@ function DetailMetric({
   label: string;
   value: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="matter-detail-metric">
       <span>{label}</span>
@@ -1120,6 +1099,7 @@ function WorkspaceState({
 }: {
   children: ReactNode;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="matter-workspace-state">
       {children}
@@ -1136,6 +1116,7 @@ function MatterQuickLink({
   label: string;
   to: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <Link to={to}>
       {icon}
@@ -1160,16 +1141,16 @@ function formatLabel(
     normalizeValue(value);
 
   if (!normalized) {
-    return 'Not provided';
+    return tr('Not provided');
   }
 
-  return normalized
+  return tr(normalized
     .replace(/_/g, ' ')
     .replace(
       /\b\w/g,
       (letter) =>
         letter.toUpperCase(),
-    );
+    ));
 }
 
 function formatCurrency(
@@ -1177,7 +1158,7 @@ function formatCurrency(
   currency: string | null | undefined,
 ): string {
   return new Intl.NumberFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       style: 'currency',
       currency: currency || 'AED',
@@ -1202,7 +1183,7 @@ function formatDate(
   }
 
   return new Intl.DateTimeFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       day: '2-digit',
       month: 'short',
@@ -1225,7 +1206,7 @@ function formatDateTime(
   }
 
   return new Intl.DateTimeFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       day: '2-digit',
       month: 'short',

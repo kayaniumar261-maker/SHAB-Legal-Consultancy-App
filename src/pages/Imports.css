@@ -185,8 +185,8 @@
   min-width: 130px;
   padding: 10px 12px;
   border-bottom: 1px solid #f1f5f9;
-  border-right: 1px solid #f1f5f9;
-  text-align: left;
+  border-inline-end: 1px solid #f1f5f9;
+  text-align: start;
   white-space: nowrap;
 }
 

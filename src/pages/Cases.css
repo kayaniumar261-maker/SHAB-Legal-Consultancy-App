@@ -793,8 +793,8 @@
 
 .cases-reset-button {
   min-height: 38px;
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-inline-start: 12px;
+  padding-inline-end: 12px;
 }
 
 /* Status row */
@@ -966,8 +966,8 @@
 
 .case-card-actions a {
   min-height: 32px;
-  padding-left: 9px;
-  padding-right: 9px;
+  padding-inline-start: 9px;
+  padding-inline-end: 9px;
   border-radius: 8px;
   font-size: 0.62rem;
 }

@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../i18n/locale';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, House, RefreshCw } from 'lucide-react';
 
@@ -35,18 +36,16 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
       <main className="app-error-screen" role="alert">
         <section className="app-error-card">
           <div className="app-error-icon"><AlertTriangle size={30} /></div>
-          <p className="app-error-eyebrow">SHAB Legal Consultants FZC</p>
-          <h1>We could not display this page.</h1>
-          <p>Your work and Supabase data remain protected. Reload the application or return safely to the Dashboard.</p>
+          <p className="app-error-eyebrow">{tr("SHAB Legal Consultants FZC")}</p>
+          <h1>{tr("We could not display this page.")}</h1>
+          <p>{tr("Your work and Supabase data remain protected. Reload the application or return safely to the Dashboard.")}</p>
           <div className="app-error-actions">
             <button type="button" className="app-error-primary" onClick={() => window.location.reload()}>
-              <RefreshCw size={18} /> Reload application
-            </button>
+              <RefreshCw size={18} />{" "}{tr("Reload application")}</button>
             <button type="button" className="app-error-secondary" onClick={this.returnToDashboard}>
-              <House size={18} /> Return to Dashboard
-            </button>
+              <House size={18} />{" "}{tr("Return to Dashboard")}</button>
           </div>
-          <small>Error reference: {this.state.reference}</small>
+          <small>{tr("Error reference:")}{" "}{this.state.reference}</small>
         </section>
       </main>
     );

@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import {
   AlertTriangle,
   CalendarCheck,
@@ -58,6 +59,7 @@ export function CaseHealthPanel({
   outstandingBalance,
   nextActionOverdue,
 }: CaseHealthPanelProps) {
+  const interfaceLanguage = useLocale();
   const health = useMemo(() => {
     let score = 100;
 
@@ -325,7 +327,7 @@ export function CaseHealthPanel({
     recoveryRate,
     timelineCount,
     urgent,
-  ]);
+  , interfaceLanguage]);
 
   const factors =
     useMemo<HealthFactor[]>(() => [
@@ -394,7 +396,7 @@ export function CaseHealthPanel({
       outstandingBalance,
       overdueTasks,
       recoveryRate,
-    ]);
+    , interfaceLanguage]);
 
   return (
     <article
@@ -407,11 +409,9 @@ export function CaseHealthPanel({
           </span>
 
           <div>
-            <span>
-              Matter intelligence
-            </span>
+            <span>{tr("Matter intelligence")}</span>
 
-            <h3>Case Health</h3>
+            <h3>{tr("Case Health")}</h3>
           </div>
         </div>
 
@@ -492,9 +492,7 @@ export function CaseHealthPanel({
           <div className="case-health-actions-heading">
             <ShieldAlert size={16} />
 
-            <strong>
-              Recommended Actions
-            </strong>
+            <strong>{tr("Recommended Actions")}</strong>
           </div>
 
           <div>
@@ -516,13 +514,9 @@ export function CaseHealthPanel({
           <CheckCircle2 size={17} />
 
           <div>
-            <strong>
-              No immediate action required
-            </strong>
+            <strong>{tr("No immediate action required")}</strong>
 
-            <span>
-              Continue monitoring this matter through normal workflow.
-            </span>
+            <span>{tr("Continue monitoring this matter through normal workflow.")}</span>
           </div>
         </div>
       )}
@@ -531,8 +525,7 @@ export function CaseHealthPanel({
         <div>
           <Scale size={14} />
 
-          <span>
-            Progress {progress.toFixed(0)}%
+          <span>{tr("Progress")}{" "}{progress.toFixed(0)}%
           </span>
         </div>
 
@@ -545,10 +538,10 @@ export function CaseHealthPanel({
 
           <span>
             {urgent
-              ? 'Urgent matter'
+              ? tr("Urgent matter")
               : highRisk
-                ? 'High risk'
-                : 'Risk controlled'}
+                ? tr("High risk")
+                : tr("Risk controlled")}
           </span>
         </div>
       </footer>
@@ -560,7 +553,7 @@ function formatCurrency(
   value: number,
 ): string {
   return new Intl.NumberFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       style: 'currency',
       currency: 'AED',
@@ -588,7 +581,7 @@ function formatOptionalDate(
   }
 
   return new Intl.DateTimeFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       day: '2-digit',
       month: 'short',

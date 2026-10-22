@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../i18n/locale';
 import {
   AlertCircle,
   CheckCircle2,
@@ -40,6 +41,7 @@ import type {
 import './Imports.css';
 
 export function Imports() {
+  const interfaceLanguage = useLocale();
   const [workbook, setWorkbook] =
     useState<ImportWorkbook | null>(null);
 
@@ -83,12 +85,12 @@ export function Imports() {
       ) ??
       workbook?.sheets[0] ??
       null,
-    [workbook, selectedSheetName],
+    [workbook, selectedSheetName, interfaceLanguage],
   );
 
   const importFields = useMemo(
   () => getImportFields(entityType),
-  [entityType],
+  [entityType, interfaceLanguage],
 );
 
 const validation = useMemo(
@@ -104,7 +106,7 @@ const validation = useMemo(
     selectedSheet,
     entityType,
     mapping,
-  ],
+  , interfaceLanguage],
 );
 
 useEffect(() => {
@@ -281,15 +283,11 @@ useEffect(() => {
     <div className="imports-page">
       <header className="imports-heading">
         <div>
-          <span className="imports-eyebrow">
-            DATA MIGRATION
-          </span>
+          <span className="imports-eyebrow">{tr("DATA MIGRATION")}</span>
 
-          <h2>Import Centre</h2>
+          <h2>{tr("Import Centre")}</h2>
 
-          <p>
-            Upload existing office records and review them before importing anything into SHAB.
-          </p>
+          <p>{tr("Upload existing office records and review them before importing anything into SHAB.")}</p>
         </div>
 
         {workbook ? (
@@ -298,9 +296,7 @@ useEffect(() => {
             className="imports-secondary-button"
             onClick={resetImport}
           >
-            <RefreshCw size={16} />
-            Start over
-          </button>
+            <RefreshCw size={16} />{tr("Start over")}</button>
         ) : null}
       </header>
 
@@ -364,23 +360,19 @@ useEffect(() => {
 
             <h3>
               {loading
-                ? 'Reading workbook…'
-                : 'Upload an Excel or CSV file'}
+                ? tr("Reading workbook…")
+                : tr("Upload an Excel or CSV file")}
             </h3>
 
-            <p>
-              Drag and drop your file here, or click to browse.
-            </p>
+            <p>{tr("Drag and drop your file here, or click to browse.")}</p>
 
-            <small>
-              XLSX, XLS or CSV · Maximum 25 MB
-            </small>
+            <small>{tr("XLSX, XLS or CSV · Maximum 25 MB")}</small>
           </label>
 
           {error ? (
             <div className="imports-error">
               <AlertCircle size={18} />
-              <span>{error}</span>
+              <span>{tr(error)}</span>
             </div>
           ) : null}
         </section>
@@ -391,7 +383,7 @@ useEffect(() => {
               <FileSpreadsheet size={22} />
 
               <div>
-                <span>Uploaded workbook</span>
+                <span>{tr("Uploaded workbook")}</span>
 
                 <strong>
                   {workbook.fileName}
@@ -403,9 +395,7 @@ useEffect(() => {
               <span>
                 <strong>
                   {workbook.sheets.length}
-                </strong>
-                Sheets
-              </span>
+                </strong>{tr("Sheets")}</span>
 
               <span>
                 <strong>
@@ -414,15 +404,13 @@ useEffect(() => {
                       total + sheet.totalRows,
                     0,
                   )}
-                </strong>
-                Rows
-              </span>
+                </strong>{tr("Rows")}</span>
             </div>
           </section>
 
           <section className="imports-configuration-panel">
             <label>
-              <span>Data type</span>
+              <span>{tr("Data type")}</span>
 
               <select
                 value={entityType}
@@ -433,18 +421,14 @@ useEffect(() => {
                   )
                 }
               >
-                <option value="clients">
-                  Clients
-                </option>
+                <option value="clients">{tr("Clients")}</option>
 
-                <option value="cases">
-                  Cases
-                </option>
+                <option value="cases">{tr("Cases")}</option>
               </select>
             </label>
 
             <label>
-              <span>Workbook sheet</span>
+              <span>{tr("Workbook sheet")}</span>
 
               <select
                 value={selectedSheet?.name ?? ''}
@@ -460,8 +444,7 @@ useEffect(() => {
                       key={sheet.name}
                       value={sheet.name}
                     >
-                      {sheet.name} ({sheet.totalRows} rows)
-                    </option>
+                      {sheet.name} ({sheet.totalRows}{" "}{tr("rows)")}</option>
                   ),
                 )}
               </select>
@@ -471,26 +454,18 @@ useEffect(() => {
             <section className="imports-mapping-panel">
               <header className="imports-mapping-heading">
                 <div>
-                  <span className="imports-eyebrow">
-                    FIELD MAPPING
-                  </span>
+                  <span className="imports-eyebrow">{tr("FIELD MAPPING")}</span>
 
-                  <h3>
-                    Match Excel columns to SHAB fields
-                  </h3>
+                  <h3>{tr("Match Excel columns to SHAB fields")}</h3>
 
-                  <p>
-                    SHAB has automatically matched recognised headings. Review each selection before importing.
-                  </p>
+                  <p>{tr("SHAB has automatically matched recognised headings. Review each selection before importing.")}</p>
                 </div>
 
                 <div className="imports-validation-summary">
                   <span className="valid">
                     <strong>
                       {validation?.validRows ?? 0}
-                    </strong>
-                    Valid
-                  </span>
+                    </strong>{tr("Valid")}</span>
 
                   <span
                     className={
@@ -501,9 +476,7 @@ useEffect(() => {
                   >
                     <strong>
                       {validation?.invalidRows ?? 0}
-                    </strong>
-                    Errors
-                  </span>
+                    </strong>{tr("Errors")}</span>
                 </div>
               </header>
 
@@ -528,9 +501,9 @@ useEffect(() => {
                         </strong>
 
                         {field.required ? (
-                          <span>Required</span>
+                          <span>{tr("Required")}</span>
                         ) : (
-                          <small>Optional</small>
+                          <small>{tr("Optional")}</small>
                         )}
                       </div>
 
@@ -544,9 +517,7 @@ useEffect(() => {
                           }))
                         }
                       >
-                        <option value="">
-                          Do not import
-                        </option>
+                        <option value="">{tr("Do not import")}</option>
 
                         {selectedSheet.headers.map(
                           (header) => (
@@ -568,17 +539,13 @@ useEffect(() => {
               validation.issues.length > 0 ? (
                 <div className="imports-validation-panel">
                   <div className="imports-validation-title">
-                    <strong>
-                      Validation issues
-                    </strong>
+                    <strong>{tr("Validation issues")}</strong>
 
-                    <span>
-                      Showing first{' '}
+                    <span>{tr("Showing first")}{' '}
                       {Math.min(
                         validation.issues.length,
                         20,
-                      )}{' '}
-                      of {validation.issues.length}
+                      )}{' '}{tr("of")}{" "}{validation.issues.length}
                     </span>
                   </div>
 
@@ -589,8 +556,7 @@ useEffect(() => {
                         <div
                           key={`${issue.rowNumber}-${issue.field}-${index}`}
                         >
-                          <span>
-                            Row {issue.rowNumber}
+                          <span>{tr("Row")}{" "}{issue.rowNumber}
                           </span>
 
                           <strong>
@@ -605,9 +571,7 @@ useEffect(() => {
                   </div>
                 </div>
               ) : validation ? (
-                <div className="imports-ready-panel">
-                  All mapped rows passed validation and are ready for the next stage.
-                </div>
+                <div className="imports-ready-panel">{tr("All mapped rows passed validation and are ready for the next stage.")}</div>
               ) : null}
             </section>
           ) : null}
@@ -617,17 +581,11 @@ useEffect(() => {
             <section className="imports-execution-panel">
               <div className="imports-execution-heading">
                 <div>
-                  <span className="imports-eyebrow">
-                    DUPLICATE REVIEW
-                  </span>
+                  <span className="imports-eyebrow">{tr("DUPLICATE REVIEW")}</span>
 
-                  <h3>
-                    Review clients before import
-                  </h3>
+                  <h3>{tr("Review clients before import")}</h3>
 
-                  <p>
-                    SHAB checks the workbook and existing client records before importing.
-                  </p>
+                  <p>{tr("SHAB checks the workbook and existing client records before importing.")}</p>
                 </div>
 
                 {!clientScan ? (
@@ -643,8 +601,8 @@ useEffect(() => {
                     }
                   >
                     {scanning
-                      ? 'Scanning…'
-                      : 'Scan for duplicates'}
+                      ? tr("Scanning…")
+                      : tr("Scan for duplicates")}
                   </button>
                 ) : null}
               </div>
@@ -664,7 +622,7 @@ useEffect(() => {
                         {clientScan.preparedRows.length}
                       </strong>
 
-                      <span>Total rows</span>
+                      <span>{tr("Total rows")}</span>
                     </article>
 
                     <article className="new">
@@ -672,7 +630,7 @@ useEffect(() => {
                         {clientScan.newRows.length}
                       </strong>
 
-                      <span>Ready to import</span>
+                      <span>{tr("Ready to import")}</span>
                     </article>
 
                     <article className="duplicate">
@@ -683,7 +641,7 @@ useEffect(() => {
                         ).length}
                       </strong>
 
-                      <span>Repeated in workbook</span>
+                      <span>{tr("Repeated in workbook")}</span>
                     </article>
 
                     <article className="database-duplicate">
@@ -694,7 +652,7 @@ useEffect(() => {
                         ).length}
                       </strong>
 
-                      <span>Already in SHAB</span>
+                      <span>{tr("Already in SHAB")}</span>
                     </article>
                   </div>
 
@@ -706,8 +664,7 @@ useEffect(() => {
                           <div
                             key={`${duplicate.rowNumber}-${duplicate.reason}-${index}`}
                           >
-                            <span>
-                              Row {duplicate.rowNumber}
+                            <span>{tr("Row")}{" "}{duplicate.rowNumber}
                             </span>
 
                             <strong>
@@ -716,15 +673,14 @@ useEffect(() => {
 
                             <p>
                               {duplicate.source === 'database'
-                                ? 'Already exists in SHAB'
-                                : 'Repeated inside this workbook'}{' '}
-                              based on{' '}
+                                ? tr("Already exists in SHAB")
+                                : tr("Repeated inside this workbook")}{' '}{tr("based on")}{' '}
                               {duplicate.reason.replace(
                                 /_/g,
                                 ' ',
                               )}
                               {duplicate.existingClientName
-                                ? ` — matched with ${duplicate.existingClientName}`
+                                ? tr("— matched with {0}", [duplicate.existingClientName])
                                 : ''}
                               .
                             </p>
@@ -747,45 +703,35 @@ useEffect(() => {
                             clientScan.newRows.length === 0
                           }
                         >
-                          {`Review final import of ${clientScan.newRows.length} clients`}
+                          {tr("Review final import of {0} clients", [clientScan.newRows.length])}
                         </button>
                       ) : (
                         <div className="imports-result-panel">
-                          <strong>
-                            Final confirmation required
-                          </strong>
+                          <strong>{tr("Final confirmation required")}</strong>
 
-                          <span>
-                            File: {workbook?.fileName}
+                          <span>{tr("File:")}{" "}{workbook?.fileName}
                           </span>
 
-                          <span>
-                            Sheet: {selectedSheet?.name}
+                          <span>{tr("Sheet:")}{" "}{selectedSheet?.name}
                           </span>
 
-                          <span>
-                            Total rows checked:{' '}
+                          <span>{tr("Total rows checked:")}{' '}
                             {clientScan.preparedRows.length}
                           </span>
 
-                          <span>
-                            New clients to create:{' '}
+                          <span>{tr("New clients to create:")}{' '}
                             {clientScan.newRows.length}
                           </span>
 
-                          <span>
-                            Duplicates skipped:{' '}
+                          <span>{tr("Duplicates skipped:")}{' '}
                             {clientScan.duplicates.length}
                           </span>
 
-                          <span>
-                            Rejected by validation:{' '}
+                          <span>{tr("Rejected by validation:")}{' '}
                             {validation.invalidRows}
                           </span>
 
-                          <p className="imports-execution-note">
-                            Confirming will create these client records in Supabase.
-                          </p>
+                          <p className="imports-execution-note">{tr("Confirming will create these client records in Supabase.")}</p>
 
                           <div className="imports-confirm-actions">
                             <button
@@ -795,9 +741,7 @@ useEffect(() => {
                                 setConfirmingImport(false)
                               }
                               disabled={importing}
-                            >
-                              Cancel
-                            </button>
+                            >{tr("Cancel")}</button>
 
                             <button
                               type="button"
@@ -811,8 +755,8 @@ useEffect(() => {
                               }
                             >
                               {importing
-                                ? 'Importing clients…'
-                                : `Confirm import ${clientScan.newRows.length} clients`}
+                                ? tr("Importing clients…")
+                                : tr("Confirm import {0} clients", [clientScan.newRows.length])}
                             </button>
                           </div>
                         </div>
@@ -820,26 +764,21 @@ useEffect(() => {
                     </>
                   ) : (
                     <div className="imports-result-panel">
-                      <strong>Import completed</strong>
+                      <strong>{tr("Import completed")}</strong>
 
                       <span>
-                        {importResult.imported} imported
-                      </span>
+                        {importResult.imported}{" "}{tr("imported")}</span>
 
                       <span>
-                        {importResult.skipped} skipped
-                      </span>
+                        {importResult.skipped}{" "}{tr("skipped")}</span>
 
                       <span>
-                        {importResult.failed} failed
-                      </span>
+                        {importResult.failed}{" "}{tr("failed")}</span>
                     </div>
                   )}
                 </>
               ) : (
-                <p className="imports-execution-note">
-                  Run the duplicate scan before importing.
-                </p>
+                <p className="imports-execution-note">{tr("Run the duplicate scan before importing.")}</p>
               )}
             </section>
           ) : null}
@@ -849,26 +788,21 @@ useEffect(() => {
             <section className="imports-preview-panel">
               <header>
                 <div>
-                  <span>DATA PREVIEW</span>
+                  <span>{tr("DATA PREVIEW")}</span>
 
                   <h3>
                     {selectedSheet.name}
                   </h3>
 
-                  <p>
-                    Showing the first{' '}
+                  <p>{tr("Showing the first")}{' '}
                     {Math.min(
                       selectedSheet.rows.length,
                       25,
-                    )}{' '}
-                    of {selectedSheet.totalRows} rows.
-                  </p>
+                    )}{' '}{tr("of")}{" "}{selectedSheet.totalRows}{" "}{tr("rows.")}</p>
                 </div>
 
                 <strong>
-                  {selectedSheet.headers.length}{' '}
-                  columns
-                </strong>
+                  {selectedSheet.headers.length}{' '}{tr("columns")}</strong>
               </header>
 
               <div className="imports-table-wrapper">

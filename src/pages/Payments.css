@@ -216,7 +216,7 @@
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.07em;
-  text-align: left;
+  text-align: start;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -517,8 +517,8 @@
 
   .finance-table th,
   .finance-table td {
-    padding-right: 8px;
-    padding-left: 8px;
+    padding-inline-end: 8px;
+    padding-inline-start: 8px;
     font-size: 11px;
   }
 
@@ -553,8 +553,8 @@
   }
 
   .finance-row-actions button {
-    padding-right: 8px;
-    padding-left: 8px;
+    padding-inline-end: 8px;
+    padding-inline-start: 8px;
     font-size: 10px;
   }
 
@@ -1538,7 +1538,7 @@ grid-template-columns:1fr;
   color: #273449;
   cursor: pointer;
   padding: 10px 11px;
-  text-align: left;
+  text-align: start;
   font: inherit;
   font-size: 12px;
   font-weight: 750;
