@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale, trEnum } from '../i18n/locale';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
@@ -70,6 +71,7 @@ const priorityOptions: Array<TaskPriority | 'all'> = [
 ];
 
 export function Tasks() {
+  const interfaceLanguage = useLocale();
   const { profile } = useAccessProfile();
   const administrator = profile?.access_role === 'administrator' && profile.is_active;
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -417,18 +419,15 @@ export function Tasks() {
     }
 
     return hasActiveFilters ? 'Filtered tasks' : 'All tasks';
-  }, [hasActiveFilters, caseIdParam, clientIdParam, dateParam]);
+  }, [hasActiveFilters, caseIdParam, clientIdParam, dateParam, interfaceLanguage]);
 
   return (
     <div className="tasks-page page-container">
       <section className="page-heading tasks-heading">
         <div>
-          <p className="page-eyebrow">Task management</p>
-          <h2>Tasks</h2>
-          <p className="page-intro">
-            Manage assignments, monitor deadlines and track team
-            progress from one central workspace.
-          </p>
+          <p className="page-eyebrow">{tr("Task management")}</p>
+          <h2>{tr("Tasks")}</h2>
+          <p className="page-intro">{tr("Manage assignments, monitor deadlines and track team progress from one central workspace.")}</p>
         </div>
 
         <button
@@ -436,21 +435,19 @@ export function Tasks() {
           className="primary-action-button"
           onClick={openNewTask}
         >
-          <Plus size={18} />
-          Add Task
-        </button>
+          <Plus size={18} />{tr("Add Task")}</button>
       </section>
 
       <section
         className="tasks-stats-grid"
-        aria-label="Task summary"
+        aria-label={tr("Task summary")}
       >
         <article className="task-stat-card">
           <div className="task-stat-icon">
             <ClipboardList size={20} />
           </div>
           <div>
-            <span>Total Tasks</span>
+            <span>{tr("Total Tasks")}</span>
             <strong>{stats.total}</strong>
           </div>
         </article>
@@ -460,7 +457,7 @@ export function Tasks() {
             <Clock3 size={20} />
           </div>
           <div>
-            <span>Due Today</span>
+            <span>{tr("Due Today")}</span>
             <strong>{stats.dueToday}</strong>
           </div>
         </article>
@@ -470,7 +467,7 @@ export function Tasks() {
             <AlertTriangle size={20} />
           </div>
           <div>
-            <span>Overdue</span>
+            <span>{tr("Overdue")}</span>
             <strong>{stats.overdue}</strong>
           </div>
         </article>
@@ -480,7 +477,7 @@ export function Tasks() {
             <Play size={20} />
           </div>
           <div>
-            <span>In Progress</span>
+            <span>{tr("In Progress")}</span>
             <strong>{stats.inProgress}</strong>
           </div>
         </article>
@@ -490,7 +487,7 @@ export function Tasks() {
             <CheckCircle2 size={20} />
           </div>
           <div>
-            <span>Completed</span>
+            <span>{tr("Completed")}</span>
             <strong>{stats.completed}</strong>
           </div>
         </article>
@@ -501,13 +498,13 @@ export function Tasks() {
           <div>
             <strong>
               {caseIdParam
-                ? 'Showing tasks for selected matter'
-                : 'Showing tasks for selected client'}
+                ? tr("Showing tasks for selected matter")
+                : tr("Showing tasks for selected client")}
             </strong>
             <span>
               {caseIdParam
-                ? 'Filtered to the current case context in the tasks workspace.'
-                : 'Filtered to the current client context in the tasks workspace.'}
+                ? tr("Filtered to the current case context in the tasks workspace.")
+                : tr("Filtered to the current client context in the tasks workspace.")}
             </span>
           </div>
 
@@ -515,9 +512,7 @@ export function Tasks() {
             type="button"
             className="tasks-clear-filters"
             onClick={() => navigate('/tasks')}
-          >
-            Clear Context
-          </button>
+          >{tr("Clear Context")}</button>
         </section>
       ) : null}
 
@@ -525,20 +520,20 @@ export function Tasks() {
         <div className="tasks-search">
           <Search size={18} />
 
-          <input
+          <input dir="auto"
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
               setPage(1);
             }}
-            placeholder="Search tasks by title or description"
-            aria-label="Search tasks"
+            placeholder={tr("Search tasks by title or description")}
+            aria-label={tr("Search tasks")}
           />
         </div>
 
         <div className="tasks-filters">
           <div className="filter-field">
-            <label htmlFor="task-status-filter">Status</label>
+            <label htmlFor="task-status-filter">{tr("Status")}</label>
 
             <select
               id="task-status-filter"
@@ -553,17 +548,15 @@ export function Tasks() {
               {statusOptions.map((status) => (
                 <option key={status} value={status}>
                   {status === 'all'
-                    ? 'All statuses'
-                    : status}
+                    ? tr("All statuses")
+                    : trEnum(status)}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="filter-field">
-            <label htmlFor="task-priority-filter">
-              Priority
-            </label>
+            <label htmlFor="task-priority-filter">{tr("Priority")}</label>
 
             <select
               id="task-priority-filter"
@@ -580,17 +573,15 @@ export function Tasks() {
               {priorityOptions.map((priority) => (
                 <option key={priority} value={priority}>
                   {priority === 'all'
-                    ? 'All priorities'
-                    : priority}
+                    ? tr("All priorities")
+                    : trEnum(priority)}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="filter-field">
-            <label htmlFor="task-staff-filter">
-              Assigned To
-            </label>
+            <label htmlFor="task-staff-filter">{tr("Assigned To")}</label>
 
             <select
               id="task-staff-filter"
@@ -600,7 +591,7 @@ export function Tasks() {
                 setPage(1);
               }}
             >
-              <option value="all">All staff</option>
+              <option value="all">{tr("All staff")}</option>
 
               {staffOptions.map((member) => (
                 <option key={member.id} value={member.id}>
@@ -617,7 +608,7 @@ export function Tasks() {
           <strong>{filteredLabel}</strong>
           <span>
             {totalCount}{' '}
-            {totalCount === 1 ? 'task' : 'tasks'}
+            {totalCount === 1 ? tr("task") : tr("tasks")}
           </span>
         </div>
 
@@ -626,15 +617,13 @@ export function Tasks() {
             type="button"
             className="tasks-clear-filters"
             onClick={clearFilters}
-          >
-            Clear filters
-          </button>
+          >{tr("Clear filters")}</button>
         ) : null}
       </section>
 
       {error ? (
         <div className="tasks-error" role="alert">
-          {error}
+          {tr(error)}
         </div>
       ) : null}
 
@@ -642,34 +631,32 @@ export function Tasks() {
         <table className="tasks-table">
           <thead>
             <tr>
-              <th>Task</th>
-              <th>Client</th>
-              <th>Case</th>
-              <th>Assigned To</th>
-              <th>Priority</th>
-              <th>Status</th>
-              <th>Due Date</th>
-              <th>Actions</th>
+              <th>{tr("Task")}</th>
+              <th>{tr("Client")}</th>
+              <th>{tr("Case")}</th>
+              <th>{tr("Assigned To")}</th>
+              <th>{tr("Priority")}</th>
+              <th>{tr("Status")}</th>
+              <th>{tr("Due Date")}</th>
+              <th>{tr("Actions")}</th>
             </tr>
           </thead>
 
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} className="loading-cell">
-                  Loading tasks…
-                </td>
+                <td colSpan={8} className="loading-cell">{tr("Loading tasks…")}</td>
               </tr>
             ) : tasks.length === 0 ? (
               <tr>
                 <td colSpan={8} className="empty-cell">
                   <div className="tasks-empty-state">
                     <ClipboardList size={28} />
-                    <strong>No tasks found</strong>
+                    <strong>{tr("No tasks found")}</strong>
                     <span>
                       {hasActiveFilters
-                        ? 'Try changing or clearing the current filters.'
-                        : 'Create your first task to get started.'}
+                        ? tr("Try changing or clearing the current filters.")
+                        : tr("Create your first task to get started.")}
                     </span>
                   </div>
                 </td>
@@ -694,7 +681,7 @@ export function Tasks() {
                     <td>
                       {task.client_id ? (
                         <Link to={`/clients/${task.client_id}`}>
-                          {clients[task.client_id] ?? 'Unknown client'}
+                          {clients[task.client_id] ?? tr("Unknown client")}
                         </Link>
                       ) : (
                         '—'
@@ -704,7 +691,7 @@ export function Tasks() {
                     <td>
                       {task.case_id ? (
                         <Link to={`/cases/${task.case_id}`}>
-                          {cases[task.case_id] ?? `Case ${task.case_id.slice(0, 8)}`}
+                          {cases[task.case_id] ?? tr("Case {0}", [task.case_id.slice(0, 8)])}
                         </Link>
                       ) : (
                         '—'
@@ -714,7 +701,7 @@ export function Tasks() {
                     <td>
                       {task.assigned_staff_id
                         ? staff[task.assigned_staff_id] ??
-                          'Unknown staff'
+                          tr("Unknown staff")
                         : '—'}
                     </td>
 
@@ -722,7 +709,7 @@ export function Tasks() {
                       <span
                         className={`priority-badge priority-${task.priority.toLowerCase()}`}
                       >
-                        {task.priority}
+                        {trEnum(task.priority)}
                       </span>
                     </td>
 
@@ -732,7 +719,7 @@ export function Tasks() {
                           .toLowerCase()
                           .replace(/\s+/g, '-')}`}
                       >
-                        {task.status}
+                        {trEnum(task.status)}
                       </span>
                     </td>
 
@@ -751,8 +738,8 @@ export function Tasks() {
                             onClick={() =>
                               void handleComplete(task)
                             }
-                            title="Mark complete"
-                            aria-label={`Mark ${task.title} complete`}
+                            title={tr("Mark complete")}
+                            aria-label={tr("Mark {0} complete", [task.title])}
                             disabled={actionLoading}
                           >
                             <CheckCircle2 size={16} />
@@ -765,8 +752,8 @@ export function Tasks() {
                               onClick={() =>
                                 void handleMarkInProgress(task)
                               }
-                              title="Mark in progress"
-                              aria-label={`Mark ${task.title} in progress`}
+                              title={tr("Mark in progress")}
+                              aria-label={tr("Mark {0} in progress", [task.title])}
                               disabled={actionLoading}
                             >
                               <Play size={16} />
@@ -779,8 +766,8 @@ export function Tasks() {
                         type="button"
                         className="action-button edit-button"
                         onClick={() => openEditTask(task)}
-                        title="Edit task"
-                        aria-label={`Edit ${task.title}`}
+                        title={tr("Edit task")}
+                        aria-label={tr("Edit {0}", [task.title])}
                         disabled={actionLoading}
                       >
                         <Edit3 size={16} />
@@ -790,7 +777,7 @@ export function Tasks() {
                         type="button"
                         className="action-button delete-button"
                         onClick={() => setDeleteTarget(task)}
-                        title={administrator ? 'Delete task' : 'Request task deletion'}
+                        title={administrator ? tr("Delete task") : tr("Request task deletion")}
                         aria-label={`${administrator ? 'Delete' : 'Request deletion of'} ${task.title}`}
                         disabled={actionLoading}
                       >
@@ -808,7 +795,7 @@ export function Tasks() {
       {totalPages > 1 ? (
         <section
           className="tasks-pagination"
-          aria-label="Task pagination"
+          aria-label={tr("Task pagination")}
         >
           <button
             type="button"
@@ -818,12 +805,9 @@ export function Tasks() {
               )
             }
             disabled={page <= 1 || loading}
-          >
-            Previous
-          </button>
+          >{tr("Previous")}</button>
 
-          <span>
-            Page {page} of {totalPages}
+          <span>{tr("Page")}{" "}{page}{" "}{tr("of")}{" "}{totalPages}
           </span>
 
           <button
@@ -834,9 +818,7 @@ export function Tasks() {
               )
             }
             disabled={page >= totalPages || loading}
-          >
-            Next
-          </button>
+          >{tr("Next")}</button>
         </section>
       ) : null}
 
@@ -869,7 +851,7 @@ export function Tasks() {
         open={!administrator && Boolean(deleteTarget)}
         entityType="task"
         recordId={deleteTarget?.id ?? null}
-        recordLabel={deleteTarget?.title ?? 'Task record'}
+        recordLabel={deleteTarget?.title ?? tr("Task record")}
         onClose={() => setDeleteTarget(null)}
       />
     </div>
@@ -883,7 +865,7 @@ function formatDate(value: string): string {
     return 'Unknown';
   }
 
-  return new Intl.DateTimeFormat('en-AE', {
+  return new Intl.DateTimeFormat(getLocale("en-AE"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

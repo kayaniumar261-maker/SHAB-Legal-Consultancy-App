@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import {
   CalendarDays,
   Clock3,
@@ -20,14 +21,14 @@ import {
 } from '../../services/hearingService';
 
 function formatDate(value: string): string {
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getLocale("en-GB"), {
     day: '2-digit',
     month: 'short',
   }).format(new Date(value));
 }
 
 function formatTime(value: string): string {
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getLocale("en-GB"), {
     hour: '2-digit',
     minute: '2-digit',
     hour12: true,
@@ -35,6 +36,7 @@ function formatTime(value: string): string {
 }
 
 export function UpcomingHearings() {
+  const interfaceLanguage = useLocale();
   const [hearings, setHearings] =
     useState<DashboardHearing[]>([]);
 
@@ -84,32 +86,24 @@ export function UpcomingHearings() {
     <section className="dashboard-panel upcoming-hearings-panel">
       <div className="panel-heading-row">
         <div>
-          <span className="section-tag">
-            COURT CALENDAR
-          </span>
+          <span className="section-tag">{tr("COURT CALENDAR")}</span>
 
-          <h3>Upcoming Hearings</h3>
+          <h3>{tr("Upcoming Hearings")}</h3>
 
-          <p>
-            Next scheduled court appearances.
-          </p>
+          <p>{tr("Next scheduled court appearances.")}</p>
         </div>
       </div>
 
       {loading ? (
-        <div className="hearing-empty-state">
-          Loading hearings…
-        </div>
+        <div className="hearing-empty-state">{tr("Loading hearings…")}</div>
       ) : error ? (
         <div className="hearing-empty-state error">
-          {error}
+          {tr(error)}
         </div>
       ) : hearings.length === 0 ? (
         <div className="hearing-empty-state">
           <CalendarDays size={22} />
-          <span>
-            No upcoming hearings scheduled.
-          </span>
+          <span>{tr("No upcoming hearings scheduled.")}</span>
         </div>
       ) : (
         <div className="hearing-dashboard-list">
@@ -140,7 +134,7 @@ export function UpcomingHearings() {
                   <strong>
                     {hearing.case_number ||
                       hearing.case_type ||
-                      'Court Hearing'}
+                      tr("Court Hearing")}
                   </strong>
                 </div>
 
@@ -168,7 +162,7 @@ export function UpcomingHearings() {
               </div>
 
               <span className="hearing-status-pill">
-                {hearing.status || 'Scheduled'}
+                {hearing.status || tr("Scheduled")}
               </span>
             </Link>
           ))}

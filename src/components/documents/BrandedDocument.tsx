@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 import type { ReactNode } from 'react';
 
 import { companyProfile } from '../../constants/companyProfile';
@@ -45,6 +46,7 @@ export function BrandedDocument({
   footerText =
     'This invoice was generated electronically through the SHAB practice management system.',
 }: BrandedDocumentProps) {
+  const interfaceLanguage = useLocale();
   const legalName =
     companySettings?.legal_name ||
     companyProfile.legalName;
@@ -121,8 +123,7 @@ export function BrandedDocument({
             <span>{companyProfile.jurisdiction}</span>
 
             {taxRegistrationNumber ? (
-              <span>
-                TRN: {taxRegistrationNumber}
+              <span>{tr("TRN:")}{" "}{taxRegistrationNumber}
               </span>
             ) : null}
           </div>
@@ -143,8 +144,7 @@ export function BrandedDocument({
           <strong>{recipientName}</strong>
 
           {caseReference ? (
-            <p>
-              Matter reference: {caseReference}
+            <p>{tr("Matter reference:")}{" "}{caseReference}
             </p>
           ) : null}
         </div>
@@ -165,7 +165,7 @@ export function BrandedDocument({
 
       {notes ? (
         <section className="shab-document-notes">
-          <span>Additional Notes</span>
+          <span>{tr("Additional Notes")}</span>
           <p>{notes}</p>
         </section>
       ) : null}
@@ -174,8 +174,8 @@ export function BrandedDocument({
       paymentDetails.length > 0 ? (
         <section className="shab-document-bank-details">
           <div className="shab-document-section-heading">
-            <span>Payment Details</span>
-            <strong>Bank Transfer</strong>
+            <span>{tr("Payment Details")}</span>
+            <strong>{tr("Bank Transfer")}</strong>
           </div>
 
           <dl>
@@ -200,7 +200,7 @@ export function BrandedDocument({
           <strong>{referenceNoteTitle}</strong>
           <p>
             {referenceNote ??
-              `Please quote ${referenceNumber} when making payment or corresponding with SHAB regarding this invoice.`}
+              tr("Please quote {0} when making payment or corresponding with SHAB regarding this invoice.", [referenceNumber])}
           </p>
         </section>
       ) : null}

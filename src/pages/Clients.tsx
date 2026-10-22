@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../i18n/locale';
 import {
   Building2,
   CircleDollarSign,
@@ -62,6 +63,7 @@ type ProfessionalClient = Client & {
 const PAGE_SIZE = 12;
 
 export function Clients() {
+  const interfaceLanguage = useLocale();
   const { profile } = useAccessProfile();
   const administrator =
     profile?.access_role === 'administrator' && profile.is_active;
@@ -132,7 +134,7 @@ export function Clients() {
     }
 
     return 'All clients';
-  }, [searchTerm, statusFilter, clientTypeFilter]);
+  }, [searchTerm, statusFilter, clientTypeFilter, interfaceLanguage]);
 
   const summary = useMemo(() => {
     return clients.reduce(
@@ -162,7 +164,7 @@ export function Clients() {
         hasMixedCurrencies: false,
       },
     );
-  }, [clients, financeSummaries]);
+  }, [clients, financeSummaries, interfaceLanguage]);
 
   const openNewClient = () => {
     setActiveClient(null);
@@ -277,12 +279,12 @@ export function Clients() {
     <div className="clients-page page-container">
       <section className="page-heading clients-heading">
         <div>
-          <p className="page-eyebrow">Client relationship management</p>
-          <h2>Clients</h2>
+          <p className="page-eyebrow">{tr("Client relationship management")}</p>
+          <h2>{tr("Clients")}</h2>
           <p className="page-intro">
             {administrator
-              ? 'Manage client profiles, linked matters, identification, communication details, risk indicators, and outstanding balances.'
-              : 'Manage client profiles, linked matters, identification and communication details.'}
+              ? tr("Manage client profiles, linked matters, identification, communication details, risk indicators, and outstanding balances.")
+              : tr("Manage client profiles, linked matters, identification and communication details.")}
           </p>
         </div>
 
@@ -301,9 +303,7 @@ export function Clients() {
               className="secondary-action-button"
               onClick={handleImportClick}
             >
-              <FileSpreadsheet size={18} />
-              Import Excel
-            </button>
+              <FileSpreadsheet size={18} />{tr("Import Excel")}</button>
           )}
 
           <button
@@ -311,47 +311,45 @@ export function Clients() {
             className="primary-action-button"
             onClick={openNewClient}
           >
-            <Plus size={18} />
-            Add Client
-          </button>
+            <Plus size={18} />{tr("Add Client")}</button>
         </div>
       </section>
 
-      <section className="client-summary-grid" aria-label="Client summary">
+      <section className="client-summary-grid" aria-label={tr("Client summary")}>
         <SummaryCard
           icon={<UsersRound size={20} />}
-          label="Total clients"
+          label={tr("Total clients")}
           value={formatNumber(totalClients)}
           detail={`${filteredLabel}`}
         />
         <SummaryCard
           icon={<UserRound size={20} />}
-          label="Active on this page"
+          label={tr("Active on this page")}
           value={formatNumber(summary.active)}
-          detail={`of ${clients.length} displayed`}
+          detail={tr("of {0} displayed", [clients.length])}
         />
         <SummaryCard
           icon={<Building2 size={20} />}
-          label="Companies"
+          label={tr("Companies")}
           value={formatNumber(summary.companies)}
-          detail="Displayed page"
+          detail={tr("Displayed page")}
         />
         <SummaryCard
           icon={<FolderKanban size={20} />}
-          label="Linked cases"
+          label={tr("Linked cases")}
           value={formatNumber(summary.cases)}
-          detail="Displayed page"
+          detail={tr("Displayed page")}
         />
         {administrator && (
           <SummaryCard
             icon={<CircleDollarSign size={20} />}
-            label="Outstanding"
+            label={tr("Outstanding")}
             value={
               summary.hasMixedCurrencies
                 ? 'Mixed currencies'
                 : formatCurrency(summary.outstanding)
             }
-            detail="Live ledger · displayed page"
+            detail={tr("Live ledger · displayed page")}
           />
         )}
       </section>
@@ -359,20 +357,20 @@ export function Clients() {
       <section className="clients-toolbar">
         <div className="clients-search">
           <Search size={18} />
-          <input
+          <input dir="auto"
             value={searchTerm}
             onChange={(event) => {
               setSearchTerm(event.target.value);
               setPage(1);
             }}
-            placeholder="Search name, code, phone, email, company, Emirates ID or passport"
-            aria-label="Search clients"
+            placeholder={tr("Search name, code, phone, email, company, Emirates ID or passport")}
+            aria-label={tr("Search clients")}
           />
         </div>
 
         <div className="clients-filters">
           <div className="filter-field">
-            <label htmlFor="client-status-filter">Status</label>
+            <label htmlFor="client-status-filter">{tr("Status")}</label>
             <select
               id="client-status-filter"
               value={statusFilter}
@@ -381,15 +379,15 @@ export function Clients() {
                 setPage(1);
               }}
             >
-              <option value="all">All statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="prospect">Prospect</option>
+              <option value="all">{tr("All statuses")}</option>
+              <option value="active">{tr("Active")}</option>
+              <option value="inactive">{tr("Inactive")}</option>
+              <option value="prospect">{tr("Prospect")}</option>
             </select>
           </div>
 
           <div className="filter-field">
-            <label htmlFor="client-type-filter">Client type</label>
+            <label htmlFor="client-type-filter">{tr("Client type")}</label>
             <select
               id="client-type-filter"
               value={clientTypeFilter}
@@ -398,9 +396,9 @@ export function Clients() {
                 setPage(1);
               }}
             >
-              <option value="all">All types</option>
-              <option value="individual">Individual</option>
-              <option value="company">Company</option>
+              <option value="all">{tr("All types")}</option>
+              <option value="individual">{tr("Individual")}</option>
+              <option value="company">{tr("Company")}</option>
             </select>
           </div>
 
@@ -409,31 +407,30 @@ export function Clients() {
               type="button"
               className="clear-filter-button"
               onClick={clearFilters}
-            >
-              Clear filters
-            </button>
+            >{tr("Clear filters")}</button>
           )}
         </div>
       </section>
 
+      <p className="clients-sort-note">{tr("Sorted by client name (A–Z / أ–ي)")}</p>
       <section className="clients-status-row">
         <div>
-          <strong>{filteredLabel}</strong>
-          <span>{formatNumber(totalClients)} total clients</span>
+          <strong>{tr(filteredLabel)}</strong>
+          <span>{formatNumber(totalClients)}{" "}{tr("total clients")}</span>
         </div>
 
         <div>
           <span>
             {loading
-              ? 'Loading clients…'
-              : `Showing ${clients.length} of ${totalClients}`}
+              ? tr("Loading clients…")
+              : tr("Showing {0} of {1}", [clients.length, totalClients])}
           </span>
         </div>
       </section>
 
       {error && (
         <div className="clients-error" role="alert">
-          {error}
+          {tr(error)}
         </div>
       )}
 
@@ -441,38 +438,34 @@ export function Clients() {
         <table className="clients-table">
           <thead>
             <tr>
-              <th>Client</th>
-              <th>Contact</th>
-              <th>Type</th>
-              <th>Cases</th>
-              {administrator && <th>Outstanding</th>}
-              <th>Status</th>
-              <th>Risk</th>
-              <th>Actions</th>
+              <th aria-sort="ascending">{tr("Client")}</th>
+              <th>{tr("Contact")}</th>
+              <th>{tr("Type")}</th>
+              <th>{tr("Cases")}</th>
+              {administrator && <th>{tr("Outstanding")}</th>}
+              <th>{tr("Status")}</th>
+              <th>{tr("Risk")}</th>
+              <th>{tr("Actions")}</th>
             </tr>
           </thead>
 
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={administrator ? 8 : 7} className="clients-loading-cell">
-                  Loading clients…
-                </td>
+                <td colSpan={administrator ? 8 : 7} className="clients-loading-cell">{tr("Loading clients…")}</td>
               </tr>
             ) : clients.length === 0 ? (
               <tr>
                 <td colSpan={administrator ? 8 : 7} className="clients-empty-cell">
                   <UserRound size={30} />
-                  <strong>No clients found</strong>
-                  <span>
-                    Change the filters or create a new client profile.
-                  </span>
+                  <strong>{tr("No clients found")}</strong>
+                  <span>{tr("Change the filters or create a new client profile.")}</span>
                 </td>
               </tr>
             ) : (
               clients.map((client) => (
                 <tr key={client.id}>
-                  <td className="client-name-cell" data-label="Client">
+                  <td className="client-name-cell" data-label={tr("Client")}>
                     <div className="client-avatar">
                       {getInitials(client.full_name)}
                     </div>
@@ -484,15 +477,13 @@ export function Clients() {
                         </Link>
 
                         {client.vip && (
-                          <span className="vip-indicator" title="VIP client">
-                            <Star size={14} fill="currentColor" />
-                            VIP
-                          </span>
+                          <span className="vip-indicator" title={tr("VIP client")}>
+                            <Star size={14} fill="currentColor" />{tr("VIP")}</span>
                         )}
                       </div>
 
                       <span>
-                        {client.client_code ?? 'Code pending'}
+                        {client.client_code ?? tr("Code pending")}
                         {client.company_name
                           ? ` · ${client.company_name}`
                           : ''}
@@ -500,20 +491,20 @@ export function Clients() {
                     </div>
                   </td>
 
-                  <td data-label="Contact">
+                  <td data-label={tr("Contact")}>
                     <div className="client-contact-stack">
                       <span>
                         <Phone size={14} />
-                        {client.phone ?? 'No phone'}
+                        {client.phone ?? tr("No phone")}
                       </span>
                       <span>
                         <Mail size={14} />
-                        {client.email ?? 'No email'}
+                        {client.email ?? tr("No email")}
                       </span>
                     </div>
                   </td>
 
-                  <td data-label="Type">
+                  <td data-label={tr("Type")}>
                     <span
                       className={`type-badge ${client.client_type}`}
                     >
@@ -521,17 +512,16 @@ export function Clients() {
                     </span>
                   </td>
 
-                  <td data-label="Cases">
+                  <td data-label={tr("Cases")}>
                     <div className="case-count-cell">
                       <strong>{Number(client.total_cases ?? 0)}</strong>
                       <span>
-                        {Number(client.active_cases ?? 0)} active
-                      </span>
+                        {Number(client.active_cases ?? 0)}{" "}{tr("active")}</span>
                     </div>
                   </td>
 
                   {administrator && (
-                    <td data-label="Outstanding">
+                    <td data-label={tr("Outstanding")}>
                       <strong className="balance-value">
                         {formatFinanceAmount(
                           financeSummaries[client.id],
@@ -540,29 +530,27 @@ export function Clients() {
                     </td>
                   )}
 
-                  <td data-label="Status">
+                  <td data-label={tr("Status")}>
                     <span className={`status-badge ${client.status}`}>
                       {formatLabel(client.status)}
                     </span>
                   </td>
 
-                  <td data-label="Risk">
+                  <td data-label={tr("Risk")}>
                     <RiskBadge risk={client.risk_level ?? 'low'} />
                   </td>
 
-                  <td className="table-actions" data-label="Actions">
+                  <td className="table-actions" data-label={tr("Actions")}>
                     <Link
                       className="action-link"
                       to={`/clients/${client.id}`}
-                    >
-                      View
-                    </Link>
+                    >{tr("View")}</Link>
 
                     <button
                       type="button"
                       className="icon-action-button"
-                      title="Edit client"
-                      aria-label={`Edit ${client.full_name}`}
+                      title={tr("Edit client")}
+                      aria-label={tr("Edit {0}", [client.full_name])}
                       onClick={() => openEditClient(client)}
                     >
                       <Edit3 size={16} />
@@ -571,7 +559,7 @@ export function Clients() {
                     <button
                       type="button"
                       className="icon-action-button danger"
-                      title={administrator ? 'Delete client' : 'Request client deletion'}
+                      title={administrator ? tr("Delete client") : tr("Request client deletion")}
                       aria-label={`${administrator ? 'Delete' : 'Request deletion of'} ${client.full_name}`}
                       onClick={() => setDeleteTarget(client)}
                     >
@@ -592,12 +580,9 @@ export function Clients() {
             setPage((current) => Math.max(1, current - 1))
           }
           disabled={page === 1 || loading}
-        >
-          Previous
-        </button>
+        >{tr("Previous")}</button>
 
-        <span>
-          Page {page} of {pageCount}
+        <span>{tr("Page")}{" "}{page}{" "}{tr("of")}{" "}{pageCount}
         </span>
 
         <button
@@ -606,9 +591,7 @@ export function Clients() {
             setPage((current) => Math.min(pageCount, current + 1))
           }
           disabled={page >= pageCount || loading}
-        >
-          Next
-        </button>
+        >{tr("Next")}</button>
       </section>
 
       <ClientFormModal
@@ -631,7 +614,7 @@ export function Clients() {
         open={!administrator && Boolean(deleteTarget)}
         entityType="client"
         recordId={deleteTarget?.id ?? null}
-        recordLabel={deleteTarget?.full_name ?? 'Client record'}
+        recordLabel={deleteTarget?.full_name ?? tr("Client record")}
         onClose={() => setDeleteTarget(null)}
       />
     </div>
@@ -651,6 +634,7 @@ function SummaryCard({
   value,
   detail,
 }: SummaryCardProps) {
+  const interfaceLanguage = useLocale();
   return (
     <article className="client-summary-card">
       <div className="client-summary-icon">{icon}</div>
@@ -668,6 +652,7 @@ function RiskBadge({
 }: {
   risk: NonNullable<ProfessionalClient['risk_level']>;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <span className={`risk-badge ${risk}`}>
       {risk !== 'low' && <ShieldAlert size={14} />}
@@ -688,17 +673,17 @@ function getInitials(name: string): string {
 }
 
 function formatLabel(value: string): string {
-  return value
+  return tr(value
     .replace(/_/g, ' ')
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    .replace(/\b\w/g, (letter) => letter.toUpperCase()));
 }
 
 function formatNumber(value: number): string {
-  return new Intl.NumberFormat('en-AE').format(value);
+  return new Intl.NumberFormat(getLocale("en-AE")).format(value);
 }
 
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-AE', {
+  return new Intl.NumberFormat(getLocale("en-AE"), {
     style: 'currency',
     currency: 'AED',
     maximumFractionDigits: 2,
@@ -711,12 +696,12 @@ function formatFinanceAmount(
   const finance = summary ?? EMPTY_FINANCE_SUMMARY;
 
   if (finance.hasMixedCurrencies) {
-    return 'Mixed currencies';
+    return tr('Mixed currencies');
   }
 
-  return new Intl.NumberFormat('en-AE', {
+  return tr(new Intl.NumberFormat(getLocale("en-AE"), {
     style: 'currency',
     currency: finance.currency ?? 'AED',
     maximumFractionDigits: 2,
-  }).format(finance.outstanding);
+  }).format(finance.outstanding));
 }

@@ -1,3 +1,4 @@
+import { tr, useLocale } from './i18n/locale';
 import {
   lazy,
   Suspense,
@@ -163,16 +164,18 @@ const PlaceholderPage = lazyNamed<{
 );
 
 function RouteLoadingScreen() {
+  const interfaceLanguage = useLocale();
   return (
     <div className="route-loading-screen">
       <div className="route-loading-spinner" />
 
-      <strong>Loading SHAB workspace…</strong>
+      <strong>{tr("Loading SHAB workspace…")}</strong>
     </div>
   );
 }
 
 function App() {
+  const interfaceLanguage = useLocale();
   return (
     <AppErrorBoundary>
       <Suspense fallback={<RouteLoadingScreen />}>

@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale, trEnum } from '../../i18n/locale';
 import { useMemo, useState, useEffect } from 'react';
 
 import {
@@ -58,6 +59,7 @@ export function CaseTabs({
   clientName,
   isAdministrator,
 }: CaseTabsProps) {
+  const interfaceLanguage = useLocale();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>(
     searchParams.get('tab') === 'agreement' && isAdministrator
@@ -260,7 +262,7 @@ export function CaseTabs({
               b.hearing_at,
             ).getTime(),
         )[0] ?? null;
-    }, [hearings]);
+    }, [hearings, interfaceLanguage]);
 
   const tabContent = useMemo(() => {
     switch (activeTab) {
@@ -285,15 +287,11 @@ export function CaseTabs({
           <div className="case-hearings-workspace">
             <div className="case-hearings-header">
               <div>
-                <span className="case-hearings-eyebrow">
-                  Court schedule
-                </span>
+                <span className="case-hearings-eyebrow">{tr("Court schedule")}</span>
 
-                <h3>Hearings</h3>
+                <h3>{tr("Hearings")}</h3>
 
-                <p>
-                  Hearing dates are synchronized with the central Hearings module.
-                </p>
+                <p>{tr("Hearing dates are synchronized with the central Hearings module.")}</p>
               </div>
 
               <div className="case-hearings-actions">
@@ -301,17 +299,13 @@ export function CaseTabs({
                   className="secondary-action-button"
                   to={`/hearings?caseId=${caseRecord.id}`}
                 >
-                  <ExternalLink size={15} />
-                  View All
-                </Link>
+                  <ExternalLink size={15} />{tr("View All")}</Link>
 
                 <Link
                   className="primary-action-button"
                   to={`/hearings?caseId=${caseRecord.id}&schedule=1`}
                 >
-                  <CalendarPlus size={15} />
-                  Schedule Hearing
-                </Link>
+                  <CalendarPlus size={15} />{tr("Schedule Hearing")}</Link>
               </div>
             </div>
 
@@ -322,11 +316,11 @@ export function CaseTabs({
                 </div>
 
                 <div>
-                  <span>Next Hearing</span>
+                  <span>{tr("Next Hearing")}</span>
 
                   <strong>
                     {nextUpcomingHearing.title ||
-                      'Court Hearing'}
+                      tr("Court Hearing")}
                   </strong>
 
                   <small>
@@ -335,21 +329,17 @@ export function CaseTabs({
                     )}
                     {' · '}
                     {nextUpcomingHearing.court ||
-                      'Court not set'}
+                      tr("Court not set")}
                   </small>
                 </div>
               </div>
             )}
 
             {loadingHearings ? (
-              <div className="case-empty-state">
-                Loading hearings…
-              </div>
+              <div className="case-empty-state">{tr("Loading hearings…")}</div>
             ) : hearingError ? (
               <div className="case-empty-state case-hearing-error">
-                <strong>
-                  Unable to load hearings
-                </strong>
+                <strong>{tr("Unable to load hearings")}</strong>
 
                 <p>{hearingError}</p>
               </div>
@@ -357,21 +347,15 @@ export function CaseTabs({
               <div className="case-empty-state">
                 <Gavel size={22} />
 
-                <strong>
-                  No hearings scheduled
-                </strong>
+                <strong>{tr("No hearings scheduled")}</strong>
 
-                <p>
-                  Schedule the first hearing for this matter.
-                </p>
+                <p>{tr("Schedule the first hearing for this matter.")}</p>
 
                 <Link
                   className="primary-action-button"
                   to={`/hearings?caseId=${caseRecord.id}&schedule=1`}
                 >
-                  <CalendarPlus size={15} />
-                  Schedule Hearing
-                </Link>
+                  <CalendarPlus size={15} />{tr("Schedule Hearing")}</Link>
               </div>
             ) : (
               <div className="case-hearing-list">
@@ -422,13 +406,11 @@ export function CaseTabs({
                           <div>
                             <strong>
                               {hearing.title ||
-                                'Court Hearing'}
+                                tr("Court Hearing")}
                             </strong>
 
                             {isNext && (
-                              <span className="case-next-chip">
-                                Next
-                              </span>
+                              <span className="case-next-chip">{tr("Next")}</span>
                             )}
                           </div>
 
@@ -457,7 +439,7 @@ export function CaseTabs({
                           <span>
                             <MapPin size={13} />
                             {hearing.court ||
-                              'Court not set'}
+                              tr("Court not set")}
 
                             {hearing.courtroom
                               ? ` · ${hearing.courtroom}`
@@ -467,9 +449,7 @@ export function CaseTabs({
 
                         {hearing.outcome && (
                           <p className="case-hearing-outcome">
-                            <strong>
-                              Outcome:
-                            </strong>{' '}
+                            <strong>{tr("Outcome:")}</strong>{' '}
                             {hearing.outcome}
                           </p>
                         )}
@@ -478,9 +458,7 @@ export function CaseTabs({
                       <Link
                         className="case-hearing-open"
                         to={`/hearings?caseId=${caseRecord.id}`}
-                      >
-                        Open
-                      </Link>
+                      >{tr("Open")}</Link>
                     </article>
                   );
                 })}
@@ -494,39 +472,31 @@ export function CaseTabs({
             <div className="case-documents-workspace">
               <div className="case-documents-header">
                 <div>
-                  <span className="case-hearings-eyebrow">
-                    Documents workspace
-                  </span>
-                  <h3>Case documents</h3>
-                  <p>
-                    Manage files attached to this case, preview metadata, and open or download documents securely.
-                  </p>
+                  <span className="case-hearings-eyebrow">{tr("Documents workspace")}</span>
+                  <h3>{tr("Case documents")}</h3>
+                  <p>{tr("Manage files attached to this case, preview metadata, and open or download documents securely.")}</p>
                 </div>
 
                 <div className="case-hearings-actions">
                   <Link
                     className="secondary-action-button"
                     to={`/documents?caseId=${caseRecord.id}`}
-                  >
-                    View All
-                  </Link>
+                  >{tr("View All")}</Link>
 
                   <Link
                     className="primary-action-button"
                     to={`/documents?caseId=${caseRecord.id}&upload=1`}
-                  >
-                    Upload Document
-                  </Link>
+                  >{tr("Upload Document")}</Link>
                 </div>
               </div>
 
               <section className="case-documents-summary">
                 <div>
-                  <span>Total documents</span>
+                  <span>{tr("Total documents")}</span>
                   <strong>{caseDocuments.length}</strong>
                 </div>
                 <div>
-                  <span>Confidential</span>
+                  <span>{tr("Confidential")}</span>
                   <strong>
                     {caseDocuments.filter(
                       (document) => document.is_confidential,
@@ -534,7 +504,7 @@ export function CaseTabs({
                   </strong>
                 </div>
                 <div>
-                  <span>Standard</span>
+                  <span>{tr("Standard")}</span>
                   <strong>
                     {caseDocuments.filter(
                       (document) => !document.is_confidential,
@@ -542,54 +512,52 @@ export function CaseTabs({
                   </strong>
                 </div>
                 <div>
-                  <span>Latest upload</span>
+                  <span>{tr("Latest upload")}</span>
                   <strong>
                     {caseDocuments.length > 0
                       ? formatDateTime(
                           caseDocuments[0].created_at,
                         )
-                      : 'No uploads yet'}
+                      : tr("No uploads yet")}
                   </strong>
                 </div>
               </section>
 
               {documentActionError && (
                 <div className="case-empty-state case-hearing-error">
-                  <strong>Document action failed</strong>
+                  <strong>{tr("Document action failed")}</strong>
                   <p>{documentActionError}</p>
                 </div>
               )}
 
               {loadingDocuments ? (
                 <div className="case-empty-state">
-                  <strong>Loading documents…</strong>
+                  <strong>{tr("Loading documents…")}</strong>
                 </div>
               ) : documentsError ? (
                 <div className="case-empty-state case-hearing-error">
-                  <strong>Unable to load documents</strong>
+                  <strong>{tr("Unable to load documents")}</strong>
                   <p>{documentsError}</p>
                 </div>
               ) : caseDocuments.length === 0 ? (
                 <div className="case-empty-state">
-                  <strong>No documents found</strong>
-                  <p>
-                    Documents uploaded for this case will appear here. Use the upload workflow to add evidence, filings, and related materials.
-                  </p>
+                  <strong>{tr("No documents found")}</strong>
+                  <p>{tr("Documents uploaded for this case will appear here. Use the upload workflow to add evidence, filings, and related materials.")}</p>
                 </div>
               ) : (
                 <div className="case-documents-table-wrap">
                   <table className="case-documents-table">
                     <thead>
                       <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Description</th>
-                        <th>Size</th>
-                        <th>Uploaded</th>
-                        <th>Version</th>
-                        <th>Privacy</th>
-                        <th>Uploaded by</th>
-                        <th>Actions</th>
+                        <th>{tr("Name")}</th>
+                        <th>{tr("Type")}</th>
+                        <th>{tr("Description")}</th>
+                        <th>{tr("Size")}</th>
+                        <th>{tr("Uploaded")}</th>
+                        <th>{tr("Version")}</th>
+                        <th>{tr("Privacy")}</th>
+                        <th>{tr("Uploaded by")}</th>
+                        <th>{tr("Actions")}</th>
                       </tr>
                     </thead>
 
@@ -601,11 +569,11 @@ export function CaseTabs({
                         return (
                           <tr key={document.id}>
                             <td>{document.name}</td>
-                            <td>{document.document_type || document.mime_type || 'File'}</td>
+                            <td>{document.document_type || document.mime_type || tr("File")}</td>
                             <td>
                               {document.description
                                 ? document.description.slice(0, 80)
-                                : 'No description'}
+                                : tr("No description")}
                             </td>
                             <td>{formatFileSize(document.size_bytes)}</td>
                             <td>{formatDateTime(document.created_at)}</td>
@@ -619,14 +587,14 @@ export function CaseTabs({
                                 }`}
                               >
                                 {document.is_confidential
-                                  ? 'Confidential'
-                                  : 'Standard'}
+                                  ? tr("Confidential")
+                                  : tr("Standard")}
                               </span>
                             </td>
                             <td>
                               {document.uploaded_by_name ??
                                 document.uploaded_by_staff?.full_name ??
-                                'Unknown'}
+                                tr("Unknown")}
                             </td>
                             <td>
                               <div className="case-document-actions">
@@ -656,7 +624,7 @@ export function CaseTabs({
                                     }
                                   }}
                                   disabled={actionLoading}
-                                  title="Open"
+                                  title={tr("Open")}
                                 >
                                   <ExternalLink size={14} />
                                 </button>
@@ -680,7 +648,7 @@ export function CaseTabs({
                                     }
                                   }}
                                   disabled={actionLoading}
-                                  title="Download"
+                                  title={tr("Download")}
                                 >
                                   <Download size={14} />
                                 </button>
@@ -701,39 +669,31 @@ export function CaseTabs({
           <div className="case-tasks-workspace">
             <div className="case-tasks-header">
               <div>
-                <span className="case-hearings-eyebrow">
-                  Task workspace
-                </span>
-                <h3>Case tasks</h3>
-                <p>
-                  Tasks for this matter are synchronized with the central tasks module.
-                </p>
+                <span className="case-hearings-eyebrow">{tr("Task workspace")}</span>
+                <h3>{tr("Case tasks")}</h3>
+                <p>{tr("Tasks for this matter are synchronized with the central tasks module.")}</p>
               </div>
 
               <div className="case-hearings-actions">
                 <Link
                   className="secondary-action-button"
                   to={`/tasks?caseId=${caseRecord.id}`}
-                >
-                  View All
-                </Link>
+                >{tr("View All")}</Link>
 
                 <Link
                   className="primary-action-button"
                   to={`/tasks?caseId=${caseRecord.id}&create=1`}
-                >
-                  Add Task
-                </Link>
+                >{tr("Add Task")}</Link>
               </div>
             </div>
 
             <section className="case-tasks-summary">
               <div>
-                <span>Total tasks</span>
+                <span>{tr("Total tasks")}</span>
                 <strong>{caseTasks.length}</strong>
               </div>
               <div>
-                <span>Outstanding</span>
+                <span>{tr("Outstanding")}</span>
                 <strong>
                   {caseTasks.filter(
                     (task) =>
@@ -742,7 +702,7 @@ export function CaseTabs({
                 </strong>
               </div>
               <div>
-                <span>Overdue</span>
+                <span>{tr("Overdue")}</span>
                 <strong>
                   {caseTasks.filter((task) => {
                     if (task.status === 'Completed') {
@@ -761,7 +721,7 @@ export function CaseTabs({
                 </strong>
               </div>
               <div>
-                <span>Completed</span>
+                <span>{tr("Completed")}</span>
                 <strong>
                   {caseTasks.filter(
                     (task) =>
@@ -773,25 +733,21 @@ export function CaseTabs({
 
             {loadingTasks ? (
               <div className="case-empty-state">
-                <strong>Loading tasks…</strong>
+                <strong>{tr("Loading tasks…")}</strong>
               </div>
             ) : tasksError ? (
               <div className="case-empty-state case-hearing-error">
-                <strong>Unable to load tasks</strong>
+                <strong>{tr("Unable to load tasks")}</strong>
                 <p>{tasksError}</p>
               </div>
             ) : caseTasks.length === 0 ? (
               <div className="case-empty-state">
-                <strong>No tasks found</strong>
-                <p>
-                  Create the first task related to this case to track work and deadlines.
-                </p>
+                <strong>{tr("No tasks found")}</strong>
+                <p>{tr("Create the first task related to this case to track work and deadlines.")}</p>
                 <Link
                   className="primary-action-button"
                   to={`/tasks?caseId=${caseRecord.id}&create=1`}
-                >
-                  Add Task
-                </Link>
+                >{tr("Add Task")}</Link>
               </div>
             ) : (
               <div className="case-task-list">
@@ -824,31 +780,31 @@ export function CaseTabs({
                         >
                           <strong>{task.title}</strong>
                           <span>
-                            {task.description || 'No description provided.'}
+                            {task.description || tr("No description provided.")}
                           </span>
                         </Link>
                       </div>
 
                       <div className="case-task-meta">
                         <span className={`status-badge status-${task.status.toLowerCase().replace(/\s+/g, '-')}`}>
-                          {task.status}
+                          {trEnum(task.status)}
                         </span>
                         <span className={`priority-badge priority-${task.priority.toLowerCase()}`}>
-                          {task.priority}
+                          {trEnum(task.priority)}
                         </span>
                         <span>
                           {task.due_at
-                            ? new Intl.DateTimeFormat('en-AE', {
+                            ? new Intl.DateTimeFormat(getLocale("en-AE"), {
                                 day: '2-digit',
                                 month: 'short',
                                 year: 'numeric',
                               }).format(new Date(task.due_at))
-                            : 'No due date'}
+                            : tr("No due date")}
                         </span>
                         <span>
                           {task.assigned_staff_id
-                            ? taskStaff[task.assigned_staff_id] ?? 'Assigned staff'
-                            : 'Unassigned'}
+                            ? taskStaff[task.assigned_staff_id] ?? tr("Assigned staff")
+                            : tr("Unassigned")}
                         </span>
                       </div>
                     </article>
@@ -875,18 +831,16 @@ export function CaseTabs({
       case 'Timeline':
         return (
           <div className="case-empty-state">
-            <strong>Timeline</strong>
-            <p>
-              Follow case progress and event history across filings, hearings, and notes in the timeline.
-            </p>
+            <strong>{tr("Timeline")}</strong>
+            <p>{tr("Follow case progress and event history across filings, hearings, and notes in the timeline.")}</p>
           </div>
         );
 
       case 'Notes':
         return (
           <article className="case-summary-card case-summary-card-wide">
-            <h3>Internal Notes</h3>
-            <p>{caseRecord.internal_notes || 'No internal notes have been added.'}</p>
+            <h3>{tr("Internal Notes")}</h3>
+            <p>{caseRecord.internal_notes || tr("No internal notes have been added.")}</p>
           </article>
         );
 
@@ -907,7 +861,7 @@ export function CaseTabs({
     documentsError,
     documentActionError,
     documentActionId,
-  ]);
+  , interfaceLanguage]);
 
   return (
     <div className="case-tabs">
@@ -949,13 +903,13 @@ function normalizeStatus(
 function formatLabel(
   value: string,
 ): string {
-  return value
+  return tr(value
     .replace(/[_-]/g, ' ')
     .replace(
       /\b\w/g,
       (letter) =>
         letter.toUpperCase(),
-    );
+    ));
 }
 
 function formatDateTime(
@@ -968,7 +922,7 @@ function formatDateTime(
   }
 
   return new Intl.DateTimeFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       day: '2-digit',
       month: 'short',
@@ -1020,7 +974,7 @@ function formatMonth(
   return Number.isNaN(date.getTime())
     ? '---'
     : new Intl.DateTimeFormat(
-        'en-AE',
+        getLocale("en-AE"),
         {
           month: 'short',
         },
@@ -1035,7 +989,7 @@ function formatTime(
   return Number.isNaN(date.getTime())
     ? '--:--'
     : new Intl.DateTimeFormat(
-        'en-GB',
+        getLocale("en-GB"),
         {
           hour: '2-digit',
           minute: '2-digit',
@@ -1050,7 +1004,7 @@ function formatDate(value: string): string {
     return 'Unknown';
   }
 
-  return new Intl.DateTimeFormat('en-AE', {
+  return new Intl.DateTimeFormat(getLocale("en-AE"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

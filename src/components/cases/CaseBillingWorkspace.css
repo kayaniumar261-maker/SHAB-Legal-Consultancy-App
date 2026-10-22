@@ -177,7 +177,7 @@
 .fee-installment-amount strong { overflow: hidden; color: #1e293b; font-size: .77rem; text-overflow: ellipsis; white-space: nowrap; }
 .fee-installment-main span,
 .fee-installment-amount span { color: #94a3b8; font-size: .64rem; }
-.fee-installment-amount { text-align: right; }
+.fee-installment-amount { text-align: end; }
 
 .fee-status { display: inline-flex; justify-content: center; padding: 5px 8px; border-radius: 999px; background: #f1f5f9; color: #475569; font-size: .58rem; font-weight: 850; text-transform: uppercase; }
 .fee-status.ready { background: #fef3c7; color: #a16207; }
@@ -223,7 +223,7 @@
 @media (max-width: 980px) {
   .fee-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fee-installment-row { grid-template-columns: 32px 1fr auto; }
-  .fee-installment-amount { text-align: left; }
+  .fee-installment-amount { text-align: start; }
   .fee-status { justify-self: start; }
   .fee-installment-actions { grid-column: 2 / -1; justify-content: flex-start; flex-wrap: wrap; }
 }
@@ -421,7 +421,7 @@
 .case-billing-table td {
   padding: 12px 14px;
   border-bottom: 1px solid #eef2f7;
-  text-align: left;
+  text-align: start;
   vertical-align: middle;
 }
 

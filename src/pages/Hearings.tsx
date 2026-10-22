@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale, trEnum } from '../i18n/locale';
 import {
   useCallback,
   useEffect,
@@ -179,6 +180,7 @@ function isActiveHearing(
 }
 
 export function Hearings() {
+  const interfaceLanguage = useLocale();
   const { profile } = useAccessProfile();
   const administrator = profile?.access_role === 'administrator' && profile.is_active;
   const [searchParams, setSearchParams] =
@@ -237,7 +239,7 @@ export function Hearings() {
         end:
           end.toISOString(),
       };
-    }, [contextDate]);
+    }, [contextDate, interfaceLanguage]);
 
   const [
     hearings,
@@ -627,7 +629,7 @@ export function Hearings() {
       };
     }, [
       dashboardHearings,
-    ]);
+    , interfaceLanguage]);
 
   const todayAgenda =
     useMemo(() => {
@@ -654,7 +656,7 @@ export function Hearings() {
         );
     }, [
       dashboardHearings,
-    ]);
+    , interfaceLanguage]);
 
   const handleAddHearing =
     () => {
@@ -876,7 +878,7 @@ export function Hearings() {
       new Date(
         dateString,
       ).toLocaleDateString(
-        'en-AE',
+        getLocale("en-AE"),
         {
           weekday:
             'short',
@@ -899,7 +901,7 @@ export function Hearings() {
       new Date(
         dateString,
       ).toLocaleTimeString(
-        'en-AE',
+        getLocale("en-AE"),
         {
           hour:
             '2-digit',
@@ -959,17 +961,11 @@ export function Hearings() {
     <div className="hearings-container">
       <header className="hearings-page-header">
         <div>
-          <div className="hearings-eyebrow">
-            Litigation Operations
-          </div>
+          <div className="hearings-eyebrow">{tr("Litigation Operations")}</div>
 
-          <h1>
-            Hearings & Court Calendar
-          </h1>
+          <h1>{tr("Hearings & Court Calendar")}</h1>
 
-          <p>
-            Manage court appearances, outcomes, adjournments and upcoming deadlines.
-          </p>
+          <p>{tr("Manage court appearances, outcomes, adjournments and upcoming deadlines.")}</p>
         </div>
 
         <div className="hearings-header-actions">
@@ -986,10 +982,7 @@ export function Hearings() {
           >
             <RefreshCw
               size={17}
-            />
-
-            Refresh
-          </button>
+            />{tr("Refresh")}</button>
 
           <button
             className="hearings-add-button"
@@ -1000,10 +993,7 @@ export function Hearings() {
           >
             <Plus
               size={18}
-            />
-
-            Schedule Hearing
-          </button>
+            />{tr("Schedule Hearing")}</button>
         </div>
       </header>
 
@@ -1017,7 +1007,7 @@ export function Hearings() {
           />
 
           <span>
-            {error}
+            {tr(error)}
           </span>
 
           <button
@@ -1025,7 +1015,7 @@ export function Hearings() {
             onClick={() =>
               setError(null)
             }
-            aria-label="Dismiss error"
+            aria-label={tr("Dismiss error")}
           >
             ×
           </button>
@@ -1034,7 +1024,7 @@ export function Hearings() {
 
       <section
         className="hearings-kpi-grid"
-        aria-label="Hearing statistics"
+        aria-label={tr("Hearing statistics")}
       >
         <article className="hearings-kpi-card hearings-kpi-primary">
           <div className="hearings-kpi-icon">
@@ -1044,9 +1034,7 @@ export function Hearings() {
           </div>
 
           <div>
-            <span>
-              Today
-            </span>
+            <span>{tr("Today")}</span>
 
             <strong>
               {dashboardLoading
@@ -1054,9 +1042,7 @@ export function Hearings() {
                 : dashboardStats.today}
             </strong>
 
-            <small>
-              Active court appearances
-            </small>
+            <small>{tr("Active court appearances")}</small>
           </div>
         </article>
 
@@ -1068,9 +1054,7 @@ export function Hearings() {
           </div>
 
           <div>
-            <span>
-              This Week
-            </span>
+            <span>{tr("This Week")}</span>
 
             <strong>
               {dashboardLoading
@@ -1078,9 +1062,7 @@ export function Hearings() {
                 : dashboardStats.thisWeek}
             </strong>
 
-            <small>
-              Scheduled and pending
-            </small>
+            <small>{tr("Scheduled and pending")}</small>
           </div>
         </article>
 
@@ -1092,9 +1074,7 @@ export function Hearings() {
           </div>
 
           <div>
-            <span>
-              Completed
-            </span>
+            <span>{tr("Completed")}</span>
 
             <strong>
               {dashboardLoading
@@ -1102,9 +1082,7 @@ export function Hearings() {
                 : dashboardStats.completed}
             </strong>
 
-            <small>
-              Recorded outcomes
-            </small>
+            <small>{tr("Recorded outcomes")}</small>
           </div>
         </article>
 
@@ -1116,9 +1094,7 @@ export function Hearings() {
           </div>
 
           <div>
-            <span>
-              Adjourned
-            </span>
+            <span>{tr("Adjourned")}</span>
 
             <strong>
               {dashboardLoading
@@ -1126,9 +1102,7 @@ export function Hearings() {
                 : dashboardStats.adjourned}
             </strong>
 
-            <small>
-              Require follow-up
-            </small>
+            <small>{tr("Require follow-up")}</small>
           </div>
         </article>
 
@@ -1140,9 +1114,7 @@ export function Hearings() {
           </div>
 
           <div>
-            <span>
-              Overdue
-            </span>
+            <span>{tr("Overdue")}</span>
 
             <strong>
               {dashboardLoading
@@ -1150,9 +1122,7 @@ export function Hearings() {
                 : dashboardStats.overdue}
             </strong>
 
-            <small>
-              Past active hearings
-            </small>
+            <small>{tr("Past active hearings")}</small>
           </div>
         </article>
       </section>
@@ -1160,18 +1130,14 @@ export function Hearings() {
       <section className="hearings-agenda-panel">
         <div className="hearings-section-heading">
           <div>
-            <span>
-              Daily Agenda
-            </span>
+            <span>{tr("Daily Agenda")}</span>
 
-            <h2>
-              Today's Hearings
-            </h2>
+            <h2>{tr("Today's Hearings")}</h2>
           </div>
 
           <span className="hearings-agenda-date">
             {new Date().toLocaleDateString(
-              'en-AE',
+              getLocale("en-AE"),
               {
                 weekday:
                   'long',
@@ -1187,14 +1153,10 @@ export function Hearings() {
         </div>
 
         {dashboardLoading ? (
-          <div className="hearings-agenda-empty">
-            Loading today's agenda…
-          </div>
+          <div className="hearings-agenda-empty">{tr("Loading today's agenda…")}</div>
         ) : todayAgenda.length ===
           0 ? (
-          <div className="hearings-agenda-empty">
-            No hearings scheduled for today.
-          </div>
+          <div className="hearings-agenda-empty">{tr("No hearings scheduled for today.")}</div>
         ) : (
           <div className="hearings-agenda-list">
             {todayAgenda.map(
@@ -1240,7 +1202,7 @@ export function Hearings() {
                       hearing.status,
                     )}
                   >
-                    {hearing.status}
+                    {trEnum(hearing.status)}
                   </span>
                 </button>
               ),
@@ -1252,19 +1214,13 @@ export function Hearings() {
       <section className="hearings-workspace">
         <div className="hearings-workspace-header">
           <div>
-            <span>
-              Hearing Register
-            </span>
+            <span>{tr("Hearing Register")}</span>
 
-            <h2>
-              All Hearings
-            </h2>
+            <h2>{tr("All Hearings")}</h2>
           </div>
 
           <div className="hearings-result-count">
-            {totalCount}{' '}
-            record
-            {totalCount ===
+            {totalCount}{' '}{tr("record")}{totalCount ===
             1
               ? ''
               : 's'}
@@ -1277,9 +1233,9 @@ export function Hearings() {
               size={18}
             />
 
-            <input
+            <input dir="auto"
               type="search"
-              placeholder="Search by title or court…"
+              placeholder={tr("Search by title or court…")}
               value={
                 searchQuery
               }
@@ -1320,31 +1276,19 @@ export function Hearings() {
                 );
               }}
               className="hearings-filter-select"
-              aria-label="Filter by hearing status"
+              aria-label={tr("Filter by hearing status")}
             >
-              <option value="">
-                All statuses
-              </option>
+              <option value="">{tr("All statuses")}</option>
 
-              <option value="Scheduled">
-                Scheduled
-              </option>
+              <option value="Scheduled">{tr("Scheduled")}</option>
 
-              <option value="Pending">
-                Pending
-              </option>
+              <option value="Pending">{tr("Pending")}</option>
 
-              <option value="Completed">
-                Completed
-              </option>
+              <option value="Completed">{tr("Completed")}</option>
 
-              <option value="Adjourned">
-                Adjourned
-              </option>
+              <option value="Adjourned">{tr("Adjourned")}</option>
 
-              <option value="Cancelled">
-                Cancelled
-              </option>
+              <option value="Cancelled">{tr("Cancelled")}</option>
             </select>
 
             <select
@@ -1367,31 +1311,19 @@ export function Hearings() {
                 );
               }}
               className="hearings-filter-select"
-              aria-label="Filter by hearing type"
+              aria-label={tr("Filter by hearing type")}
             >
-              <option value="">
-                All hearing types
-              </option>
+              <option value="">{tr("All hearing types")}</option>
 
-              <option value="Preliminary">
-                Preliminary
-              </option>
+              <option value="Preliminary">{tr("Preliminary")}</option>
 
-              <option value="Case Management">
-                Case Management
-              </option>
+              <option value="Case Management">{tr("Case Management")}</option>
 
-              <option value="Final Hearing">
-                Final Hearing
-              </option>
+              <option value="Final Hearing">{tr("Final Hearing")}</option>
 
-              <option value="Appeal">
-                Appeal
-              </option>
+              <option value="Appeal">{tr("Appeal")}</option>
 
-              <option value="Other">
-                Other
-              </option>
+              <option value="Other">{tr("Other")}</option>
             </select>
 
             {(searchQuery ||
@@ -1403,9 +1335,7 @@ export function Hearings() {
                 onClick={
                   resetFilters
                 }
-              >
-                Clear filters
-              </button>
+              >{tr("Clear filters")}</button>
             )}
           </div>
         </div>
@@ -1414,13 +1344,9 @@ export function Hearings() {
           <div className="hearings-state-card">
             <div className="hearings-spinner" />
 
-            <strong>
-              Loading hearings
-            </strong>
+            <strong>{tr("Loading hearings")}</strong>
 
-            <span>
-              Retrieving the latest court schedule.
-            </span>
+            <span>{tr("Retrieving the latest court schedule.")}</span>
           </div>
         ) : hearings.length ===
           0 ? (
@@ -1429,13 +1355,9 @@ export function Hearings() {
               size={34}
             />
 
-            <strong>
-              No hearings found
-            </strong>
+            <strong>{tr("No hearings found")}</strong>
 
-            <span>
-              Adjust the filters or schedule a new hearing.
-            </span>
+            <span>{tr("Adjust the filters or schedule a new hearing.")}</span>
 
             <button
               type="button"
@@ -1446,10 +1368,7 @@ export function Hearings() {
             >
               <Plus
                 size={17}
-              />
-
-              Schedule Hearing
-            </button>
+              />{tr("Schedule Hearing")}</button>
           </div>
         ) : (
           <div className="hearings-card-list">
@@ -1479,7 +1398,7 @@ export function Hearings() {
                         {new Date(
                           hearing.hearing_at,
                         ).toLocaleDateString(
-                          'en-AE',
+                          getLocale("en-AE"),
                           {
                             month:
                               'short',
@@ -1515,7 +1434,7 @@ export function Hearings() {
                                 hearing.hearing_type,
                               )}
                             >
-                              {hearing.hearing_type}
+                              {trEnum(hearing.hearing_type)}
                             </span>
 
                             <span
@@ -1523,7 +1442,7 @@ export function Hearings() {
                                 hearing.status,
                               )}
                             >
-                              {hearing.status}
+                              {trEnum(hearing.status)}
                             </span>
                           </div>
 
@@ -1531,15 +1450,14 @@ export function Hearings() {
                             {hearing.title}
                           </h3>
 
-                          <p>
-                            Case reference:{' '}
+                          <p>{tr("Case reference:")}{' '}
                             {getHearingCaseReference(hearing)}
                           </p>
                           {hearing.case?.matter_number?.trim() && (
-                            <p>Matter reference: {hearing.case.matter_number}</p>
+                            <p>{tr("Matter reference:")}{" "}<bdi dir="ltr">{hearing.case.matter_number}</bdi></p>
                           )}
                           {hearing.case?.client?.full_name?.trim() && (
-                            <p>Client: {hearing.case.client.full_name}</p>
+                            <p>{tr("Client:")}{" "}{hearing.case.client.full_name}</p>
                           )}
                         </div>
                       </div>
@@ -1551,9 +1469,7 @@ export function Hearings() {
                           />
 
                           <span>
-                            <small>
-                              Court
-                            </small>
+                            <small>{tr("Court")}</small>
 
                             <strong>
                               {hearing.court}
@@ -1567,14 +1483,12 @@ export function Hearings() {
                           />
 
                           <span>
-                            <small>
-                              Venue
-                            </small>
+                            <small>{tr("Venue")}</small>
 
                             <strong>
                               {hearing.courtroom ||
                                 hearing.location ||
-                                'Not specified'}
+                                tr("Not specified")}
                             </strong>
                           </span>
                         </div>
@@ -1585,9 +1499,7 @@ export function Hearings() {
                           />
 
                           <span>
-                            <small>
-                              Date
-                            </small>
+                            <small>{tr("Date")}</small>
 
                             <strong>
                               {formatDate(
@@ -1600,9 +1512,7 @@ export function Hearings() {
 
                       {hearing.outcome && (
                         <div className="hearing-record-outcome">
-                          <span>
-                            Outcome
-                          </span>
+                          <span>{tr("Outcome")}</span>
 
                           <p>
                             {hearing.outcome}
@@ -1614,7 +1524,7 @@ export function Hearings() {
                     <div className="hearing-record-actions">
                       <button
                         type="button"
-                        title="View hearing"
+                        title={tr("View hearing")}
                         onClick={() =>
                           handleViewHearing(
                             hearing,
@@ -1625,14 +1535,12 @@ export function Hearings() {
                           size={16}
                         />
 
-                        <span>
-                          View
-                        </span>
+                        <span>{tr("View")}</span>
                       </button>
 
                       <button
                         type="button"
-                        title="Edit hearing"
+                        title={tr("Edit hearing")}
                         onClick={() =>
                           handleEditHearing(
                             hearing,
@@ -1643,9 +1551,7 @@ export function Hearings() {
                           size={16}
                         />
 
-                        <span>
-                          Edit
-                        </span>
+                        <span>{tr("Edit")}</span>
                       </button>
 
                       {canUpdateStatus && (
@@ -1653,7 +1559,7 @@ export function Hearings() {
                           <button
                             type="button"
                             className="hearing-action-success"
-                            title="Mark completed"
+                            title={tr("Mark completed")}
                             onClick={() =>
                               void handleMarkCompleted(
                                 hearing,
@@ -1664,15 +1570,13 @@ export function Hearings() {
                               size={16}
                             />
 
-                            <span>
-                              Complete
-                            </span>
+                            <span>{tr("Complete")}</span>
                           </button>
 
                           <button
                             type="button"
                             className="hearing-action-warning"
-                            title="Mark adjourned"
+                            title={tr("Mark adjourned")}
                             onClick={() =>
                               void handleMarkAdjourned(
                                 hearing,
@@ -1683,15 +1587,13 @@ export function Hearings() {
                               size={16}
                             />
 
-                            <span>
-                              Adjourn
-                            </span>
+                            <span>{tr("Adjourn")}</span>
                           </button>
 
                           <button
                             type="button"
                             className="hearing-action-danger"
-                            title="Cancel hearing"
+                            title={tr("Cancel hearing")}
                             onClick={() =>
                               void handleMarkCancelled(
                                 hearing,
@@ -1702,9 +1604,7 @@ export function Hearings() {
                               size={16}
                             />
 
-                            <span>
-                              Cancel
-                            </span>
+                            <span>{tr("Cancel")}</span>
                           </button>
                         </>
                       )}
@@ -1712,7 +1612,7 @@ export function Hearings() {
                       <button
                         type="button"
                         className="hearing-action-danger"
-                        title={administrator ? 'Delete hearing' : 'Request hearing deletion'}
+                        title={administrator ? tr("Delete hearing") : tr("Request hearing deletion")}
                         onClick={() =>
                           handleDeleteHearing(
                             hearing,
@@ -1724,7 +1624,7 @@ export function Hearings() {
                         />
 
                         <span>
-                          {administrator ? 'Delete' : 'Request deletion'}
+                          {administrator ? tr("Delete") : tr("Request deletion")}
                         </span>
                       </button>
                     </div>
@@ -1739,16 +1639,14 @@ export function Hearings() {
           totalCount >
             0 && (
             <div className="hearings-pagination">
-              <div className="hearings-pagination-info">
-                Showing{' '}
+              <div className="hearings-pagination-info">{tr("Showing")}{' '}
                 <strong>
                   {startIndex}
                 </strong>
                 –
                 <strong>
                   {endIndex}
-                </strong>{' '}
-                of{' '}
+                </strong>{' '}{tr("of")}{' '}
                 <strong>
                   {totalCount}
                 </strong>
@@ -1773,19 +1671,14 @@ export function Hearings() {
                     currentPage ===
                     1
                   }
-                  aria-label="Previous page"
+                  aria-label={tr("Previous page")}
                 >
                   <ChevronLeft
                     size={17}
-                  />
+                  />{tr("Previous")}</button>
 
-                  Previous
-                </button>
-
-                <span>
-                  Page{' '}
-                  {currentPage}{' '}
-                  of{' '}
+                <span>{tr("Page")}{' '}
+                  {currentPage}{' '}{tr("of")}{' '}
                   {totalPages}
                 </span>
 
@@ -1807,11 +1700,8 @@ export function Hearings() {
                     currentPage >=
                     totalPages
                   }
-                  aria-label="Next page"
-                >
-                  Next
-
-                  <ChevronRight
+                  aria-label={tr("Next page")}
+                >{tr("Next")}<ChevronRight
                     size={17}
                   />
                 </button>
@@ -1878,7 +1768,7 @@ export function Hearings() {
         open={showDeleteModal && !administrator && Boolean(selectedHearing)}
         entityType="hearing"
         recordId={selectedHearing?.id ?? null}
-        recordLabel={selectedHearing?.title ?? 'Hearing record'}
+        recordLabel={selectedHearing?.title ?? tr("Hearing record")}
         onClose={() => {
           setShowDeleteModal(false);
           setSelectedHearing(null);

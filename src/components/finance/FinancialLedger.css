@@ -248,7 +248,7 @@
   font-size: 0.64rem;
   font-weight: 850;
   letter-spacing: 0.07em;
-  text-align: left;
+  text-align: start;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -517,14 +517,14 @@
 .financial-ledger-table th:nth-child(6),
 .financial-ledger-table td:nth-child(6) {
   width: 145px;
-  text-align: right;
+  text-align: end;
   white-space: nowrap;
 }
 
 .financial-ledger-table th:nth-child(7),
 .financial-ledger-table td:nth-child(7) {
   width: 80px;
-  text-align: right;
+  text-align: end;
 }
 
 .financial-ledger-table td:nth-child(3) {

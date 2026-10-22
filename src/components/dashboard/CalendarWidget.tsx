@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import {
   ChevronLeft,
   ChevronRight,
@@ -43,6 +44,7 @@ function sameDay(
 }
 
 export function CalendarWidget() {
+  const interfaceLanguage = useLocale();
   const navigate = useNavigate();
 
   const [
@@ -108,7 +110,7 @@ export function CalendarWidget() {
 
   const monthLabel =
     new Intl.DateTimeFormat(
-      'en-AE',
+      getLocale("en-AE"),
       {
         month: 'long',
         year: 'numeric',
@@ -157,7 +159,7 @@ export function CalendarWidget() {
     }
 
     return cells;
-  }, [visibleMonth]);
+  }, [visibleMonth, interfaceLanguage]);
 
   const eventsByDay = useMemo(() => {
     return events.reduce<
@@ -190,7 +192,7 @@ export function CalendarWidget() {
       },
       {},
     );
-  }, [events]);
+  }, [events, interfaceLanguage]);
 
   const eventSummary =
     useMemo(() => {
@@ -226,7 +228,7 @@ export function CalendarWidget() {
         tasks,
         deadlines,
       };
-    }, [events]);
+    }, [events, interfaceLanguage]);
 
   const today = new Date();
 
@@ -234,17 +236,11 @@ export function CalendarWidget() {
     <section className="dashboard-panel calendar-widget-panel">
       <div className="panel-heading-row">
         <div>
-          <span className="section-tag">
-            FIRM CALENDAR
-          </span>
+          <span className="section-tag">{tr("FIRM CALENDAR")}</span>
 
-          <h3>
-            Calendar
-          </h3>
+          <h3>{tr("Calendar")}</h3>
 
-          <p>
-            Hearings, tasks and deadlines.
-          </p>
+          <p>{tr("Hearings, tasks and deadlines.")}</p>
         </div>
 
         <div className="calendar-month-controls">
@@ -260,7 +256,7 @@ export function CalendarWidget() {
                   ),
               )
             }
-            aria-label="Previous month"
+            aria-label={tr("Previous month")}
           >
             <ChevronLeft size={14} />
           </button>
@@ -281,7 +277,7 @@ export function CalendarWidget() {
                   ),
               )
             }
-            aria-label="Next month"
+            aria-label={tr("Next month")}
           >
             <ChevronRight size={14} />
           </button>
@@ -289,12 +285,10 @@ export function CalendarWidget() {
       </div>
 
       {loading ? (
-        <div className="dashboard-widget-state">
-          Loading calendar…
-        </div>
+        <div className="dashboard-widget-state">{tr("Loading calendar…")}</div>
       ) : error ? (
         <div className="dashboard-widget-state error">
-          {error}
+          {tr(error)}
         </div>
       ) : (
         <>
@@ -302,10 +296,10 @@ export function CalendarWidget() {
             {weekDays.map(
               (day) => (
                 <div
-                  key={day}
+                  key={tr(String(day))}
                   className="calendar-day-label"
                 >
-                  {day}
+                  {tr(String(day))}
                 </div>
               ),
             )}
@@ -355,7 +349,7 @@ export function CalendarWidget() {
 
                 return (
                   <button
-                    key={day}
+                    key={tr(String(day))}
                     type="button"
                     className={className}
                     onClick={() => {
@@ -385,16 +379,14 @@ export function CalendarWidget() {
                     }}
                     title={
                       dayEvents.length > 0
-                        ? `${dayEvents.length} event${
-                            dayEvents.length === 1
+                        ? tr("{0} event{1} — open calendar", [dayEvents.length, dayEvents.length === 1
                               ? ''
-                              : 's'
-                          } — open calendar`
-                        : 'Open calendar'
+                              : 's'])
+                        : tr("Open calendar")
                     }
                   >
                     <span>
-                      {day}
+                      {tr(String(day))}
                     </span>
 
                     {dayEvents.length >
@@ -414,15 +406,14 @@ export function CalendarWidget() {
           <div className="calendar-widget-footer">
             <span>
               {events.length === 0
-                ? 'No events this month'
-                : `${events.length} total events`}
+                ? tr("No events this month")
+                : tr("{0} total events", [events.length])}
             </span>
 
             <span>
-              {eventSummary.hearings} hearings ·{' '}
-              {eventSummary.tasks} tasks ·{' '}
-              {eventSummary.deadlines} deadlines
-            </span>
+              {eventSummary.hearings}{" "}{tr("hearings ·")}{' '}
+              {eventSummary.tasks}{" "}{tr("tasks ·")}{' '}
+              {eventSummary.deadlines}{" "}{tr("deadlines")}</span>
           </div>
         </>
       )}

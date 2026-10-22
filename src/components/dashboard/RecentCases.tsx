@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import {
   CalendarDays,
   FolderOpen,
@@ -56,16 +57,16 @@ function formatStatus(
   status: string | null | undefined,
 ): string {
   if (!status) {
-    return 'Unknown';
+    return tr('Unknown');
   }
 
-  return String(status)
+  return tr(String(status)
     .replace(/[_-]/g, ' ')
     .replace(
       /\b\w/g,
       (letter) =>
         letter.toUpperCase(),
-    );
+    ));
 }
 
 function formatDate(
@@ -87,7 +88,7 @@ function formatDate(
   }
 
   return new Intl.DateTimeFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       day: '2-digit',
       month: 'short',
@@ -97,6 +98,7 @@ function formatDate(
 }
 
 export function RecentCases() {
+  const interfaceLanguage = useLocale();
   const [cases, setCases] =
     useState<CaseWithRelations[]>([]);
 
@@ -152,15 +154,11 @@ export function RecentCases() {
     <section className="dashboard-panel recent-cases-panel">
       <div className="recent-cases-header">
         <div>
-          <span className="recent-eyebrow">
-            CASE MANAGEMENT
-          </span>
+          <span className="recent-eyebrow">{tr("CASE MANAGEMENT")}</span>
 
-          <h3>Recent Cases</h3>
+          <h3>{tr("Recent Cases")}</h3>
 
-          <p>
-            Current legal matters requiring attention.
-          </p>
+          <p>{tr("Current legal matters requiring attention.")}</p>
         </div>
 
         <div className="recent-header-icon">
@@ -169,19 +167,15 @@ export function RecentCases() {
       </div>
 
       {loading ? (
-        <div className="recent-cases-loading">
-          Loading recent cases...
-        </div>
+        <div className="recent-cases-loading">{tr("Loading recent cases...")}</div>
       ) : error ? (
         <div className="dashboard-widget-state error">
-          {error}
+          {tr(error)}
         </div>
       ) : cases.length === 0 ? (
         <div className="dashboard-widget-state">
           <FolderOpen size={22} />
-          <span>
-            No cases available yet.
-          </span>
+          <span>{tr("No cases available yet.")}</span>
         </div>
       ) : (
         <div className="recent-case-list">
@@ -198,12 +192,12 @@ export function RecentCases() {
                 <div className="case-title">
                   <strong>
                     {item.case_number ||
-                      'Unnumbered Case'}
+                      tr("Unnumbered Case")}
                   </strong>
 
                   <span>
                     {item.case_type ||
-                      'Legal Matter'}
+                      tr("Legal Matter")}
                   </span>
                 </div>
 
@@ -223,14 +217,12 @@ export function RecentCases() {
                   <UserRound size={15} />
 
                   <div>
-                    <small>
-                      Client
-                    </small>
+                    <small>{tr("Client")}</small>
 
                     <strong>
                       {item.client
                         ?.full_name ??
-                        'Unknown client'}
+                        tr("Unknown client")}
                     </strong>
                   </div>
                 </div>
@@ -239,9 +231,7 @@ export function RecentCases() {
                   <Scale size={15} />
 
                   <div>
-                    <small>
-                      Lawyer
-                    </small>
+                    <small>{tr("Lawyer")}</small>
 
                     <strong>
                       {item.assigned_staff
@@ -259,9 +249,7 @@ export function RecentCases() {
                   />
 
                   <div>
-                    <small>
-                      Hearing
-                    </small>
+                    <small>{tr("Hearing")}</small>
 
                     <strong>
                       {formatDate(
@@ -273,7 +261,7 @@ export function RecentCases() {
               </div>
 
               <div className="recent-footer">
-                <span>Court</span>
+                <span>{tr("Court")}</span>
 
                 <strong>
                   {item.court || '-'}

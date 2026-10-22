@@ -18,7 +18,8 @@
     "check:navigation": "node scripts/check-navigation.mjs",
     "check:realtime": "node scripts/check-realtime.mjs",
     "check:behavior": "node scripts/check-app-behavior.mjs",
-    "build:desktop": "tsc -b && vite build --base=./ && node scripts/check-entry-assets.mjs --desktop"
+    "build:desktop": "tsc -b && vite build --base=./ && node scripts/check-entry-assets.mjs --desktop",
+    "check:localization": "node scripts/check-localization.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",

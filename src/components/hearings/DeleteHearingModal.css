@@ -48,7 +48,7 @@
   border-radius: 6px;
   padding: 16px;
   margin: 20px 0;
-  text-align: left;
+  text-align: start;
 }
 
 .delete-hearing-details p {
@@ -76,11 +76,11 @@
   margin: 16px 0;
   padding: 12px;
   background-color: #fee;
-  border-left: 4px solid #c00;
+  border-inline-start: 4px solid #c00;
   color: #c00;
   border-radius: 4px;
   font-size: 14px;
-  text-align: left;
+  text-align: start;
 }
 
 .delete-hearing-actions {

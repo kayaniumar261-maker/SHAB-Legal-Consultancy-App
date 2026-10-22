@@ -100,13 +100,13 @@
 .hearing-details-value {
   font-size: 14px;
   color: #111111;
-  text-align: right;
+  text-align: end;
   flex: 1;
 }
 
 .hearing-details-row-full .hearing-details-label {
   margin-bottom: 8px;
-  text-align: left;
+  text-align: start;
 }
 
 .hearing-details-notes {
@@ -197,7 +197,7 @@
   padding: 16px 24px;
   border-top: 1px solid #e0e0e0;
   background-color: #f9f9f9;
-  text-align: right;
+  text-align: end;
 }
 
 .hearing-details-close-button {
@@ -234,7 +234,7 @@
   }
 
   .hearing-details-value {
-    text-align: left;
+    text-align: start;
     margin-top: 4px;
   }
 

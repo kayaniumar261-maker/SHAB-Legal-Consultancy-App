@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { Hearing } from '../../types/hearing';
@@ -14,6 +15,7 @@ export function DeleteHearingModal({
   onClose,
   onConfirm,
 }: DeleteHearingModalProps) {
+  const interfaceLanguage = useLocale();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,12 +42,9 @@ export function DeleteHearingModal({
           <AlertTriangle size={40} />
         </div>
 
-        <h3>Delete Hearing</h3>
+        <h3>{tr("Delete Hearing")}</h3>
 
-        <p className="delete-hearing-description">
-          Are you sure you want to delete this hearing? This action cannot be
-          undone.
-        </p>
+        <p className="delete-hearing-description">{tr("Are you sure you want to delete this hearing? This action cannot be undone.")}</p>
 
         <div className="delete-hearing-details">
           <p>
@@ -53,7 +52,7 @@ export function DeleteHearingModal({
           </p>
           <p>{hearing.court}</p>
           <p className="delete-hearing-date">
-            {new Date(hearing.hearing_at).toLocaleString('en-AE', {
+            {new Date(hearing.hearing_at).toLocaleString(getLocale("en-AE"), {
               year: 'numeric',
               month: 'short',
               day: '2-digit',
@@ -63,7 +62,7 @@ export function DeleteHearingModal({
           </p>
         </div>
 
-        {error && <div className="delete-hearing-error">{error}</div>}
+        {error && <div className="delete-hearing-error">{tr(error)}</div>}
 
         <div className="delete-hearing-actions">
           <button
@@ -71,16 +70,14 @@ export function DeleteHearingModal({
             className="delete-hearing-cancel"
             onClick={onClose}
             disabled={loading}
-          >
-            Cancel
-          </button>
+          >{tr("Cancel")}</button>
           <button
             type="button"
             className="delete-hearing-confirm"
             onClick={handleConfirm}
             disabled={loading}
           >
-            {loading ? 'Deleting...' : 'Delete Hearing'}
+            {loading ? tr("Deleting...") : tr("Delete Hearing")}
           </button>
         </div>
       </div>

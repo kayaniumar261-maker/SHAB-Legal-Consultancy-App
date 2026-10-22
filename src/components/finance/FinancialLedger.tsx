@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import {
   AlertCircle,
   ArrowDownLeft,
@@ -81,6 +82,7 @@ export function FinancialLedger({
     'Complete invoice, collection and adjustment history.',
   showActions = true,
 }: FinancialLedgerProps) {
+  const interfaceLanguage = useLocale();
   const [ledger, setLedger] =
     useState<LedgerData>(
       emptyLedger,
@@ -181,7 +183,7 @@ export function FinancialLedger({
       }
 
       return `/payments?${parameters.toString()}`;
-    }, [clientId, caseId]);
+    }, [clientId, caseId, interfaceLanguage]);
 
   const visibleEntries =
     useMemo(() => {
@@ -230,20 +232,16 @@ export function FinancialLedger({
       ledger.entries,
       search,
       filter,
-    ]);
+    , interfaceLanguage]);
 
   if (loading) {
     return (
       <section className="financial-ledger-state">
         <WalletCards size={28} />
 
-        <strong>
-          Loading financial ledger…
-        </strong>
+        <strong>{tr("Loading financial ledger…")}</strong>
 
-        <span>
-          Retrieving invoices, payments and adjustments.
-        </span>
+        <span>{tr("Retrieving invoices, payments and adjustments.")}</span>
       </section>
     );
   }
@@ -253,11 +251,9 @@ export function FinancialLedger({
       <section className="financial-ledger-state error">
         <AlertCircle size={28} />
 
-        <strong>
-          Unable to load financial ledger
-        </strong>
+        <strong>{tr("Unable to load financial ledger")}</strong>
 
-        <span>{error}</span>
+        <span>{tr(error)}</span>
       </section>
     );
   }
@@ -266,9 +262,7 @@ export function FinancialLedger({
     <div className="financial-ledger">
       <header className="financial-ledger-header">
         <div>
-          <span className="financial-ledger-eyebrow">
-            Finance
-          </span>
+          <span className="financial-ledger-eyebrow">{tr("Finance")}</span>
 
           <h3>{title}</h3>
 
@@ -281,25 +275,19 @@ export function FinancialLedger({
               className="secondary-action-button"
               to={financeUrl}
             >
-              <ExternalLink size={16} />
-              Open Finance
-            </Link>
+              <ExternalLink size={16} />{tr("Open Finance")}</Link>
 
             <Link
               className="secondary-action-button"
               to={`${financeUrl}&tab=payments&createPayment=1`}
             >
-              <BadgeDollarSign size={16} />
-              Record Payment
-            </Link>
+              <BadgeDollarSign size={16} />{tr("Record Payment")}</Link>
 
             <Link
               className="primary-action-button"
               to={`${financeUrl}&tab=invoices&createInvoice=1`}
             >
-              <FileText size={16} />
-              New Invoice
-            </Link>
+              <FileText size={16} />{tr("New Invoice")}</Link>
           </div>
         )}
       </header>
@@ -309,7 +297,7 @@ export function FinancialLedger({
           icon={
             <ReceiptText size={18} />
           }
-          label="Total Billed"
+          label={tr("Total Billed")}
           value={formatCurrency(
             ledger.summary.totalBilled,
           )}
@@ -324,7 +312,7 @@ export function FinancialLedger({
           icon={
             <ArrowDownLeft size={18} />
           }
-          label="Gross Collected"
+          label={tr("Gross Collected")}
           value={formatCurrency(
             ledger.summary
               .grossCollected,
@@ -341,7 +329,7 @@ export function FinancialLedger({
           icon={
             <FileMinus2 size={18} />
           }
-          label="Credited"
+          label={tr("Credited")}
           value={formatCurrency(
             ledger.summary.totalCredited,
           )}
@@ -357,7 +345,7 @@ export function FinancialLedger({
           icon={
             <RotateCcw size={18} />
           }
-          label="Reversed"
+          label={tr("Reversed")}
           value={formatCurrency(
             ledger.summary.totalReversed,
           )}
@@ -373,7 +361,7 @@ export function FinancialLedger({
           icon={
             <WalletCards size={18} />
           }
-          label="Net Collected"
+          label={tr("Net Collected")}
           value={formatCurrency(
             ledger.summary.netCollected,
           )}
@@ -387,7 +375,7 @@ export function FinancialLedger({
           icon={
             <ArrowUpRight size={18} />
           }
-          label="Outstanding"
+          label={tr("Outstanding")}
           value={formatCurrency(
             ledger.summary.outstanding,
           )}
@@ -400,19 +388,19 @@ export function FinancialLedger({
         <label className="financial-ledger-search">
           <Search size={18} />
 
-          <input
+          <input dir="auto"
             value={search}
             onChange={(event) =>
               setSearch(
                 event.target.value,
               )
             }
-            placeholder="Search document, invoice, status or reason"
+            placeholder={tr("Search document, invoice, status or reason")}
           />
         </label>
 
         <label className="financial-ledger-filter">
-          <span>Document Type</span>
+          <span>{tr("Document Type")}</span>
 
           <select
             value={filter}
@@ -423,29 +411,19 @@ export function FinancialLedger({
               )
             }
           >
-            <option value="all">
-              All transactions
-            </option>
+            <option value="all">{tr("All transactions")}</option>
 
-            <option value="invoice">
-              Invoices
-            </option>
+            <option value="invoice">{tr("Invoices")}</option>
 
-            <option value="payment">
-              Payments
-            </option>
+            <option value="payment">{tr("Payments")}</option>
 
-            <option value="credit_note">
-              Credit notes
-            </option>
+            <option value="credit_note">{tr("Credit notes")}</option>
 
-            <option value="payment_reversal">
-              Payment reversals
-            </option>
-            <option value="client_fund_receipt">Client funds</option>
-            <option value="payment_allocation">Allocations</option>
-            <option value="allocation_reversal">Allocation reversals</option>
-            <option value="client_fund_reversal">Client fund reversals</option>
+            <option value="payment_reversal">{tr("Payment reversals")}</option>
+            <option value="client_fund_receipt">{tr("Client funds")}</option>
+            <option value="payment_allocation">{tr("Allocations")}</option>
+            <option value="allocation_reversal">{tr("Allocation reversals")}</option>
+            <option value="client_fund_reversal">{tr("Client fund reversals")}</option>
           </select>
         </label>
       </section>
@@ -455,27 +433,25 @@ export function FinancialLedger({
           <div>
             <WalletCards size={18} />
 
-            <h4>
-              Transaction History
-            </h4>
+            <h4>{tr("Transaction History")}</h4>
           </div>
 
           <span>
             {visibleEntries.length}{' '}
             {visibleEntries.length === 1
-              ? 'record'
-              : 'records'}
+              ? tr("record")
+              : tr("records")}
           </span>
         </div>
 
         {ledger.entries.length === 0 ? (
           <LedgerEmpty
-            title="No financial activity"
+            title={tr("No financial activity")}
             message="Invoices, payments and adjustments linked to this record will appear here."
           />
         ) : visibleEntries.length === 0 ? (
           <LedgerEmpty
-            title="No matching transactions"
+            title={tr("No matching transactions")}
             message="Try a different search term or document type."
           />
         ) : (
@@ -483,13 +459,13 @@ export function FinancialLedger({
             <table className="financial-ledger-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Document</th>
-                  <th>Status</th>
-                  <th>Details</th>
-                  <th>Amount</th>
-                  <th>Action</th>
+                  <th>{tr("Date")}</th>
+                  <th>{tr("Type")}</th>
+                  <th>{tr("Document")}</th>
+                  <th>{tr("Status")}</th>
+                  <th>{tr("Details")}</th>
+                  <th>{tr("Amount")}</th>
+                  <th>{tr("Action")}</th>
                 </tr>
               </thead>
 
@@ -532,6 +508,7 @@ function LedgerStat({
     | 'danger'
     | 'credit';
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article
       className={`financial-ledger-stat ${tone}`}
@@ -556,6 +533,7 @@ function LedgerRow({
   entry: FinancialLedgerEntry;
   financeUrl: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <tr>
       <td>
@@ -578,8 +556,7 @@ function LedgerRow({
         </strong>
 
         {entry.relatedDocumentNumber && (
-          <small className="financial-ledger-related">
-            Related to{' '}
+          <small className="financial-ledger-related">{tr("Related to")}{' '}
             {entry.relatedDocumentNumber}
           </small>
         )}
@@ -638,11 +615,9 @@ function LedgerRow({
             entry,
             financeUrl,
           )}
-          title="Open in Finance"
+          title={tr("Open in Finance")}
         >
-          <ExternalLink size={15} />
-          View
-        </Link>
+          <ExternalLink size={15} />{tr("View")}</Link>
       </td>
     </tr>
   );
@@ -655,6 +630,7 @@ function LedgerEmpty({
   title: string;
   message: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="financial-ledger-empty">
       <WalletCards size={24} />
@@ -691,15 +667,14 @@ function formatEntryKind(
       FinancialLedgerEntryKind,
       string
     > = {
-      invoice: 'Invoice',
-      payment: 'Payment',
-      credit_note: 'Credit Note',
-      payment_reversal:
-        'Payment Reversal',
-      client_fund_receipt: 'Client Funds',
-      payment_allocation: 'Allocation',
-      allocation_reversal: 'Allocation Reversal',
-      client_fund_reversal: 'Client Fund Reversal',
+      get invoice() { return tr("Invoice"); },
+      get payment() { return tr("Payment"); },
+      get credit_note() { return tr("Credit Note"); },
+      get payment_reversal() { return tr("Payment Reversal"); },
+      get client_fund_receipt() { return tr("Client Funds"); },
+      get payment_allocation() { return tr("Allocation"); },
+      get allocation_reversal() { return tr("Allocation Reversal"); },
+      get client_fund_reversal() { return tr("Client Fund Reversal"); },
     };
 
   return labels[kind];
@@ -714,7 +689,7 @@ function formatCurrency(
   currency = 'AED',
 ): string {
   return new Intl.NumberFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       style: 'currency',
       currency:
@@ -744,7 +719,7 @@ function formatDate(
   }
 
   return new Intl.DateTimeFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       day: '2-digit',
       month: 'short',
@@ -756,13 +731,13 @@ function formatDate(
 function formatLabel(
   value: string,
 ): string {
-  return value
+  return tr(value
     .replace(/_/g, ' ')
     .replace(
       /\b\w/g,
       (character) =>
         character.toUpperCase(),
-    );
+    ));
 }
 
 function normaliseClass(

@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 import {
   BriefcaseBusiness,
   FileText,
@@ -26,19 +27,20 @@ function formatRole(
   role: string | null,
 ): string {
   if (!role) {
-    return 'Staff Member';
+    return tr('Staff Member');
   }
 
-  return role
+  return tr(role
     .replace(/_/g, ' ')
     .replace(
       /\b\w/g,
       (letter) =>
         letter.toUpperCase(),
-    );
+    ));
 }
 
 export function StaffWorkload() {
+  const interfaceLanguage = useLocale();
   const [items, setItems] =
     useState<
       StaffWorkloadRankingItem[]
@@ -98,30 +100,24 @@ export function StaffWorkload() {
           ),
           1,
         ),
-      [items],
+      [items, interfaceLanguage],
     );
 
   return (
     <section className="dashboard-panel staff-workload-panel">
       <div className="panel-heading-row">
         <div>
-          <span className="section-tag">
-            TEAM OPERATIONS
-          </span>
+          <span className="section-tag">{tr("TEAM OPERATIONS")}</span>
 
-          <h3>Staff Workload</h3>
+          <h3>{tr("Staff Workload")}</h3>
 
-          <p>
-            Active team members ranked by linked operational records.
-          </p>
+          <p>{tr("Active team members ranked by linked operational records.")}</p>
         </div>
 
         <Link
           className="widget-link"
           to="/staff"
-        >
-          View Staff
-        </Link>
+        >{tr("View Staff")}</Link>
       </div>
 
       {loading ? (
@@ -131,21 +127,17 @@ export function StaffWorkload() {
             className="staff-workload-loader"
           />
 
-          <span>
-            Loading team workload…
-          </span>
+          <span>{tr("Loading team workload…")}</span>
         </div>
       ) : error ? (
         <div className="staff-workload-state error">
-          {error}
+          {tr(error)}
         </div>
       ) : items.length === 0 ? (
         <div className="staff-workload-state">
           <Users size={22} />
 
-          <span>
-            No active staff records available.
-          </span>
+          <span>{tr("No active staff records available.")}</span>
         </div>
       ) : (
         <div className="staff-workload-list">
@@ -186,26 +178,26 @@ export function StaffWorkload() {
                 </div>
 
                 <div className="staff-workload-metrics">
-                  <span title="Cases">
+                  <span title={tr("Cases")}>
                     <BriefcaseBusiness
                       size={13}
                     />
                     {item.cases}
                   </span>
 
-                  <span title="Tasks">
+                  <span title={tr("Tasks")}>
                     <ListTodo
                       size={13}
                     />
                     {item.tasks}
                   </span>
 
-                  <span title="Hearings">
+                  <span title={tr("Hearings")}>
                     <Gavel size={13} />
                     {item.hearings}
                   </span>
 
-                  <span title="Documents">
+                  <span title={tr("Documents")}>
                     <FileText
                       size={13}
                     />

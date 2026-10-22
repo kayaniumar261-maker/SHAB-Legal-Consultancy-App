@@ -94,7 +94,7 @@
   margin: 18px 30px 0;
   padding: 12px 14px;
   border: 1px solid #f2b7b7;
-  border-left: 4px solid #b42318;
+  border-inline-start: 4px solid #b42318;
   border-radius: 10px;
   background: #fff2f1;
   color: #8a1c13;
@@ -370,9 +370,9 @@
   .hearing-modal {
     width: 100%;
     max-height: 94vh;
-    border-right: none;
+    border-inline-end: none;
     border-bottom: none;
-    border-left: none;
+    border-inline-start: none;
     border-radius: 18px 18px 0 0;
   }
 

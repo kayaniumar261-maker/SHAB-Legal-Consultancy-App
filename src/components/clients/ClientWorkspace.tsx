@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import {
   AlertTriangle,
   ArrowRight,
@@ -99,6 +100,7 @@ export function ClientWorkspace({
   client,
   isAdministrator,
 }: ClientWorkspaceProps) {
+  const interfaceLanguage = useLocale();
   const [cases, setCases] =
     useState<CaseWithRelations[]>([]);
 
@@ -262,7 +264,7 @@ export function ClientWorkspace({
             caseRecord.status,
           ) !== 'closed',
       ),
-    [cases],
+    [cases, interfaceLanguage],
   );
 
   const urgentCases = useMemo(
@@ -277,7 +279,7 @@ export function ClientWorkspace({
             caseRecord.priority,
           ) === 'urgent',
       ),
-    [activeCases],
+    [activeCases, interfaceLanguage],
   );
 
   const openTasks = useMemo(
@@ -288,7 +290,7 @@ export function ClientWorkspace({
             task.status,
           ) !== 'completed',
       ),
-    [tasks],
+    [tasks, interfaceLanguage],
   );
 
   const overdueTasks = useMemo(
@@ -297,7 +299,7 @@ export function ClientWorkspace({
         (task) =>
           isPast(task.due_at),
       ),
-    [openTasks],
+    [openTasks, interfaceLanguage],
   );
 
   const upcomingHearings =
@@ -337,7 +339,7 @@ export function ClientWorkspace({
                 second.hearing_at,
               ).getTime(),
           ),
-      [hearings],
+      [hearings, interfaceLanguage],
     );
 
   const unpaidInvoices = useMemo(
@@ -357,7 +359,7 @@ export function ClientWorkspace({
             ),
           ),
       ),
-    [invoices],
+    [invoices, interfaceLanguage],
   );
 
   const overdueInvoices = useMemo(
@@ -371,7 +373,7 @@ export function ClientWorkspace({
             invoice.due_date,
           ),
       ),
-    [unpaidInvoices],
+    [unpaidInvoices, interfaceLanguage],
   );
 
   const totalBilled =
@@ -476,7 +478,7 @@ export function ClientWorkspace({
     overdueInvoices.length,
     overdueTasks.length,
     urgentCases.length,
-  ]);
+  , interfaceLanguage]);
 
   const latestPayment =
     [...payments]
@@ -509,17 +511,11 @@ export function ClientWorkspace({
       <section className="client-workspace-command">
         <div className="client-workspace-command-heading">
           <div>
-            <span>
-              Relationship intelligence
-            </span>
+            <span>{tr("Relationship intelligence")}</span>
 
-            <h3>
-              Client Command Centre
-            </h3>
+            <h3>{tr("Client Command Centre")}</h3>
 
-            <p>
-              Matters and immediate operational actions for this client.
-            </p>
+            <p>{tr("Matters and immediate operational actions for this client.")}</p>
           </div>
 
           <span
@@ -537,7 +533,7 @@ export function ClientWorkspace({
                 size={18}
               />
             }
-            label="Active Matters"
+            label={tr("Active Matters")}
             value={
               loading
                 ? '—'
@@ -545,7 +541,7 @@ export function ClientWorkspace({
                     activeCases.length,
                   )
             }
-            detail={`${urgentCases.length} urgent`}
+            detail={tr("{0} urgent", [urgentCases.length])}
             tone={
               urgentCases.length > 0
                 ? 'danger'
@@ -560,7 +556,7 @@ export function ClientWorkspace({
                 size={18}
               />
             }
-            label="Open Tasks"
+            label={tr("Open Tasks")}
             value={
               loading
                 ? '—'
@@ -568,7 +564,7 @@ export function ClientWorkspace({
                     openTasks.length,
                   )
             }
-            detail={`${overdueTasks.length} overdue`}
+            detail={tr("{0} overdue", [overdueTasks.length])}
             tone={
               overdueTasks.length > 0
                 ? 'danger'
@@ -581,7 +577,7 @@ export function ClientWorkspace({
             icon={
               <Gavel size={18} />
             }
-            label="Next Hearing"
+            label={tr("Next Hearing")}
             value={
               loading
                 ? '—'
@@ -595,7 +591,7 @@ export function ClientWorkspace({
             detail={
               upcomingHearings[0]
                 ?.court ??
-              'Court calendar'
+              tr("Court calendar")
             }
             tone={
               upcomingHearings[0]
@@ -612,7 +608,7 @@ export function ClientWorkspace({
                 size={18}
               />
             }
-            label="Outstanding"
+            label={tr("Outstanding")}
             value={
               loading
                 ? '—'
@@ -622,7 +618,7 @@ export function ClientWorkspace({
                     )
                   : '—'
             }
-            detail={`${overdueInvoices.length} overdue invoices`}
+            detail={tr("{0} overdue invoices", [overdueInvoices.length])}
             tone={
               outstanding > 0
                 ? 'warning'
@@ -642,20 +638,16 @@ export function ClientWorkspace({
                 size={18}
               />
             }
-            title="Current Matters"
-            subtitle={`${activeCases.length} active matters`}
+            title={tr("Current Matters")}
+            subtitle={tr("{0} active matters", [activeCases.length])}
             link={`/cases?clientId=${client.id}`}
             linkLabel="View all"
           >
             {loading ? (
-              <WorkspaceState>
-                Loading matters…
-              </WorkspaceState>
+              <WorkspaceState>{tr("Loading matters…")}</WorkspaceState>
             ) : activeCases.length ===
               0 ? (
-              <WorkspaceState>
-                No active matters.
-              </WorkspaceState>
+              <WorkspaceState>{tr("No active matters.")}</WorkspaceState>
             ) : (
               <div className="client-workspace-matter-list">
                 {activeCases
@@ -672,7 +664,7 @@ export function ClientWorkspace({
                           <strong>
                             {caseRecord.matter_number ??
                               caseRecord.case_number ??
-                              'Legal matter'}
+                              tr("Legal matter")}
                           </strong>
 
                           <span>
@@ -687,9 +679,7 @@ export function ClientWorkspace({
                         <div>
                           {caseRecord
                             .requires_urgent_action ? (
-                            <span className="client-workspace-danger-chip">
-                              Urgent
-                            </span>
+                            <span className="client-workspace-danger-chip">{tr("Urgent")}</span>
                           ) : (
                             <span>
                               {formatLabel(
@@ -716,20 +706,16 @@ export function ClientWorkspace({
                   size={18}
                 />
               }
-              title="Tasks Requiring Attention"
-              subtitle={`${overdueTasks.length} overdue`}
+              title={tr("Tasks Requiring Attention")}
+              subtitle={tr("{0} overdue", [overdueTasks.length])}
               link={`/tasks?clientId=${client.id}`}
               linkLabel="View tasks"
             >
               {loading ? (
-                <WorkspaceState>
-                  Loading tasks…
-                </WorkspaceState>
+                <WorkspaceState>{tr("Loading tasks…")}</WorkspaceState>
               ) : openTasks.length ===
                 0 ? (
-                <WorkspaceState>
-                  No open tasks.
-                </WorkspaceState>
+                <WorkspaceState>{tr("No open tasks.")}</WorkspaceState>
               ) : (
                 <CompactList>
                   {openTasks
@@ -762,7 +748,7 @@ export function ClientWorkspace({
                                 ? formatDate(
                                     task.due_at,
                                   )
-                                : 'No due date'}
+                                : tr("No due date")}
                             </span>
                           </div>
 
@@ -792,20 +778,16 @@ export function ClientWorkspace({
                   size={18}
                 />
               }
-              title="Recent Documents"
-              subtitle={`${documents.length} client files`}
+              title={tr("Recent Documents")}
+              subtitle={tr("{0} client files", [documents.length])}
               link={`/documents?clientId=${client.id}`}
               linkLabel="View documents"
             >
               {loading ? (
-                <WorkspaceState>
-                  Loading documents…
-                </WorkspaceState>
+                <WorkspaceState>{tr("Loading documents…")}</WorkspaceState>
               ) : documents.length ===
                 0 ? (
-                <WorkspaceState>
-                  No client documents.
-                </WorkspaceState>
+                <WorkspaceState>{tr("No client documents.")}</WorkspaceState>
               ) : (
                 <CompactList>
                   {documents
@@ -827,7 +809,7 @@ export function ClientWorkspace({
 
                             <span>
                               {documentRecord.document_type ??
-                                'Document'}
+                                tr("Document")}
                             </span>
                           </div>
 
@@ -848,20 +830,16 @@ export function ClientWorkspace({
                 size={18}
               />
             }
-            title="Upcoming Hearings"
-            subtitle={`${upcomingHearings.length} scheduled`}
+            title={tr("Upcoming Hearings")}
+            subtitle={tr("{0} scheduled", [upcomingHearings.length])}
             link={`/hearings?clientId=${client.id}`}
             linkLabel="Open calendar"
           >
             {loading ? (
-              <WorkspaceState>
-                Loading hearings…
-              </WorkspaceState>
+              <WorkspaceState>{tr("Loading hearings…")}</WorkspaceState>
             ) : upcomingHearings.length ===
               0 ? (
-              <WorkspaceState>
-                No upcoming hearings.
-              </WorkspaceState>
+              <WorkspaceState>{tr("No upcoming hearings.")}</WorkspaceState>
             ) : (
               <div className="client-hearing-preview-grid">
                 {upcomingHearings
@@ -881,12 +859,12 @@ export function ClientWorkspace({
                         <strong>
                           {hearing.title ??
                             hearing.case_number ??
-                            'Court Hearing'}
+                            tr("Court Hearing")}
                         </strong>
 
                         <span>
                           {hearing.court ??
-                            'Court not specified'}
+                            tr("Court not specified")}
                         </span>
                       </Link>
                     ),
@@ -905,8 +883,8 @@ export function ClientWorkspace({
                 size={18}
               />
             }
-            title="Financial Snapshot"
-            subtitle="Client collection position"
+            title={tr("Financial Snapshot")}
+            subtitle={tr("Client collection position")}
             link={`/payments?clientId=${client.id}`}
             linkLabel="Open finance"
           >
@@ -917,7 +895,7 @@ export function ClientWorkspace({
                     size={15}
                   />
                 }
-                label="Total Billed"
+                label={tr("Total Billed")}
                 value={
                   financialSummary
                     ? formatCurrency(
@@ -933,7 +911,7 @@ export function ClientWorkspace({
                     size={15}
                   />
                 }
-                label="Net Collected"
+                label={tr("Net Collected")}
                 value={
                   financialSummary
                     ? formatCurrency(
@@ -949,7 +927,7 @@ export function ClientWorkspace({
                     size={15}
                   />
                 }
-                label="Outstanding"
+                label={tr("Outstanding")}
                 value={
                   financialSummary
                     ? formatCurrency(
@@ -964,9 +942,7 @@ export function ClientWorkspace({
             </div>
 
             <div className="client-collection-heading">
-              <span>
-                Collection rate
-              </span>
+              <span>{tr("Collection rate")}</span>
 
               <strong>
                 {financialSummary
@@ -995,8 +971,8 @@ export function ClientWorkspace({
                 size={18}
               />
             }
-            title="Latest Invoice"
-            subtitle="Most recent billing record"
+            title={tr("Latest Invoice")}
+            subtitle={tr("Most recent billing record")}
             link={`/payments?clientId=${client.id}&tab=invoices`}
             linkLabel="Invoices"
           >
@@ -1023,9 +999,7 @@ export function ClientWorkspace({
                 </small>
               </div>
             ) : (
-              <WorkspaceState>
-                No invoices recorded.
-              </WorkspaceState>
+              <WorkspaceState>{tr("No invoices recorded.")}</WorkspaceState>
             )}
           </WorkspaceCard>
 
@@ -1035,8 +1009,8 @@ export function ClientWorkspace({
                 size={18}
               />
             }
-            title="Latest Payment"
-            subtitle="Most recent client receipt"
+            title={tr("Latest Payment")}
+            subtitle={tr("Most recent client receipt")}
             link={`/payments?clientId=${client.id}&tab=payments`}
             linkLabel="Payments"
           >
@@ -1048,9 +1022,7 @@ export function ClientWorkspace({
                   )}
                 </strong>
 
-                <span>
-                  Payment received
-                </span>
+                <span>{tr("Payment received")}</span>
 
                 <small>
                   {formatDate(
@@ -1061,9 +1033,7 @@ export function ClientWorkspace({
                 </small>
               </div>
             ) : (
-              <WorkspaceState>
-                No payments recorded.
-              </WorkspaceState>
+              <WorkspaceState>{tr("No payments recorded.")}</WorkspaceState>
             )}
           </WorkspaceCard>
 
@@ -1076,12 +1046,12 @@ export function ClientWorkspace({
                 size={18}
               />
             }
-            title="Client Status"
-            subtitle="Relationship and risk"
+            title={tr("Client Status")}
+            subtitle={tr("Relationship and risk")}
           >
             <div className="client-status-list">
               <StatusRow
-                label="Relationship"
+                label={tr("Relationship")}
                 value={formatLabel(
                   client.status,
                 )}
@@ -1093,7 +1063,7 @@ export function ClientWorkspace({
               />
 
               <StatusRow
-                label="Risk Level"
+                label={tr("Risk Level")}
                 value={formatLabel(
                   client.risk_level ??
                     'low',
@@ -1111,7 +1081,7 @@ export function ClientWorkspace({
               />
 
               <StatusRow
-                label="VIP Client"
+                label={tr("VIP Client")}
                 value={
                   client.is_vip ||
                   client.vip
@@ -1137,14 +1107,14 @@ export function ClientWorkspace({
               size={17}
             />
           }
-          label="Create Matter"
+          label={tr("Create Matter")}
           to={`/cases/new?clientId=${client.id}`}
         />
 
         {isAdministrator && (
           <QuickAction
             icon={<FileText size={17} />}
-            label="Create Agreement"
+            label={tr("Create Agreement")}
             to={`/cases/new?clientId=${client.id}&agreement=1`}
           />
         )}
@@ -1156,7 +1126,7 @@ export function ClientWorkspace({
               size={17}
             />
           }
-          label="Create Invoice"
+          label={tr("Create Invoice")}
           to={`/payments?clientId=${client.id}&tab=invoices&createInvoice=1`}
         />
         )}
@@ -1165,7 +1135,7 @@ export function ClientWorkspace({
           icon={
             <Upload size={17} />
           }
-          label="Upload Document"
+          label={tr("Upload Document")}
           to={`/documents?clientId=${client.id}&upload=1`}
         />
 
@@ -1173,7 +1143,7 @@ export function ClientWorkspace({
           icon={
             <Gavel size={17} />
           }
-          label="Schedule Hearing"
+          label={tr("Schedule Hearing")}
           to={`/hearings?clientId=${client.id}&schedule=1`}
         />
 
@@ -1183,7 +1153,7 @@ export function ClientWorkspace({
               size={17}
             />
           }
-          label="Create Task"
+          label={tr("Create Task")}
           to={`/tasks?clientId=${client.id}&create=1`}
         />
 
@@ -1194,7 +1164,7 @@ export function ClientWorkspace({
               size={17}
             />
           }
-          label="Record Payment"
+          label={tr("Record Payment")}
           to={`/payments?clientId=${client.id}&tab=payments&createPayment=1`}
         />
         )}
@@ -1222,6 +1192,7 @@ function CommandMetric({
     | 'danger';
   to: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <Link
       className={`client-command-metric ${tone}`}
@@ -1263,6 +1234,7 @@ function WorkspaceCard({
   linkLabel?: string;
   children: ReactNode;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article className="client-workspace-card">
       <header>
@@ -1302,6 +1274,7 @@ function FinancialMetric({
   value: string;
   danger?: boolean;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div
       className={
@@ -1329,6 +1302,7 @@ function StatusRow({
   value: string;
   positive: boolean;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="client-status-row">
       <span>
@@ -1356,6 +1330,7 @@ function CompactList({
 }: {
   children: ReactNode;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="client-workspace-compact-list">
       {children}
@@ -1368,6 +1343,7 @@ function WorkspaceState({
 }: {
   children: ReactNode;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="client-workspace-state">
       {children}
@@ -1384,6 +1360,7 @@ function QuickAction({
   label: string;
   to: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <Link to={to}>
       {icon}
@@ -1437,23 +1414,23 @@ function formatLabel(
     normalize(value);
 
   if (!normalized) {
-    return 'Not provided';
+    return tr('Not provided');
   }
 
-  return normalized
+  return tr(normalized
     .replace(/_/g, ' ')
     .replace(
       /\b\w/g,
       (letter) =>
         letter.toUpperCase(),
-    );
+    ));
 }
 
 function formatCurrency(
   value: unknown,
 ): string {
   return new Intl.NumberFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       style: 'currency',
       currency: 'AED',
@@ -1483,7 +1460,7 @@ function formatDate(
   }
 
   return new Intl.DateTimeFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       day: '2-digit',
       month: 'short',

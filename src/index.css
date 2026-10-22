@@ -214,7 +214,7 @@ a {
 
 .header-profile {
   display: none;
-  margin-left: auto;
+  margin-inline-start: auto;
   align-items: center;
   gap: 10px;
 }
@@ -431,7 +431,7 @@ a {
 
 .recent-cases-table th,
 .recent-cases-table td {
-  text-align: left;
+  text-align: start;
   padding: 14px 16px;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -653,15 +653,15 @@ a {
 }
 
 .notification-item.urgent {
-  border-left: 4px solid #dc2626;
+  border-inline-start: 4px solid #dc2626;
 }
 
 .notification-item.upcoming {
-  border-left: 4px solid #2563eb;
+  border-inline-start: 4px solid #2563eb;
 }
 
 .notification-item.info {
-  border-left: 4px solid #10b981;
+  border-inline-start: 4px solid #10b981;
 }
 
 @media (max-width: 1180px) {
@@ -946,7 +946,7 @@ a {
   }
 
   .app-content {
-    margin-left: 260px;
+    margin-inline-start: 260px;
   }
 
   .mobile-menu-button {
@@ -1322,8 +1322,8 @@ body,
 
 @media (min-width: 1440px) {
   .page-content {
-    padding-right: 48px;
-    padding-left: 48px;
+    padding-inline-end: 48px;
+    padding-inline-start: 48px;
   }
 }
 

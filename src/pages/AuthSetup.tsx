@@ -1,3 +1,5 @@
+import { LanguageSwitcher } from '../i18n/LanguageSwitcher';
+import { tr, useLocale } from '../i18n/locale';
 import { type FormEvent, useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 
@@ -8,6 +10,7 @@ import { supabase } from '../lib/supabase';
 import './Login.css';
 
 export function AuthSetup() {
+  const interfaceLanguage = useLocale();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
@@ -51,17 +54,18 @@ export function AuthSetup() {
   }
 
   if (authLoading) {
-    return <div className="login-loading-screen"><div className="login-loading-card"><p>Checking secure invitation…</p></div></div>;
+    return <div className="login-loading-screen"><div className="login-loading-card"><p>{tr("Checking secure invitation…")}</p></div></div>;
   }
 
   if (success) {
     return (
       <div className="login-page">
+      <div className="login-language"><LanguageSwitcher /></div>
         <div className="login-card auth-setup-card">
-          <p className="login-eyebrow">Account secured</p>
-          <h1>Password saved</h1>
-          <p className="login-description">Your SHAB account is ready to use.</p>
-          <button type="button" className="login-submit" onClick={() => navigate('/', { replace: true })}>Open SHAB workspace</button>
+          <p className="login-eyebrow">{tr("Account secured")}</p>
+          <h1>{tr("Password saved")}</h1>
+          <p className="login-description">{tr("Your SHAB account is ready to use.")}</p>
+          <button type="button" className="login-submit" onClick={() => navigate('/', { replace: true })}>{tr("Open SHAB workspace")}</button>
         </div>
       </div>
     );
@@ -70,11 +74,12 @@ export function AuthSetup() {
   if (!user) {
     return (
       <div className="login-page">
+      <div className="login-language"><LanguageSwitcher /></div>
         <div className="login-card auth-setup-card">
-          <p className="login-eyebrow">Invitation unavailable</p>
-          <h1>This secure link has expired or is invalid.</h1>
-          <p className="login-description">Ask an administrator to resend the invitation, or request another password-reset email.</p>
-          <button type="button" className="login-submit" onClick={() => navigate('/login', { replace: true })}>Return to Sign In</button>
+          <p className="login-eyebrow">{tr("Invitation unavailable")}</p>
+          <h1>{tr("This secure link has expired or is invalid.")}</h1>
+          <p className="login-description">{tr("Ask an administrator to resend the invitation, or request another password-reset email.")}</p>
+          <button type="button" className="login-submit" onClick={() => navigate('/login', { replace: true })}>{tr("Return to Sign In")}</button>
         </div>
       </div>
     );
@@ -82,20 +87,21 @@ export function AuthSetup() {
 
   return (
     <div className="login-page">
+      <div className="login-language"><LanguageSwitcher /></div>
       <div className="login-card">
         <div className="login-brand">
           <div className="login-logo-shell"><img className="login-logo" src={shabLogoUrl} alt="SHAB Legal Consultants FZC" /></div>
-          <p className="login-eyebrow">Secure account setup</p>
-          <h1>Choose your password</h1>
-          <p className="login-description">Set the password for {user.email}. It must contain at least 8 characters.</p>
+          <p className="login-eyebrow">{tr("Secure account setup")}</p>
+          <h1>{tr("Choose your password")}</h1>
+          <p className="login-description">{tr("Set the password for")}{" "}<bdi dir="ltr">{user.email}</bdi>. It must contain at least 8 characters.</p>
         </div>
         <form className="login-form" onSubmit={handleSubmit}>
-          <label className="login-label" htmlFor="new-password">New password</label>
-          <input id="new-password" type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} className="login-input" required minLength={8} />
-          <label className="login-label" htmlFor="confirm-password">Confirm password</label>
-          <input id="confirm-password" type="password" autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} className="login-input" required minLength={8} />
-          {error ? <div className="login-error" role="alert">{error}</div> : null}
-          <button type="submit" className="login-submit" disabled={loading}>{loading ? 'Saving password…' : 'Save password'}</button>
+          <label className="login-label" htmlFor="new-password">{tr("New password")}</label>
+          <input dir="ltr" id="new-password" type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} className="login-input" required minLength={8} />
+          <label className="login-label" htmlFor="confirm-password">{tr("Confirm password")}</label>
+          <input dir="ltr" id="confirm-password" type="password" autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} className="login-input" required minLength={8} />
+          {error ? <div className="login-error" role="alert">{tr(error)}</div> : null}
+          <button type="submit" className="login-submit" disabled={loading}>{loading ? tr("Saving password…") : tr("Save password")}</button>
         </form>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import {
   AlertTriangle,
   Bell,
@@ -37,6 +38,7 @@ const readStorageKey =
   'shab-read-notifications';
 
 export function NotificationCenter() {
+  const interfaceLanguage = useLocale();
   const navigate = useNavigate();
 
   const panelRef =
@@ -303,7 +305,7 @@ export function NotificationCenter() {
         (item) =>
           !readIds.includes(item.id),
       ).length,
-    [items, readIds],
+    [items, readIds, interfaceLanguage],
   );
 
   function saveReadIds(
@@ -355,7 +357,7 @@ export function NotificationCenter() {
         onClick={() =>
           setOpen((current) => !current)
         }
-        aria-label="Open notifications"
+        aria-label={tr("Open notifications")}
         aria-expanded={open}
       >
         <Bell size={19} />
@@ -373,15 +375,12 @@ export function NotificationCenter() {
         <section className="notification-panel">
           <header className="notification-header">
             <div>
-              <span>
-                Practice alerts
-              </span>
+              <span>{tr("Practice alerts")}</span>
 
-              <h3>Notifications</h3>
+              <h3>{tr("Notifications")}</h3>
 
               {loadedAt ? (
-                <small>
-                  Updated{' '}
+                <small>{tr("Updated")}{' '}
                   {formatTime(loadedAt)}
                 </small>
               ) : null}
@@ -394,7 +393,7 @@ export function NotificationCenter() {
                   void loadNotifications(true);
                 }}
                 disabled={refreshing}
-                aria-label="Refresh notifications"
+                aria-label={tr("Refresh notifications")}
               >
                 <RefreshCw
                   size={16}
@@ -409,7 +408,7 @@ export function NotificationCenter() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Close notifications"
+                aria-label={tr("Close notifications")}
               >
                 <X size={17} />
               </button>
@@ -418,8 +417,7 @@ export function NotificationCenter() {
 
           <div className="notification-toolbar">
             <span>
-              {unreadCount} unread
-            </span>
+              {unreadCount}{" "}{tr("unread")}</span>
 
             <button
               type="button"
@@ -428,9 +426,7 @@ export function NotificationCenter() {
                 unreadCount === 0
               }
             >
-              <Check size={14} />
-              Mark all read
-            </button>
+              <Check size={14} />{tr("Mark all read")}</button>
           </div>
 
           <div className="notification-list">
@@ -439,26 +435,20 @@ export function NotificationCenter() {
                 <LoaderCircle
                   size={21}
                   className="spinning"
-                />
-
-                Loading notifications…
-              </NotificationState>
+                />{tr("Loading notifications…")}</NotificationState>
             ) : error ? (
               <NotificationState error>
                 <AlertTriangle
                   size={21}
                 />
 
-                {error}
+                {tr(error)}
               </NotificationState>
             ) : items.length === 0 ? (
               <NotificationState>
                 <CheckCircle2
                   size={22}
-                />
-
-                No notifications.
-              </NotificationState>
+                />{tr("No notifications.")}</NotificationState>
             ) : (
               items.map((item) => {
                 const isUnread =
@@ -522,6 +512,7 @@ function NotificationState({
   children: React.ReactNode;
   error?: boolean;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div
       className={
@@ -586,7 +577,7 @@ function formatTime(
   value: string,
 ): string {
   return new Intl.DateTimeFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       hour: '2-digit',
       minute: '2-digit',

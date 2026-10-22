@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import { createPortal } from 'react-dom';
 
 import { companyProfile } from '../../constants/companyProfile';
@@ -23,6 +24,7 @@ type PaymentReversalDocumentProps = {
 export function PaymentReversalPrintPortal(
   props: PaymentReversalDocumentProps,
 ) {
+  const interfaceLanguage = useLocale();
   if (typeof document === 'undefined') {
     return null;
   }
@@ -43,6 +45,7 @@ export function PaymentReversalDocument({
   caseReference,
   companySettings,
 }: PaymentReversalDocumentProps) {
+  const interfaceLanguage = useLocale();
   const currency =
     reversal.currency ||
     payment.currency ||
@@ -94,7 +97,7 @@ export function PaymentReversalDocument({
       }
     >
       <section className="shab-adjustment-summary reversal">
-        <span>Amount Reversed</span>
+        <span>{tr("Amount Reversed")}</span>
 
         <strong>
           {formatDocumentCurrency(
@@ -103,8 +106,7 @@ export function PaymentReversalDocument({
           )}
         </strong>
 
-        <p>
-          Reversal recorded against receipt{' '}
+        <p>{tr("Reversal recorded against receipt")}{' '}
           {payment.receipt_number ||
             payment.id.slice(0, 8)}.
         </p>
@@ -113,7 +115,7 @@ export function PaymentReversalDocument({
       <section className="shab-adjustment-breakdown">
         <dl>
           <div>
-            <dt>Original Payment</dt>
+            <dt>{tr("Original Payment")}</dt>
             <dd>
               {formatDocumentCurrency(
                 payment.amount,
@@ -123,7 +125,7 @@ export function PaymentReversalDocument({
           </div>
 
           <div>
-            <dt>Total Reversed</dt>
+            <dt>{tr("Total Reversed")}</dt>
             <dd>
               {formatDocumentCurrency(
                 payment.reversed_amount,
@@ -133,7 +135,7 @@ export function PaymentReversalDocument({
           </div>
 
           <div>
-            <dt>Payment Date</dt>
+            <dt>{tr("Payment Date")}</dt>
             <dd>
               {formatDocumentDate(
                 payment.payment_date,
@@ -142,17 +144,17 @@ export function PaymentReversalDocument({
           </div>
 
           <div>
-            <dt>Payment Method</dt>
+            <dt>{tr("Payment Method")}</dt>
             <dd>
               {payment.payment_method ||
-                'Not specified'}
+                tr("Not specified")}
             </dd>
           </div>
         </dl>
       </section>
 
       <section className="shab-adjustment-reason-box">
-        <span>Reason for Reversal</span>
+        <span>{tr("Reason for Reversal")}</span>
         <p>{reversal.reason}</p>
       </section>
     </BrandedDocument>
@@ -166,7 +168,7 @@ function formatDocumentCurrency(
   const amount = Number(value ?? 0);
 
   return `${currency} ${new Intl.NumberFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -185,7 +187,7 @@ function formatDocumentDate(
     return value;
   }
 
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getLocale("en-GB"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

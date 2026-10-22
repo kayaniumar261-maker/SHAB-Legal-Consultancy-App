@@ -147,8 +147,8 @@ export async function getClients(
     search,
     status = 'all',
     clientType = 'all',
-    sortBy = 'created_at',
-    sortDirection = 'desc',
+    sortBy = 'full_name',
+    sortDirection = 'asc',
   } = options;
 
   const page = normalizePage(options.page);
@@ -201,6 +201,9 @@ export async function getClients(
       nullsFirst: false,
     });
   }
+
+  // Unique final ordering keeps equal names stable across page boundaries.
+  query = query.order('id', { ascending: true });
 
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;

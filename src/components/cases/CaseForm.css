@@ -69,7 +69,7 @@
 }
 
 .case-form-field label > span {
-  margin-left: 4px;
+  margin-inline-start: 4px;
   color: #dc2626;
 }
 
@@ -471,7 +471,7 @@
   width: 100%;
   border: 0;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
 }
 
 .case-form-section-heading {
@@ -490,7 +490,7 @@
   width: 28px;
   height: 28px;
   flex: 0 0 28px;
-  margin-left: auto;
+  margin-inline-start: auto;
   place-items: center;
   border: 1px solid #e2e8f0;
   border-radius: 8px;

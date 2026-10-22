@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../i18n/locale';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -9,6 +10,7 @@ import type { ClientOption } from '../services/caseService';
 import './CaseFormPage.css';
 
 export function CaseFormPage() {
+  const interfaceLanguage = useLocale();
   const { id } = useParams<{ id?: string }>();
   const isEditMode = Boolean(id);
   const [caseRecord, setCaseRecord] = useState<Case | null>(null);
@@ -82,11 +84,11 @@ export function CaseFormPage() {
     return (
       <div className="case-form-page page-container">
         <section className="page-heading">
-          <p className="page-eyebrow">Case management</p>
-          <h2>{isEditMode ? 'Edit Case' : 'Add Case'}</h2>
-          <p className="page-intro">Preparing your case form.</p>
+          <p className="page-eyebrow">{tr("Case management")}</p>
+          <h2>{isEditMode ? tr("Edit Case") : tr("Add Case")}</h2>
+          <p className="page-intro">{tr("Preparing your case form.")}</p>
         </section>
-        <div className="case-form-loading">Loading form data…</div>
+        <div className="case-form-loading">{tr("Loading form data…")}</div>
       </div>
     );
   }
@@ -95,18 +97,18 @@ export function CaseFormPage() {
     <div className="case-form-page page-container">
       <section className="page-heading cases-heading">
         <div>
-          <p className="page-eyebrow">Case management</p>
-          <h2>{isEditMode ? 'Edit Case' : 'Add Case'}</h2>
+          <p className="page-eyebrow">{tr("Case management")}</p>
+          <h2>{isEditMode ? tr("Edit Case") : tr("Add Case")}</h2>
           <p className="page-intro">
             {isEditMode
-              ? 'Update case details and client assignment.'
-              : 'Create a new case record and link it to a client.'}
+              ? tr("Update case details and client assignment.")
+              : tr("Create a new case record and link it to a client.")}
           </p>
         </div>
       </section>
 
       {error ? (
-        <div className="case-form-error">{error}</div>
+        <div className="case-form-error">{tr(error)}</div>
       ) : null}
 
       <CaseForm

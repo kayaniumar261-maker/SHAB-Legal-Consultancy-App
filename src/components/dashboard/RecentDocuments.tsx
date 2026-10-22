@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import { useEffect, useState } from 'react';
 import { Download, ExternalLink, FileText } from 'lucide-react';
 import { getRecentDocuments, openDocument, downloadDocument } from '../../services/documentService';
@@ -5,6 +6,7 @@ import type { DocumentWithRelations } from '../../types/document';
 import './RecentDocuments.css';
 
 export function RecentDocuments() {
+  const interfaceLanguage = useLocale();
   const [documents, setDocuments] = useState<DocumentWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,9 +51,9 @@ export function RecentDocuments() {
     <section className="dashboard-panel recent-documents-panel">
       <div className="recent-documents-header">
         <div>
-          <span className="recent-eyebrow">DOCUMENTS</span>
-          <h3>Recent documents</h3>
-          <p>Latest files uploaded into the central documents module.</p>
+          <span className="recent-eyebrow">{tr("DOCUMENTS")}</span>
+          <h3>{tr("Recent documents")}</h3>
+          <p>{tr("Latest files uploaded into the central documents module.")}</p>
         </div>
 
         <div className="recent-header-icon">
@@ -60,18 +62,16 @@ export function RecentDocuments() {
       </div>
 
       {loading ? (
-        <div className="dashboard-widget-state">
-          Loading recent documents...
-        </div>
+        <div className="dashboard-widget-state">{tr("Loading recent documents...")}</div>
       ) : error ? (
         <div className="dashboard-widget-state error">
           <FileText size={16} />
-          <span>{error}</span>
+          <span>{tr(error)}</span>
         </div>
       ) : documents.length === 0 ? (
         <div className="dashboard-widget-state">
           <FileText size={22} />
-          <span>No documents have been uploaded yet.</span>
+          <span>{tr("No documents have been uploaded yet.")}</span>
         </div>
       ) : (
         <div className="recent-document-list">
@@ -83,12 +83,12 @@ export function RecentDocuments() {
               <div className="recent-document-main">
                 <div className="recent-document-title">
                   <strong>{document.name}</strong>
-                  <span>{document.document_type || document.mime_type || 'Document'}</span>
+                  <span>{document.document_type || document.mime_type || tr("Document")}</span>
                 </div>
 
                 <div className="recent-document-meta">
-                  <span>{document.case?.case_number || document.client?.full_name || 'General'}</span>
-                  <span>{new Intl.DateTimeFormat('en-AE', {
+                  <span>{document.case?.case_number || document.client?.full_name || tr("General")}</span>
+                  <span>{new Intl.DateTimeFormat(getLocale("en-AE"), {
                     day: '2-digit',
                     month: 'short',
                     year: 'numeric',
@@ -108,7 +108,7 @@ export function RecentDocuments() {
                     }
                   }}
                   disabled={actionId === document.id}
-                  title="Open document"
+                  title={tr("Open document")}
                 >
                   <ExternalLink size={16} />
                 </button>
@@ -123,7 +123,7 @@ export function RecentDocuments() {
                     }
                   }}
                   disabled={actionId === document.id}
-                  title="Download document"
+                  title={tr("Download document")}
                 >
                   <Download size={16} />
                 </button>

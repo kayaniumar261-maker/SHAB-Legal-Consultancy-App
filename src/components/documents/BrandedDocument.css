@@ -52,7 +52,7 @@
 }
 
 .shab-document-heading {
-  text-align: right;
+  text-align: end;
 }
 
 .shab-document-heading > span,
@@ -135,7 +135,7 @@
 
 .shab-document-meta dd {
   margin: 0;
-  text-align: right;
+  text-align: end;
   font-size: 0.71rem;
   font-weight: 750;
 }
@@ -150,7 +150,7 @@
   background: #111111;
   color: #ffffff;
   padding: 11px 13px;
-  text-align: left;
+  text-align: start;
   font-size: 0.68rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -159,7 +159,7 @@
 .shab-invoice-services th:last-child,
 .shab-invoice-services td:last-child {
   width: 180px;
-  text-align: right;
+  text-align: end;
 }
 
 .shab-invoice-services td {
@@ -211,7 +211,7 @@
 .shab-document-notes,
 .shab-document-payment-note {
   margin-top: 24px;
-  border-left: 3px solid #c9a84c;
+  border-inline-start: 3px solid #c9a84c;
   background: #fafafa;
   padding: 11px 14px;
 }
@@ -253,7 +253,7 @@
 
 .shab-document-footer > span {
   max-width: 265px;
-  text-align: right;
+  text-align: end;
   line-height: 1.4;
 }
 
@@ -365,7 +365,7 @@
 .shab-document-bank-details {
   margin-top: 24px;
   border: 1px solid #e5e7eb;
-  border-left: 4px solid var(--shab-gold, #c9a84c);
+  border-inline-start: 4px solid var(--shab-gold, #c9a84c);
   border-radius: 12px;
   padding: 18px 20px;
   break-inside: avoid;
@@ -548,7 +548,7 @@
   color: #111827;
   font-size: 0.74rem;
   font-weight: 750;
-  text-align: right;
+  text-align: end;
 }
 
 @media (max-width: 700px) {
@@ -578,7 +578,7 @@
 .shab-invoice-cancellation {
   margin-top: 20px;
   border: 1px solid #fecaca;
-  border-left: 4px solid #dc2626;
+  border-inline-start: 4px solid #dc2626;
   border-radius: 10px;
   background: #fff7f7;
   padding: 13px 15px;
@@ -686,12 +686,12 @@
   color: #111827;
   font-size: 0.74rem;
   font-weight: 750;
-  text-align: right;
+  text-align: end;
 }
 
 .shab-adjustment-reason-box {
   margin-top: 18px;
-  border-left: 3px solid #c9a84c;
+  border-inline-start: 3px solid #c9a84c;
   background: #fafafa;
   padding: 12px 15px;
 }

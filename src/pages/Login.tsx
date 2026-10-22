@@ -1,3 +1,6 @@
+import { tr, useLocale } from '../i18n/locale';
+import { LanguageSwitcher } from '../i18n/LanguageSwitcher';
+
 import { FormEvent, useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 
@@ -8,6 +11,7 @@ import { getAuthSetupRedirectUrl } from '../services/authRedirectService';
 import './Login.css';
 
 export function Login() {
+  const interfaceLanguage = useLocale();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -26,7 +30,7 @@ export function Login() {
     return (
       <div className="login-loading-screen">
         <div className="login-loading-card">
-          <p>Loading...</p>
+          <p>{tr("Loading...")}</p>
         </div>
       </div>
     );
@@ -75,6 +79,7 @@ export function Login() {
 
   return (
     <div className="login-page">
+      <div className="login-language"><LanguageSwitcher /></div>
       <div className="login-card">
         <div className="login-brand">
           <div className="login-logo-shell">
@@ -85,22 +90,16 @@ export function Login() {
             />
           </div>
 
-          <p className="login-eyebrow">
-            SHAB Legal Consultants FZC
-          </p>
+          <p className="login-eyebrow">{tr("SHAB Legal Consultants FZC")}</p>
 
-          <h1>Secure Practice Management System</h1>
+          <h1>{tr("Secure Practice Management System")}</h1>
 
-          <p className="login-description">
-            Sign in with your email and password to access your practice dashboard.
-          </p>
+          <p className="login-description">{tr("Sign in with your email and password to access your practice dashboard.")}</p>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
-          <label className="login-label" htmlFor="email">
-            Email address
-          </label>
-          <input
+          <label className="login-label" htmlFor="email">{tr("Email address")}</label>
+          <input dir="ltr"
             id="email"
             type="email"
             autoComplete="username"
@@ -111,38 +110,34 @@ export function Login() {
             required
           />
 
-          <label className="login-label" htmlFor="password">
-            Password
-          </label>
-          <input
+          <label className="login-label" htmlFor="password">{tr("Password")}</label>
+          <input dir="ltr"
             id="password"
             type="password"
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className="login-input"
-            placeholder="Enter your password"
+            placeholder={tr("Enter your password")}
             required
           />
 
           {error && (
             <div className="login-error" role="alert">
-              {error}
+              {tr(error)}
             </div>
           )}
 
-          {notice && <div className="login-notice" role="status">{notice}</div>}
+          {notice && <div className="login-notice" role="status">{tr(notice)}</div>}
 
-          <button type="button" className="login-link-button" onClick={handlePasswordReset} disabled={loading}>
-            Forgot password?
-          </button>
+          <button type="button" className="login-link-button" onClick={handlePasswordReset} disabled={loading}>{tr("Forgot password?")}</button>
 
           <button
             type="submit"
             className="login-submit"
             disabled={loading}
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? tr("Signing in…") : tr("Sign In")}
           </button>
         </form>
       </div>

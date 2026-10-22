@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 import { FormEvent, useEffect, useState } from 'react';
 import { History, MailPlus, RefreshCw, ShieldCheck, UserRoundX } from 'lucide-react';
 
@@ -28,6 +29,7 @@ function accountDisplayName(account: AccessAccount) {
 }
 
 export function StaffAccessAdministration() {
+  const interfaceLanguage = useLocale();
   const [accounts, setAccounts] = useState<AccessAccount[]>([]);
   const [audit, setAudit] = useState<AccessAuditEntry[]>([]);
   const [email, setEmail] = useState('');
@@ -140,18 +142,18 @@ export function StaffAccessAdministration() {
     <section className="panel staff-access-panel">
       <div className="staff-access-heading">
         <div>
-          <p className="page-eyebrow">Administrator Control</p>
-          <h3>Application Access</h3>
-          <p>Invite operations staff, suspend access, and review account activity.</p>
+          <p className="page-eyebrow">{tr("Administrator Control")}</p>
+          <h3>{tr("Application Access")}</h3>
+          <p>{tr("Invite operations staff, suspend access, and review account activity.")}</p>
         </div>
-        <span className="staff-access-security"><ShieldCheck size={17} /> Three approved administrators</span>
+        <span className="staff-access-security"><ShieldCheck size={17} />{" "}{tr("Three approved administrators")}</span>
       </div>
 
       {missingAdministrators.length ? (
         <div className="staff-admin-provisioning">
           <div>
-            <strong>Complete administrator setup</strong>
-            <span>{missingAdministrators.length} approved administrator account{missingAdministrators.length === 1 ? '' : 's'} still require an invitation.</span>
+            <strong>{tr("Complete administrator setup")}</strong>
+            <span>{missingAdministrators.length}{" "}{tr("approved administrator account")}{missingAdministrators.length === 1 ? '' : 's'}{" "}{tr("still require an invitation.")}</span>
           </div>
           <div className="staff-admin-provisioning-actions">
             {missingAdministrators.map((administrator) => (
@@ -163,7 +165,7 @@ export function StaffAccessAdministration() {
                 disabled={working === `admin-${administrator.email}`}
               >
                 <MailPlus size={16} />
-                {working === `admin-${administrator.email}` ? 'Sending…' : `Invite ${administrator.fullName}`}
+                {working === `admin-${administrator.email}` ? tr("Sending…") : tr("Invite {0}", [administrator.fullName])}
               </button>
             ))}
           </div>
@@ -171,27 +173,27 @@ export function StaffAccessAdministration() {
       ) : null}
 
       <form className="staff-access-invite" onSubmit={submitInvite}>
-        <label>Full name<input value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Staff member name" /></label>
-        <label>Work email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@shabgroup.com" /></label>
-        <button className="primary-action-button" disabled={working === 'invite'}><MailPlus size={17} />{working === 'invite' ? 'Sending…' : 'Invite Staff'}</button>
+        <label>{tr("Full name")}<input dir="auto" value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder={tr("Staff member name")} /></label>
+        <label>{tr("Work email")}<input dir="ltr" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@shabgroup.com" /></label>
+        <button className="primary-action-button" disabled={working === 'invite'}><MailPlus size={17} />{working === 'invite' ? tr("Sending…") : tr("Invite Staff")}</button>
       </form>
 
-      {error ? <div className="case-form-error" role="alert">{error}</div> : null}
-      {notice ? <div className="staff-access-notice" role="status">{notice}</div> : null}
+      {error ? <div className="case-form-error" role="alert">{tr(error)}</div> : null}
+      {notice ? <div className="staff-access-notice" role="status">{tr(notice)}</div> : null}
 
-      {loading ? <p>Loading access accounts…</p> : (
+      {loading ? <p>{tr("Loading access accounts…")}</p> : (
         <div className="table-wrapper">
           <table className="data-table staff-access-table">
-            <thead><tr><th>Account</th><th>Access role</th><th>Staff link</th><th>Status</th><th>Controls</th></tr></thead>
+            <thead><tr><th>{tr("Account")}</th><th>{tr("Access role")}</th><th>{tr("Staff link")}</th><th>{tr("Status")}</th><th>{tr("Controls")}</th></tr></thead>
             <tbody>{accounts.map((account) => (
               <tr key={account.user_id}>
-                <td><strong>{accountDisplayName(account)}</strong><span>{account.email}</span></td>
-                <td>{account.access_role === 'administrator' ? 'Administrator' : 'Operations Staff'}</td>
-                <td>{account.staff_id ? 'Linked' : 'Not linked'}</td>
-                <td><span className={`status-badge ${account.is_active ? 'status-active' : 'status-inactive'}`}>{account.is_active ? 'Active' : 'Suspended'}</span></td>
+                <td><strong>{accountDisplayName(account)}</strong><span><bdi dir="ltr">{account.email}</bdi></span></td>
+                <td>{account.access_role === 'administrator' ? tr("Administrator") : tr("Operations Staff")}</td>
+                <td>{account.staff_id ? tr("Linked") : tr("Not linked")}</td>
+                <td><span className={`status-badge ${account.is_active ? 'status-active' : 'status-inactive'}`}>{account.is_active ? tr("Active") : tr("Suspended")}</span></td>
                 <td><div className="staff-actions">
-                  {account.access_role === 'operations_staff' ? <button type="button" className="secondary-action-button" onClick={() => void changeStatus(account)} disabled={working === account.user_id}><UserRoundX size={16} />{account.is_active ? 'Suspend' : 'Activate'}</button> : <span className="staff-access-locked">Protected</span>}
-                  <button type="button" className="icon-action-button" onClick={() => void resend(account)} disabled={working === `invite-${account.user_id}`} title="Send sign-in invitation"><RefreshCw size={16} /></button>
+                  {account.access_role === 'operations_staff' ? <button type="button" className="secondary-action-button" onClick={() => void changeStatus(account)} disabled={working === account.user_id}><UserRoundX size={16} />{account.is_active ? tr("Suspend") : tr("Activate")}</button> : <span className="staff-access-locked">{tr("Protected")}</span>}
+                  <button type="button" className="icon-action-button" onClick={() => void resend(account)} disabled={working === `invite-${account.user_id}`} title={tr("Send sign-in invitation")}><RefreshCw size={16} /></button>
                 </div></td>
               </tr>
             ))}</tbody>
@@ -200,8 +202,8 @@ export function StaffAccessAdministration() {
       )}
 
       <details className="staff-access-audit">
-        <summary><History size={17} /> Recent access audit</summary>
-        {audit.length === 0 ? <p>No access changes recorded yet.</p> : <ul>{audit.map((entry) => <li key={entry.id}><strong>{entry.target_email}</strong><span>{entry.action.replace(/_/g, ' ')} by {entry.performed_by_email || 'system'} · {new Date(entry.created_at).toLocaleString()}</span></li>)}</ul>}
+        <summary><History size={17} />{" "}{tr("Recent access audit")}</summary>
+        {audit.length === 0 ? <p>{tr("No access changes recorded yet.")}</p> : <ul>{audit.map((entry) => <li key={entry.id}><strong>{entry.target_email}</strong><span>{entry.action.replace(/_/g, ' ')}{" "}{tr("by")}{" "}{entry.performed_by_email || tr("system")} · {new Date(entry.created_at).toLocaleString()}</span></li>)}</ul>}
       </details>
     </section>
   );

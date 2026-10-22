@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import {
   Activity,
   FileClock,
@@ -29,7 +30,7 @@ function formatActivityDate(
   }
 
   return new Intl.DateTimeFormat(
-    'en-GB',
+    getLocale("en-GB"),
     {
       day: '2-digit',
       month: 'short',
@@ -40,6 +41,7 @@ function formatActivityDate(
 }
 
 export function ActivityFeed() {
+  const interfaceLanguage = useLocale();
   const [items, setItems] =
     useState<ActivityItem[]>([]);
 
@@ -91,33 +93,25 @@ export function ActivityFeed() {
     <section className="dashboard-panel activity-feed-panel">
       <div className="panel-heading-row">
         <div>
-          <span className="section-tag">
-            AUDIT TRAIL
-          </span>
+          <span className="section-tag">{tr("AUDIT TRAIL")}</span>
 
-          <h3>Recent Activity</h3>
+          <h3>{tr("Recent Activity")}</h3>
 
-          <p>
-            Latest recorded updates across the practice.
-          </p>
+          <p>{tr("Latest recorded updates across the practice.")}</p>
         </div>
       </div>
 
       {loading ? (
-        <div className="dashboard-widget-state">
-          Loading activity…
-        </div>
+        <div className="dashboard-widget-state">{tr("Loading activity…")}</div>
       ) : error ? (
         <div className="dashboard-widget-state error">
-          {error}
+          {tr(error)}
         </div>
       ) : items.length === 0 ? (
         <div className="dashboard-widget-state">
           <FileClock size={22} />
 
-          <span>
-            No activity has been recorded yet.
-          </span>
+          <span>{tr("No activity has been recorded yet.")}</span>
         </div>
       ) : (
         <div className="activity-dashboard-list">
@@ -133,7 +127,7 @@ export function ActivityFeed() {
               <div className="activity-dashboard-content">
                 <strong>
                   {item.action ||
-                    'Activity recorded'}
+                    tr("Activity recorded")}
                 </strong>
 
                 {item.details && (

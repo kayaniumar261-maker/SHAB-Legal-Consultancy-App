@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../i18n/locale';
 import './Staff.css';
 import './Staff.mobile.css';
 import {
@@ -60,9 +61,9 @@ const emptyForm: StaffFormState = {
 };
 
 const roleLabels: Record<StaffRole, string> = {
-  admin: 'Administrator',
-  lawyer: 'Lawyer',
-  legal_consultant: 'Legal Consultant',
+  get admin() { return tr("Administrator"); },
+  get lawyer() { return tr("Lawyer"); },
+  get legal_consultant() { return tr("Legal Consultant"); },
 };
 
 function isStaffRole(value: string | null): value is StaffRole {
@@ -83,6 +84,7 @@ function StaffKpi({
   label: string;
   value: number;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article className="staff-kpi">
       <div className="staff-kpi-icon">
@@ -104,31 +106,32 @@ function StaffKpi({
 
 function formatRole(role: string | null): string {
   if (!role) {
-    return '—';
+    return tr('—');
   }
 
   if (isStaffRole(role)) {
-    return roleLabels[role];
+    return tr(roleLabels[role]);
   }
 
-  return role
+  return tr(role
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (letter: string) =>
       letter.toUpperCase(),
-    );
+    ));
 }
 
 function formatStatus(
   status: StaffRecord['status'],
 ): string {
-  return status
+  return tr(status
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (letter: string) =>
       letter.toUpperCase(),
-    );
+    ));
 }
 
 export function Staff() {
+  const interfaceLanguage = useLocale();
   const [staff, setStaff] = useState<StaffRecord[]>([]);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -211,7 +214,7 @@ export function Staff() {
     search,
     roleFilter,
     statusFilter,
-  ]);
+  , interfaceLanguage]);
 
   const staffStats = useMemo(() => {
     return {
@@ -234,7 +237,7 @@ export function Staff() {
           member.role === 'admin',
       ).length,
     };
-  }, [staff]);
+  }, [staff, interfaceLanguage]);
 
   const openCreateForm = () => {
     setEditingStaff(null);
@@ -381,16 +384,11 @@ export function Staff() {
     <div className="page-container staff-page">
       <section className="page-heading">
         <div>
-          <p className="page-eyebrow">
-            SHAB Legal Consultants FZC
-          </p>
+          <p className="page-eyebrow">{tr("SHAB Legal Consultants FZC")}</p>
 
-          <h2>Staff</h2>
+          <h2>{tr("Staff")}</h2>
 
-          <p>
-            Manage lawyers, legal consultants,
-            administrators, and support staff.
-          </p>
+          <p>{tr("Manage lawyers, legal consultants, administrators, and support staff.")}</p>
         </div>
 
         <div className="staff-heading-actions">
@@ -398,17 +396,13 @@ export function Staff() {
             to="/staff/safety-review"
             className="secondary-action-button"
           >
-            <ShieldAlert size={18} />
-            Safety Review
-          </Link>
+            <ShieldAlert size={18} />{tr("Safety Review")}</Link>
           <button
             type="button"
             className="primary-action-button"
             onClick={openCreateForm}
           >
-            <Plus size={18} />
-            Add Staff
-          </button>
+            <Plus size={18} />{tr("Add Staff")}</button>
         </div>
       </section>
 
@@ -418,31 +412,31 @@ export function Staff() {
       <section className="staff-kpis">
         <StaffKpi
           icon={<Users size={22} />}
-          label="Total Staff"
+          label={tr("Total Staff")}
           value={staffStats.total}
         />
 
         <StaffKpi
           icon={<UserRoundCheck size={22} />}
-          label="Active Staff"
+          label={tr("Active Staff")}
           value={staffStats.active}
         />
 
         <StaffKpi
           icon={<Gavel size={22} />}
-          label="Lawyers"
+          label={tr("Lawyers")}
           value={staffStats.lawyers}
         />
 
         <StaffKpi
           icon={<BriefcaseBusiness size={22} />}
-          label="Legal Consultants"
+          label={tr("Legal Consultants")}
           value={staffStats.consultants}
         />
 
         <StaffKpi
           icon={<ShieldCheck size={22} />}
-          label="Administrators"
+          label={tr("Administrators")}
           value={staffStats.administrators}
         />
       </section>
@@ -452,14 +446,14 @@ export function Staff() {
           <div className="staff-search">
             <Search size={18} />
 
-            <input
+            <input dir="auto"
               type="search"
               value={search}
               onChange={(event) =>
                 setSearch(event.target.value)
               }
-              placeholder="Search staff..."
-              aria-label="Search staff"
+              placeholder={tr("Search staff...")}
+              aria-label={tr("Search staff")}
             />
           </div>
 
@@ -468,28 +462,27 @@ export function Staff() {
             value={roleFilter}
             onChange={(e)=>setRoleFilter(e.target.value)}
           >
-            <option value="all">All Roles</option>
-            <option value="lawyer">Lawyers</option>
-            <option value="legal_consultant">Legal Consultants</option>
-            <option value="admin">Administrators</option>
+            <option value="all">{tr("All Roles")}</option>
+            <option value="lawyer">{tr("Lawyers")}</option>
+            <option value="legal_consultant">{tr("Legal Consultants")}</option>
+            <option value="admin">{tr("Administrators")}</option>
           </select>
 
           <select
             value={statusFilter}
             onChange={(e)=>setStatusFilter(e.target.value)}
           >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="on_leave">On Leave</option>
+            <option value="all">{tr("All Status")}</option>
+            <option value="active">{tr("Active")}</option>
+            <option value="inactive">{tr("Inactive")}</option>
+            <option value="on_leave">{tr("On Leave")}</option>
           </select>
 
           <div className="staff-count">
             <Users size={18} />
 
             <span>
-              {filteredStaff.length} staff member
-              {filteredStaff.length === 1 ? '' : 's'}
+              {filteredStaff.length}{" "}{tr("staff member")}{filteredStaff.length === 1 ? '' : 's'}
             </span>
           </div>
         </div>
@@ -499,41 +492,38 @@ export function Staff() {
             className="case-form-error"
             role="alert"
           >
-            {error}
+            {tr(error)}
           </div>
         ) : null}
 
         {loading ? (
-          <p>Loading staff...</p>
+          <p>{tr("Loading staff...")}</p>
         ) : filteredStaff.length === 0 ? (
           <div className="staff-empty-state">
             <Users size={42} />
 
-            <h3>No staff members found</h3>
+            <h3>{tr("No staff members found")}</h3>
 
-            <p>
-              Add your first staff member to begin
-              assigning cases and tasks.
-            </p>
+            <p>{tr("Add your first staff member to begin assigning cases and tasks.")}</p>
           </div>
         ) : (
           <div className="table-wrapper">
             <table className="data-table staff-directory-table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th>{tr("Name")}</th>
+                  <th>{tr("Role")}</th>
+                  <th>{tr("Email")}</th>
+                  <th>{tr("Phone")}</th>
+                  <th>{tr("Status")}</th>
+                  <th>{tr("Actions")}</th>
                 </tr>
               </thead>
 
               <tbody>
                 {filteredStaff.map((member) => (
                   <tr key={member.id}>
-                    <td data-label="Name">
+                    <td data-label={tr("Name")}>
                       <Link
                         className="staff-profile-link"
                         to={`/staff/${member.id}`}
@@ -544,19 +534,19 @@ export function Staff() {
                       </Link>
                     </td>
 
-                    <td data-label="Role">
+                    <td data-label={tr("Role")}>
                       {formatRole(member.role)}
                     </td>
 
-                    <td data-label="Email">
+                    <td data-label={tr("Email")}>
                       {member.email ?? '—'}
                     </td>
 
-                    <td data-label="Phone">
+                    <td data-label={tr("Phone")}>
                       {member.phone ?? '—'}
                     </td>
 
-                    <td data-label="Status">
+                    <td data-label={tr("Status")}>
                       <span
                         className={`status-badge status-${member.status}`}
                       >
@@ -564,7 +554,7 @@ export function Staff() {
                       </span>
                     </td>
 
-                    <td data-label="Actions">
+                    <td data-label={tr("Actions")}>
                       <div className="staff-actions">
                         <button
                           type="button"
@@ -572,8 +562,8 @@ export function Staff() {
                           onClick={() =>
                             openEditForm(member)
                           }
-                          aria-label={`Edit ${member.full_name}`}
-                          title="Edit staff member"
+                          aria-label={tr("Edit {0}", [member.full_name])}
+                          title={tr("Edit staff member")}
                         >
                           <Edit size={17} />
                         </button>
@@ -587,8 +577,8 @@ export function Staff() {
                           disabled={
                             deletingId === member.id
                           }
-                          aria-label={`Delete ${member.full_name}`}
-                          title="Delete staff member"
+                          aria-label={tr("Delete {0}", [member.full_name])}
+                          title={tr("Delete staff member")}
                         >
                           <Trash2 size={17} />
                         </button>
@@ -645,14 +635,12 @@ export function Staff() {
           >
             <div className="modal-header">
               <div>
-                <p className="page-eyebrow">
-                  Staff Management
-                </p>
+                <p className="page-eyebrow">{tr("Staff Management")}</p>
 
                 <h3 id="staff-form-title">
                   {editingStaff
-                    ? 'Edit Staff Member'
-                    : 'Add Staff Member'}
+                    ? tr("Edit Staff Member")
+                    : tr("Add Staff Member")}
                 </h3>
               </div>
 
@@ -661,7 +649,7 @@ export function Staff() {
                 className="icon-action-button"
                 onClick={closeForm}
                 disabled={saving}
-                aria-label="Close staff form"
+                aria-label={tr("Close staff form")}
               >
                 <X size={20} />
               </button>
@@ -673,11 +661,9 @@ export function Staff() {
             >
               <div className="case-form-grid">
                 <div className="case-form-field">
-                  <label htmlFor="staff_full_name">
-                    Full Name
-                  </label>
+                  <label htmlFor="staff_full_name">{tr("Full Name")}</label>
 
-                  <input
+                  <input dir="auto"
                     id="staff_full_name"
                     value={formState.full_name}
                     onChange={(event) =>
@@ -687,16 +673,14 @@ export function Staff() {
                           event.target.value,
                       }))
                     }
-                    placeholder="Staff member's full name"
+                    placeholder={tr("Staff member's full name")}
                     autoComplete="name"
                     required
                   />
                 </div>
 
                 <div className="case-form-field">
-                  <label htmlFor="staff_role">
-                    Role
-                  </label>
+                  <label htmlFor="staff_role">{tr("Role")}</label>
 
                   <select
                     id="staff_role"
@@ -710,26 +694,18 @@ export function Staff() {
                     }
                     required
                   >
-                    <option value="admin">
-                      Administrator
-                    </option>
+                    <option value="admin">{tr("Administrator")}</option>
 
-                    <option value="lawyer">
-                      Lawyer
-                    </option>
+                    <option value="lawyer">{tr("Lawyer")}</option>
 
-                    <option value="legal_consultant">
-                      Legal Consultant
-                    </option>
+                    <option value="legal_consultant">{tr("Legal Consultant")}</option>
                   </select>
                 </div>
 
                 <div className="case-form-field">
-                  <label htmlFor="staff_email">
-                    Email
-                  </label>
+                  <label htmlFor="staff_email">{tr("Email")}</label>
 
-                  <input
+                  <input dir="ltr"
                     id="staff_email"
                     type="email"
                     value={formState.email}
@@ -745,11 +721,9 @@ export function Staff() {
                 </div>
 
                 <div className="case-form-field">
-                  <label htmlFor="staff_phone">
-                    Phone
-                  </label>
+                  <label htmlFor="staff_phone">{tr("Phone")}</label>
 
-                  <input
+                  <input dir="ltr"
                     id="staff_phone"
                     type="tel"
                     value={formState.phone}
@@ -765,9 +739,7 @@ export function Staff() {
                 </div>
 
                 <div className="case-form-field">
-                  <label htmlFor="staff_status">
-                    Status
-                  </label>
+                  <label htmlFor="staff_status">{tr("Status")}</label>
 
                   <select
                     id="staff_status"
@@ -781,17 +753,11 @@ export function Staff() {
                     }
                     required
                   >
-                    <option value="active">
-                      Active
-                    </option>
+                    <option value="active">{tr("Active")}</option>
 
-                    <option value="inactive">
-                      Inactive
-                    </option>
+                    <option value="inactive">{tr("Inactive")}</option>
 
-                    <option value="on_leave">
-                      On Leave
-                    </option>
+                    <option value="on_leave">{tr("On Leave")}</option>
                   </select>
                 </div>
               </div>
@@ -801,7 +767,7 @@ export function Staff() {
                   className="case-form-error"
                   role="alert"
                 >
-                  {error}
+                  {tr(error)}
                 </div>
               ) : null}
 
@@ -811,9 +777,7 @@ export function Staff() {
                   className="secondary-action-button"
                   onClick={closeForm}
                   disabled={saving}
-                >
-                  Cancel
-                </button>
+                >{tr("Cancel")}</button>
 
                 <button
                   type="submit"
@@ -821,10 +785,10 @@ export function Staff() {
                   disabled={saving}
                 >
                   {saving
-                    ? 'Saving...'
+                    ? tr("Saving...")
                     : editingStaff
-                      ? 'Update Staff'
-                      : 'Create Staff'}
+                      ? tr("Update Staff")
+                      : tr("Create Staff")}
                 </button>
               </div>
             </form>

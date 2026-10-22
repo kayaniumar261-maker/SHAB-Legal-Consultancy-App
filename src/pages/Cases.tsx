@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../i18n/locale';
 import {
   AlertTriangle,
   ArrowRight,
@@ -98,50 +99,51 @@ const statusOptions: Array<{
   value: StatusFilter;
   label: string;
 }> = [
-  { value: 'all', label: 'All statuses' },
-  { value: 'open', label: 'Open' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'in_court', label: 'In Court' },
-  { value: 'closed', label: 'Closed' },
-  { value: 'appeal', label: 'Appeal' },
+  { value: 'all', get label() { return tr("All statuses"); } },
+  { value: 'open', get label() { return tr("Open"); } },
+  { value: 'pending', get label() { return tr("Pending"); } },
+  { value: 'in_court', get label() { return tr("In Court"); } },
+  { value: 'closed', get label() { return tr("Closed"); } },
+  { value: 'appeal', get label() { return tr("Appeal"); } },
 ];
 
 const priorityOptions: Array<{
   value: PriorityFilter;
   label: string;
 }> = [
-  { value: 'all', label: 'All priorities' },
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'urgent', label: 'Urgent' },
+  { value: 'all', get label() { return tr("All priorities"); } },
+  { value: 'low', get label() { return tr("Low"); } },
+  { value: 'medium', get label() { return tr("Medium"); } },
+  { value: 'high', get label() { return tr("High"); } },
+  { value: 'urgent', get label() { return tr("Urgent"); } },
 ];
 
 const riskOptions: Array<{
   value: RiskFilter;
   label: string;
 }> = [
-  { value: 'all', label: 'All risk levels' },
-  { value: 'low', label: 'Low Risk' },
-  { value: 'medium', label: 'Medium Risk' },
-  { value: 'high', label: 'High Risk' },
-  { value: 'critical', label: 'Critical Risk' },
+  { value: 'all', get label() { return tr("All risk levels"); } },
+  { value: 'low', get label() { return tr("Low Risk"); } },
+  { value: 'medium', get label() { return tr("Medium Risk"); } },
+  { value: 'high', get label() { return tr("High Risk"); } },
+  { value: 'critical', get label() { return tr("Critical Risk"); } },
 ];
 
 const sortOptions: Array<{
   value: SortValue;
   label: string;
 }> = [
-  { value: 'filing_date', label: 'Filing Date' },
-  { value: 'next_hearing_at', label: 'Next Hearing' },
-  { value: 'updated_at', label: 'Recently Updated' },
-  { value: 'priority', label: 'Priority' },
-  { value: 'status', label: 'Status' },
-  { value: 'matter_number', label: 'Matter Number' },
-  { value: 'case_number', label: 'Case Number' },
+  { value: 'filing_date', get label() { return tr("Filing Date"); } },
+  { value: 'next_hearing_at', get label() { return tr("Next Hearing"); } },
+  { value: 'updated_at', get label() { return tr("Recently Updated"); } },
+  { value: 'priority', get label() { return tr("Priority"); } },
+  { value: 'status', get label() { return tr("Status"); } },
+  { value: 'matter_number', get label() { return tr("Matter Number"); } },
+  { value: 'case_number', get label() { return tr("Case Number"); } },
 ];
 
 export function Cases() {
+  const interfaceLanguage = useLocale();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -222,7 +224,7 @@ export function Cases() {
       sortBy,
       sortOrder,
       page,
-    ],
+    , interfaceLanguage],
   );
 
   const fetchCases = useCallback(async () => {
@@ -345,15 +347,9 @@ export function Cases() {
     <div className="cases-page page-container">
       <section className="page-heading cases-heading">
         <div>
-          <p className="page-eyebrow">
-            Legal matter management
-          </p>
-          <h2>Cases & Matters</h2>
-          <p className="page-intro">
-            Manage litigation, assignments, deadlines,
-            hearings, financial exposure, and legal strategy
-            from one central workspace.
-          </p>
+          <p className="page-eyebrow">{tr("Legal matter management")}</p>
+          <h2>{tr("Cases & Matters")}</h2>
+          <p className="page-intro">{tr("Manage litigation, assignments, deadlines, hearings, financial exposure, and legal strategy from one central workspace.")}</p>
         </div>
 
         <button
@@ -367,61 +363,55 @@ export function Cases() {
             )
           }
         >
-          <Plus size={18} />
-          Add Matter
-        </button>
+          <Plus size={18} />{tr("Add Matter")}</button>
       </section>
 
       {selectedClientName && (
         <section className="cases-client-context">
           <div>
             <UserRound size={18} />
-            <span>
-              Showing matters for
-              <strong>{selectedClientName}</strong>
+            <span>{tr("Showing matters for")}<strong>{selectedClientName}</strong>
             </span>
           </div>
           <button
             type="button"
             onClick={() => updateClientFilter('all')}
-          >
-            Clear client filter
-          </button>
+          >{tr("Clear client filter")}</button>
         </section>
       )}
 
       <section className="cases-summary-grid">
         <SummaryCard
           icon={<FolderKanban size={20} />}
-          label="Total Matters"
+          label={tr("Total Matters")}
           value={stats.total}
           helper="Current client scope"
           loading={statsLoading}
         />
         <SummaryCard
           icon={<Scale size={20} />}
-          label="Active"
+          label={tr("Active")}
           value={stats.active}
           helper="Open and progressing"
           loading={statsLoading}
         />
         <SummaryCard
           icon={<Gavel size={20} />}
-          label="In Court"
+          label={tr("In Court")}
           value={stats.inCourt}
           helper="Active court matters"
           loading={statsLoading}
         />
         <SummaryCard
           icon={<Landmark size={20} />}
-          label="Appeals"
+          label={tr("Appeals")}
           value={stats.appeals}
           helper="Under appeal"
           loading={statsLoading}
         />
         <SummaryCard
           icon={<AlertTriangle size={20} />}
-          label="Urgent"
+          label={tr("Urgent")}
           value={stats.urgent}
           helper="Immediate attention"
           loading={statsLoading}
@@ -429,14 +419,14 @@ export function Cases() {
         />
         <SummaryCard
           icon={<CalendarClock size={20} />}
-          label="Hearings in 30 Days"
+          label={tr("Hearings in 30 Days")}
           value={stats.upcomingHearings}
           helper="Upcoming schedule"
           loading={statsLoading}
         />
         <SummaryCard
           icon={<FileWarning size={20} />}
-          label="Overdue Actions"
+          label={tr("Overdue Actions")}
           value={stats.overdueActions}
           helper="Past-due next actions"
           loading={statsLoading}
@@ -444,7 +434,7 @@ export function Cases() {
         />
         <SummaryCard
           icon={<CircleDollarSign size={20} />}
-          label="Outstanding"
+          label={tr("Outstanding")}
           value={formatCurrency(stats.outstandingBalance)}
           helper="Matter balances"
           loading={statsLoading}
@@ -455,20 +445,20 @@ export function Cases() {
       <section className="cases-toolbar">
         <div className="cases-search">
           <Search size={18} />
-          <input
+          <input dir="auto"
             type="search"
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
               setPage(1);
             }}
-            placeholder="Search matter, case number, court, opponent, lawyer or reference"
-            aria-label="Search matters"
+            placeholder={tr("Search matter, case number, court, opponent, lawyer or reference")}
+            aria-label={tr("Search matters")}
           />
         </div>
 
         <div className="cases-filters">
-          <FilterField label="Status" id="case-status-filter">
+          <FilterField label={tr("Status")} id="case-status-filter">
             <select
               id="case-status-filter"
               value={statusFilter}
@@ -490,7 +480,7 @@ export function Cases() {
             </select>
           </FilterField>
 
-          <FilterField label="Priority" id="case-priority-filter">
+          <FilterField label={tr("Priority")} id="case-priority-filter">
             <select
               id="case-priority-filter"
               value={priorityFilter}
@@ -512,7 +502,7 @@ export function Cases() {
             </select>
           </FilterField>
 
-          <FilterField label="Risk" id="case-risk-filter">
+          <FilterField label={tr("Risk")} id="case-risk-filter">
             <select
               id="case-risk-filter"
               value={riskFilter}
@@ -534,7 +524,7 @@ export function Cases() {
             </select>
           </FilterField>
 
-          <FilterField label="Client" id="case-client-filter">
+          <FilterField label={tr("Client")} id="case-client-filter">
             <select
               id="case-client-filter"
               value={clientFilter}
@@ -542,7 +532,7 @@ export function Cases() {
                 updateClientFilter(event.target.value)
               }
             >
-              <option value="all">All clients</option>
+              <option value="all">{tr("All clients")}</option>
               {Object.entries(clients).map(([id, name]) => (
                 <option key={id} value={id}>
                   {name}
@@ -551,7 +541,7 @@ export function Cases() {
             </select>
           </FilterField>
 
-          <FilterField label="Sort" id="case-sort-filter">
+          <FilterField label={tr("Sort")} id="case-sort-filter">
             <select
               id="case-sort-filter"
               value={sortBy}
@@ -571,7 +561,7 @@ export function Cases() {
             </select>
           </FilterField>
 
-          <FilterField label="Order" id="case-order-filter">
+          <FilterField label={tr("Order")} id="case-order-filter">
             <select
               id="case-order-filter"
               value={sortOrder}
@@ -582,8 +572,8 @@ export function Cases() {
                 setPage(1);
               }}
             >
-              <option value="desc">Descending</option>
-              <option value="asc">Ascending</option>
+              <option value="desc">{tr("Descending")}</option>
+              <option value="asc">{tr("Ascending")}</option>
             </select>
           </FilterField>
 
@@ -593,46 +583,43 @@ export function Cases() {
             onClick={handleResetFilters}
             disabled={!filtersAreActive}
           >
-            <FilterX size={17} />
-            Reset
-          </button>
+            <FilterX size={17} />{tr("Reset")}</button>
         </div>
       </section>
 
       <section className="cases-status-row">
         <div>
           <strong>
-            {filtersAreActive ? 'Filtered matters' : 'All matters'}
+            {filtersAreActive ? tr("Filtered matters") : tr("All matters")}
           </strong>
           <span>
             {totalCount}{' '}
-            {totalCount === 1 ? 'result' : 'results'}
+            {totalCount === 1 ? tr("result") : tr("results")}
           </span>
         </div>
-        <span>
-          Page {page} of {totalPages}
+        <span>{tr("Page")}{" "}{page}{" "}{tr("of")}{" "}{totalPages}
         </span>
       </section>
 
       <section className="cases-grid">
         {loading ? (
           <CasesState
-            title="Loading matters…"
-            description="Retrieving the latest legal matter information."
+            title={tr("Loading matters…")}
+            description={tr("Retrieving the latest legal matter information.")}
           />
         ) : error ? (
           <CasesState
-            title="Unable to load matters"
-            description={error}
+            title={tr("Unable to load matters")}
+            description={tr(error)}
             error
           />
         ) : cases.length === 0 ? (
           <CasesState
-            title="No matters found"
+            title={tr("No matters found")}
             description={
               filtersAreActive
-                ? 'Adjust or reset the filters to see more results.'
-                : 'Create the first legal matter to begin case management.'
+                ? tr("Adjust or reset the filters to see more results.")
+                : tr("Create the first legal matter to begin case management.")
             }
             action={
               filtersAreActive ? (
@@ -662,7 +649,7 @@ export function Cases() {
               clientName={
                 record.client?.full_name ??
                 clients[record.client_id] ??
-                'Unknown client'
+                tr("Unknown client")
               }
               financeSummary={financeSummaries[record.id]}
             />
@@ -678,12 +665,9 @@ export function Cases() {
               setPage((current) => Math.max(1, current - 1))
             }
             disabled={page <= 1}
-          >
-            Previous
-          </button>
+          >{tr("Previous")}</button>
 
-          <span>
-            Page {page} of {totalPages}
+          <span>{tr("Page")}{" "}{page}{" "}{tr("of")}{" "}{totalPages}
           </span>
 
           <button
@@ -694,9 +678,7 @@ export function Cases() {
               )
             }
             disabled={page >= totalPages}
-          >
-            Next
-          </button>
+          >{tr("Next")}</button>
         </section>
       )}
     </div>
@@ -712,6 +694,7 @@ function CaseCard({
   clientName: string;
   financeSummary?: AuthoritativeFinanceSummary;
 }) {
+  const interfaceLanguage = useLocale();
   const nextHearingState = getDateState(record.next_hearing_at);
   const nextActionState = getDateState(record.next_action_at);
 
@@ -726,13 +709,11 @@ function CaseCard({
 
             {record.requires_urgent_action && (
               <span className="case-urgent-indicator">
-                <AlertTriangle size={13} />
-                Urgent action
-              </span>
+                <AlertTriangle size={13} />{tr("Urgent action")}</span>
             )}
           </div>
 
-          <h3>{record.case_type || 'Untitled matter'}</h3>
+          <h3>{record.case_type || tr("Untitled matter")}</h3>
 
           <Link
             className="case-client-link"
@@ -746,7 +727,7 @@ function CaseCard({
         <Link
           to={`/cases/${record.id}`}
           className="case-open-button"
-          aria-label={`Open ${record.matter_number ?? record.case_number}`}
+          aria-label={tr("Open {0}", [record.matter_number ?? record.case_number])}
         >
           <ArrowRight size={18} />
         </Link>
@@ -767,21 +748,20 @@ function CaseCard({
           className={`case-risk-badge ${normalizeClass(record.risk_level)}`}
         >
           <ShieldAlert size={13} />
-          {formatLabel(record.risk_level)} risk
-        </span>
+          {formatLabel(record.risk_level)}{" "}{tr("risk")}</span>
       </div>
 
       <div className="case-card-information">
         <CaseInfo
-          label="Court"
+          label={tr("Court")}
           value={record.court || 'Not assigned'}
         />
         <CaseInfo
-          label="Court Case No."
+          label={tr("Court Case No.")}
           value={record.court_case_number || 'Not provided'}
         />
         <CaseInfo
-          label="Opponent"
+          label={tr("Opponent")}
           value={
             record.opponent_name ??
             record.opponent_company ??
@@ -789,7 +769,7 @@ function CaseCard({
           }
         />
         <CaseInfo
-          label="Responsible Lawyer"
+          label={tr("Responsible Lawyer")}
           value={
             record.responsible_lawyer?.full_name ??
             record.assigned_staff?.full_name ??
@@ -802,7 +782,7 @@ function CaseCard({
       <div className="case-deadline-grid">
         <Deadline
           icon={<CalendarClock size={16} />}
-          label="Next Hearing"
+          label={tr("Next Hearing")}
           value={
             record.next_hearing_at
               ? formatDateTime(record.next_hearing_at)
@@ -812,7 +792,7 @@ function CaseCard({
         />
         <Deadline
           icon={<Clock3 size={16} />}
-          label="Next Action"
+          label={tr("Next Action")}
           value={
             record.next_action_at
               ? formatDateTime(record.next_action_at)
@@ -824,7 +804,7 @@ function CaseCard({
 
       <div className="case-progress-block">
         <div>
-          <span>Progress</span>
+          <span>{tr("Progress")}</span>
           <strong>
             {Math.min(
               100,
@@ -850,7 +830,7 @@ function CaseCard({
 
       <footer className="case-card-footer">
         <div>
-          <span>Claim</span>
+          <span>{tr("Claim")}</span>
           <strong>
             {formatCurrency(
               record.claim_amount ?? record.case_value,
@@ -860,10 +840,10 @@ function CaseCard({
         </div>
 
         <div>
-          <span>Outstanding</span>
+          <span>{tr("Outstanding")}</span>
           <strong>
             {financeSummary?.hasMixedCurrencies
-              ? 'Mixed currencies'
+              ? tr("Mixed currencies")
               : formatCurrency(
                   financeSummary?.outstanding ??
                     EMPTY_FINANCE_SUMMARY.outstanding,
@@ -876,15 +856,11 @@ function CaseCard({
           <Link
             to={`/cases/${record.id}/edit`}
             className="secondary-action-button"
-          >
-            Edit
-          </Link>
+          >{tr("Edit")}</Link>
           <Link
             to={`/cases/${record.id}`}
             className="primary-action-button"
-          >
-            Open Matter
-          </Link>
+          >{tr("Open Matter")}</Link>
         </div>
       </footer>
     </article>
@@ -906,6 +882,7 @@ function SummaryCard({
   loading: boolean;
   tone?: 'default' | 'warning' | 'danger' | 'financial';
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article className={`cases-summary-card ${tone}`}>
       <div className="cases-summary-icon">{icon}</div>
@@ -927,6 +904,7 @@ function FilterField({
   id: string;
   children: ReactNode;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="filter-field">
       <label htmlFor={id}>{label}</label>
@@ -942,6 +920,7 @@ function CaseInfo({
   label: string;
   value: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div>
       <span>{label}</span>
@@ -961,6 +940,7 @@ function Deadline({
   value: string;
   state: 'neutral' | 'upcoming' | 'overdue';
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className={`case-deadline ${state}`}>
       {icon}
@@ -983,6 +963,7 @@ function CasesState({
   error?: boolean;
   action?: ReactNode;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div
       className={`cases-empty-state ${error ? 'error' : ''}`}
@@ -1009,14 +990,14 @@ function formatLabel(
   value: string | null | undefined,
 ): string {
   if (!value) {
-    return 'Not provided';
+    return tr('Not provided');
   }
 
-  return value
+  return tr(value
     .replace(/_/g, ' ')
     .trim()
     .toLowerCase()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    .replace(/\b\w/g, (letter) => letter.toUpperCase()));
 }
 
 function formatDateTime(
@@ -1032,7 +1013,7 @@ function formatDateTime(
     return 'Invalid date';
   }
 
-  return new Intl.DateTimeFormat('en-AE', {
+  return new Intl.DateTimeFormat(getLocale("en-AE"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -1073,7 +1054,7 @@ function formatCurrency(
   value: number | null | undefined,
   currency = 'AED',
 ): string {
-  return new Intl.NumberFormat('en-AE', {
+  return new Intl.NumberFormat(getLocale("en-AE"), {
     style: 'currency',
     currency: currency || 'AED',
     maximumFractionDigits: 2,

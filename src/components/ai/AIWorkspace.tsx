@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../../i18n/locale';
 import {
   AlertTriangle,
   Bot,
@@ -61,73 +62,64 @@ type AIWorkspaceProps = {
 const quickActions: AIQuickAction[] = [
   {
     id: 'summary',
-    label: 'Summarize Matter',
-    description:
-      'Generate a structured legal matter summary.',
+    get label() { return tr("Summarize Matter"); },
+    get description() { return tr("Generate a structured legal matter summary."); },
     prompt:
       'Prepare a structured summary of this matter, including the parties, background, legal issues, financial position, procedural status, risks, deadlines, and recommended next actions.',
   },
   {
     id: 'notice',
-    label: 'Draft Legal Notice',
-    description:
-      'Prepare a formal demand or legal notice.',
+    get label() { return tr("Draft Legal Notice"); },
+    get description() { return tr("Prepare a formal demand or legal notice."); },
     prompt:
       'Draft a professional legal notice based on this matter. Include the factual background, breaches, demands, response deadline, reservation of rights, and legal consequences.',
   },
   {
     id: 'reply',
-    label: 'Draft Reply',
-    description:
-      'Prepare a formal response to the opposing party.',
+    get label() { return tr("Draft Reply"); },
+    get description() { return tr("Prepare a formal response to the opposing party."); },
     prompt:
       'Draft a formal legal reply on behalf of our client based on the current matter information. Use a firm but professional tone and avoid unsupported admissions.',
   },
   {
     id: 'email',
-    label: 'Draft Client Email',
-    description:
-      'Create a clear client update email.',
+    get label() { return tr("Draft Client Email"); },
+    get description() { return tr("Create a clear client update email."); },
     prompt:
       'Draft a professional email updating the client about the current status, recent developments, pending requirements, financial position, and next steps.',
   },
   {
     id: 'settlement',
-    label: 'Settlement Outline',
-    description:
-      'Prepare proposed settlement terms.',
+    get label() { return tr("Settlement Outline"); },
+    get description() { return tr("Prepare proposed settlement terms."); },
     prompt:
       'Prepare a settlement proposal outline for this matter, including payment terms, releases, confidentiality, withdrawal of complaints, no-admission wording, default consequences, and governing law.',
   },
   {
     id: 'memo',
-    label: 'Court Memo',
-    description:
-      'Create an internal court preparation memo.',
+    get label() { return tr("Court Memo"); },
+    get description() { return tr("Create an internal court preparation memo."); },
     prompt:
       'Prepare an internal court hearing memo covering the facts, claims, defences, evidence, weaknesses, strengths, procedural history, hearing objectives, and oral submissions.',
   },
   {
     id: 'timeline',
-    label: 'Build Timeline',
-    description:
-      'Organize the matter chronologically.',
+    get label() { return tr("Build Timeline"); },
+    get description() { return tr("Organize the matter chronologically."); },
     prompt:
       'Prepare a chronological timeline of all important events, filings, hearings, communications, payments, documents, and deadlines in this matter.',
   },
   {
     id: 'risks',
-    label: 'Risk Review',
-    description:
-      'Identify legal and operational concerns.',
+    get label() { return tr("Risk Review"); },
+    get description() { return tr("Identify legal and operational concerns."); },
     prompt:
       'Review this matter for legal, procedural, evidentiary, financial, limitation, and operational risks. Rank each risk and recommend mitigation steps.',
   },
   {
     id: 'documents',
-    label: 'Missing Documents',
-    description:
-      'Identify evidence and documents still required.',
+    get label() { return tr("Missing Documents"); },
+    get description() { return tr("Identify evidence and documents still required."); },
     prompt:
       'Identify potentially missing documents, evidence, approvals, identification documents, payment records, agreements, correspondence, and court records required for this matter.',
   },
@@ -137,6 +129,7 @@ export function AIWorkspace({
   caseRecord,
   clientName,
 }: AIWorkspaceProps) {
+  const interfaceLanguage = useLocale();
   const { user } = useAuth();
   const [hydratedDraftKey, setHydratedDraftKey] = useState<string | null>(null);
   const [messages, setMessages] =
@@ -307,7 +300,7 @@ export function AIWorkspace({
 
   const liveOutstanding = useMemo(
     () => getMatterOutstanding(matterContext),
-    [matterContext],
+    [matterContext, interfaceLanguage],
   );
 
   const contextItems = useMemo(
@@ -365,7 +358,7 @@ export function AIWorkspace({
       caseRecord,
       clientName,
       liveOutstanding,
-    ],
+    , interfaceLanguage],
   );
 
   const contextSourceCounts =
@@ -376,7 +369,7 @@ export function AIWorkspace({
               matterContext,
             )
           : null,
-      [matterContext],
+      [matterContext, interfaceLanguage],
     );
 
   function submitPrompt(
@@ -499,26 +492,18 @@ export function AIWorkspace({
           </div>
 
           <div>
-            <span>
-              SHAB Intelligence
-            </span>
+            <span>{tr("SHAB Intelligence")}</span>
 
-            <h3>
-              AI Legal Assistant
-            </h3>
+            <h3>{tr("AI Legal Assistant")}</h3>
 
-            <p>
-              Draft, review, summarize and analyze the current legal matter.
-            </p>
+            <p>{tr("Draft, review, summarize and analyze the current legal matter.")}</p>
           </div>
         </div>
 
         <div className="ai-workspace-status">
           <Sparkles size={15} />
 
-          <span>
-            Secure AI
-          </span>
+          <span>{tr("Secure AI")}</span>
         </div>
       </section>
 
@@ -538,9 +523,7 @@ export function AIWorkspace({
               size={17}
             />
 
-            <span>
-              Matter Context
-            </span>
+            <span>{tr("Matter Context")}</span>
           </div>
 
           {showContext ? (
@@ -577,16 +560,14 @@ export function AIWorkspace({
         {showContext ? (
           <div className="ai-context-sources">
             <div className="ai-context-sources-heading">
-              <span>
-                Context Sources
-              </span>
+              <span>{tr("Context Sources")}</span>
 
               <strong>
                 {contextLoading
-                  ? 'Loading…'
+                  ? tr("Loading…")
                   : contextWarning
                     ? contextWarning
-                    : 'Ready'}
+                    : tr("Ready")}
               </strong>
             </div>
 
@@ -611,8 +592,8 @@ export function AIWorkspace({
             ) : (
               <div className="ai-context-source-state">
                 {contextLoading
-                  ? 'Retrieving matter records…'
-                  : 'Basic case information is available.'}
+                  ? tr("Retrieving matter records…")
+                  : tr("Basic case information is available.")}
               </div>
             )}
           </div>
@@ -635,9 +616,7 @@ export function AIWorkspace({
               size={17}
             />
 
-            <span>
-              Legal Quick Actions
-            </span>
+            <span>{tr("Legal Quick Actions")}</span>
           </div>
 
           {showActions ? (
@@ -699,13 +678,9 @@ export function AIWorkspace({
             />
 
             <div>
-              <h3>
-                Matter Conversation
-              </h3>
+              <h3>{tr("Matter Conversation")}</h3>
 
-              <p>
-                Current-session history
-              </p>
+              <p>{tr("Current-session history")}</p>
             </div>
           </div>
 
@@ -714,8 +689,8 @@ export function AIWorkspace({
             onClick={
               clearConversation
             }
-            title="Clear conversation"
-            aria-label="Clear conversation"
+            title={tr("Clear conversation")}
+            aria-label={tr("Clear conversation")}
           >
             <Trash2
               size={16}
@@ -746,9 +721,7 @@ export function AIWorkspace({
                   size={16}
                 />
 
-                <span>
-                  Preparing legal response…
-                </span>
+                <span>{tr("Preparing legal response…")}</span>
               </div>
             </div>
           ) : null}
@@ -790,7 +763,7 @@ export function AIWorkspace({
             submitPrompt();
           }}
         >
-          <textarea
+          <textarea dir="auto"
             value={input}
             onChange={(
               event,
@@ -812,15 +785,15 @@ export function AIWorkspace({
                 submitPrompt();
               }
             }}
-            placeholder="Ask about this matter, request a draft, or analyze a legal issue…"
+            placeholder={tr("Ask about this matter, request a draft, or analyze a legal issue…")}
             rows={3}
           />
 
           <div className="ai-composer-footer">
             <span>
               {input.trim()
-                ? 'Draft saved on this device · Press Enter to send'
-                : 'Press Enter to send · Shift + Enter for a new line'}
+                ? tr("Draft saved on this device · Press Enter to send")
+                : tr("Press Enter to send · Shift + Enter for a new line")}
             </span>
 
             <button
@@ -838,10 +811,7 @@ export function AIWorkspace({
                 <Send
                   size={16}
                 />
-              )}
-
-              Send
-            </button>
+              )}{tr("Send")}</button>
           </div>
         </form>
       </section>
@@ -852,13 +822,9 @@ export function AIWorkspace({
         />
 
         <div>
-          <strong>
-            Confidential AI processing
-          </strong>
+          <strong>{tr("Confidential AI processing")}</strong>
 
-          <span>
-            Matter context is sent securely through the authenticated SHAB Edge Function. Review every generated draft before use or filing.
-          </span>
+          <span>{tr("Matter context is sent securely through the authenticated SHAB Edge Function. Review every generated draft before use or filing.")}</span>
         </div>
       </section>
     </div>
@@ -870,6 +836,7 @@ function AIMessageBubble({
 }: {
   message: AIMessage;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div
       className={`ai-message ${message.role}`}
@@ -921,6 +888,7 @@ function ContextItem({
   label: string;
   value: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="ai-context-item">
       <span>{label}</span>
@@ -1071,7 +1039,7 @@ function buildPreviewResponse(
           ? new Date(
               caseRecord.next_action_at,
             ).toLocaleString(
-              'en-AE',
+              getLocale("en-AE"),
             )
           : 'Not scheduled'
       }`,
@@ -1160,7 +1128,7 @@ function buildPreviewResponse(
     `Your request was: “${prompt}”`,
     '',
     structuredPrompt
-      ? `Structured legal prompt prepared locally (${structuredPrompt.length.toLocaleString('en-AE')} characters).`
+      ? `Structured legal prompt prepared locally (${structuredPrompt.length.toLocaleString(getLocale("en-AE"))} characters).`
       : 'Complete matter context is still loading.',
   ].join('\n');
 }
@@ -1211,14 +1179,14 @@ function formatLabel(
       .replace(/_/g, ' ');
 
   if (!normalized) {
-    return 'Not specified';
+    return tr('Not specified');
   }
 
-  return normalized.replace(
+  return tr(normalized.replace(
     /\b\w/g,
     (letter) =>
       letter.toUpperCase(),
-  );
+  ));
 }
 
 function formatCurrency(
@@ -1226,7 +1194,7 @@ function formatCurrency(
   currency: string | null | undefined,
 ): string {
   return new Intl.NumberFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       style: 'currency',
       currency:
@@ -1242,7 +1210,7 @@ function formatTime(
   value: string,
 ): string {
   return new Intl.DateTimeFormat(
-    'en-AE',
+    getLocale("en-AE"),
     {
       hour: '2-digit',
       minute: '2-digit',

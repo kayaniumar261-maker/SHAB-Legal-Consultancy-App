@@ -1,3 +1,6 @@
+import { tr, useLocale } from '../i18n/locale';
+import { LanguageSwitcher } from '../i18n/LanguageSwitcher';
+
 import {
   BookOpenCheck,
   BriefcaseBusiness,
@@ -40,84 +43,84 @@ import '../styles/CompactWorkspace.css';
 
 const navigationItems = [
   {
-    label: 'Dashboard',
+    get label() { return tr("Dashboard"); },
     path: '/',
     icon: LayoutDashboard,
   },
   {
-    label: 'Clients',
+    get label() { return tr("Clients"); },
     path: '/clients',
     icon: Users,
   },
   {
-    label: 'Cases',
+    get label() { return tr("Cases"); },
     path: '/cases',
     icon: BriefcaseBusiness,
   },
   {
-    label: 'Tasks',
+    get label() { return tr("Tasks"); },
     path: '/tasks',
     icon: CheckSquare,
   },
   {
-    label: 'Hearings',
+    get label() { return tr("Hearings"); },
     path: '/hearings',
     icon: Gavel,
   },
   {
-    label: 'Calendar',
+    get label() { return tr("Calendar"); },
     path: '/calendar',
     icon: CalendarDays,
   },
   {
-    label: 'Documents',
+    get label() { return tr("Documents"); },
     path: '/documents',
     icon: FolderOpen,
   },
   {
-    label: 'Agreements',
+    get label() { return tr("Agreements"); },
     adminOnly: true,
     path: '/agreements',
     icon: ScrollText,
   },
   {
-    label: 'Import Centre',
+    get label() { return tr("Import Centre"); },
     adminOnly: true,
     path: '/imports',
     icon: FileUp,
   },
   {
-    label: 'Payments',
+    get label() { return tr("Payments"); },
     adminOnly: true,
     path: '/payments',
     icon: CreditCard,
   },
   {
-    label: 'Expenses',
+    get label() { return tr("Expenses"); },
     adminOnly: true,
     path: '/expenses',
     icon: ReceiptText,
   },
   {
-    label: 'Vendors',
+    get label() { return tr("Vendors"); },
     adminOnly: true,
     path: '/vendors',
     icon: Store,
   },
   {
-    label: 'Accounting',
+    get label() { return tr("Accounting"); },
     adminOnly: true,
     path: '/accounting',
     icon: BookOpenCheck,
   },
   {
-    label: 'Staff',
+    get label() { return tr("Staff"); },
     adminOnly: true,
     path: '/staff',
     icon: Users,
   },
   {
-    label: 'Settings',
+    get label() { return tr("Settings"); },
     adminOnly: true,
     path: '/settings',
     icon: Settings,
@@ -125,6 +128,7 @@ const navigationItems = [
 ];
 
 export function AppLayout() {
+  const interfaceLanguage = useLocale();
   const [
     isMobileMenuOpen,
     setIsMobileMenuOpen,
@@ -214,7 +218,7 @@ export function AppLayout() {
           <button
             type="button"
             className="mobile-menu-backdrop"
-            aria-label="Close navigation"
+            aria-label={tr("Close navigation")}
             onClick={closeMobileMenu}
           />
 
@@ -223,7 +227,7 @@ export function AppLayout() {
               type="button"
               className="mobile-menu-close"
               onClick={closeMobileMenu}
-              aria-label="Close navigation"
+              aria-label={tr("Close navigation")}
             >
               <X size={22} />
             </button>
@@ -246,24 +250,23 @@ export function AppLayout() {
             onClick={() =>
               setIsMobileMenuOpen(true)
             }
-            aria-label="Open navigation"
+            aria-label={tr("Open navigation")}
           >
             <Menu size={22} />
           </button>
 
           <div>
-            <p className="header-eyebrow">
-              SHAB Legal Consultants FZC
-            </p>
+            <p className="header-eyebrow">{tr("SHAB Legal Consultants FZC")}</p>
 
             <h1 className="header-title">
-              {administrator ? 'Practice Management' : 'Operations Workspace'}
+              {administrator ? tr("Practice Management") : tr("Operations Workspace")}
             </h1>
           </div>
 
           <GlobalSearch />
 
           <NotificationCenter />
+          <LanguageSwitcher />
 
           <div
             className={
@@ -273,12 +276,12 @@ export function AppLayout() {
             }
             title={
               isOnline
-                ? 'Connected to live SHAB services'
-                : 'Offline: live Supabase data may not load or save'
+                ? tr("Connected to live SHAB services")
+                : tr("Offline: live Supabase data may not load or save")
             }
           >
             <span />
-            {isOnline ? 'Online' : 'Offline'}
+            {isOnline ? tr("Online") : tr("Offline")}
           </div>
 
           <div className="header-profile compact-profile">
@@ -292,7 +295,7 @@ export function AppLayout() {
 
               <div className="profile-details">
                 <strong>{displayName}</strong>
-                <span>{administrator ? 'Administrator' : 'Operations Staff'}</span>
+                <span>{administrator ? tr("Administrator") : tr("Operations Staff")}</span>
               </div>
               <ChevronDown size={16} />
             </button>
@@ -305,9 +308,9 @@ export function AppLayout() {
                   disabled={isUploadingAvatar}
                 >
                   <Camera size={16} />
-                  {isUploadingAvatar ? 'Uploading…' : 'Change profile photo'}
+                  {isUploadingAvatar ? tr("Uploading…") : tr("Change profile photo")}
                 </button>
-                <button type="button" onClick={handleSignOut}>Sign Out</button>
+                <button type="button" onClick={handleSignOut}>{tr("Sign Out")}</button>
               </div>
             )}
 
@@ -325,7 +328,7 @@ export function AppLayout() {
           <Outlet />
         </main>
 
-        <nav className="operations-mobile-nav" aria-label="Application shortcuts">
+        <nav className="operations-mobile-nav" aria-label={tr("Application shortcuts")}>
           {authorizedNavigationItems
             .filter((item) => mobilePrimaryPaths.includes(item.path))
             .map(({ label, path, icon: Icon }) => (
@@ -338,7 +341,7 @@ export function AppLayout() {
                 }
               >
                 <Icon size={20} />
-                <span>{label}</span>
+                <span>{tr(label)}</span>
               </NavLink>
             ))}
 
@@ -353,10 +356,10 @@ export function AppLayout() {
                 : 'operations-mobile-link'
             }
             onClick={() => setIsMobileMenuOpen(true)}
-            aria-label="Open all authorized modules"
+            aria-label={tr("Open all authorized modules")}
           >
             <Menu size={20} />
-            <span>More</span>
+            <span>{tr("More")}</span>
           </button>
         </nav>
       </div>
@@ -377,6 +380,7 @@ function SidebarContent({
   displayName,
   onSignOut,
 }: SidebarContentProps) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="sidebar-content">
       <div className="brand-block">
@@ -414,7 +418,7 @@ function SidebarContent({
             >
               <Icon size={20} />
 
-              <span>{label}</span>
+              <span>{tr(label)}</span>
             </NavLink>
           ),
         )}
@@ -424,19 +428,17 @@ function SidebarContent({
         <div className="sidebar-mobile-avatar">{getInitials(displayName)}</div>
         <div>
           <strong>{displayName}</strong>
-          <span>{isAdministrator ? 'Administrator' : 'Operations Staff'}</span>
+          <span>{isAdministrator ? tr("Administrator") : tr("Operations Staff")}</span>
         </div>
-        <button type="button" onClick={() => void onSignOut()}>
-          Sign Out
-        </button>
+        <button type="button" onClick={() => void onSignOut()}>{tr("Sign Out")}</button>
       </div>
 
       <div className="sidebar-footer">
-        <p>SHAB Legal Consultants FZC</p>
+        <p>{tr("SHAB Legal Consultants FZC")}</p>
         <div className="sidebar-version-row">
           <span>v{__APP_VERSION__}</span>
-          <span aria-hidden="true">&bull;</span>
-          <span>{navigator.userAgent.includes('Electron') ? 'Updates enabled' : 'Browser deployment'}</span>
+          <span aria-hidden="true">{tr("•")}</span>
+          <span>{navigator.userAgent.includes('Electron') ? tr("Updates enabled") : tr("Browser deployment")}</span>
         </div>
       </div>
     </div>
@@ -448,6 +450,7 @@ function getInitials(value: string) {
 }
 
 function ProfileAvatar({ name, url }: { name: string; url?: string }) {
+  const interfaceLanguage = useLocale();
   return (
     <div className="profile-avatar">
       {url ? <img src={url} alt="" /> : getInitials(name)}

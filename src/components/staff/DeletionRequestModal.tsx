@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Send, X } from 'lucide-react';
 
@@ -24,6 +25,7 @@ export function DeletionRequestModal({
   onClose,
   onSubmitted,
 }: Props) {
+  const interfaceLanguage = useLocale();
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,22 +65,20 @@ export function DeletionRequestModal({
         <header>
           <div className="deletion-request-icon"><AlertTriangle size={22} /></div>
           <div>
-            <p>Administrator approval required</p>
-            <h2 id="deletion-request-title">Request deletion</h2>
+            <p>{tr("Administrator approval required")}</p>
+            <h2 id="deletion-request-title">{tr("Request deletion")}</h2>
           </div>
-          <button type="button" className="deletion-request-close" onClick={onClose} disabled={submitting} aria-label="Close"><X size={20} /></button>
+          <button type="button" className="deletion-request-close" onClick={onClose} disabled={submitting} aria-label={tr("Close")}><X size={20} /></button>
         </header>
         <p className="deletion-request-record">{recordLabel}</p>
-        <label>
-          Reason for deletion
-          <textarea value={reason} onChange={(event) => setReason(event.target.value)} minLength={10} maxLength={1000} rows={4} placeholder="Explain why this record should be deleted (minimum 10 characters)." autoFocus />
+        <label>{tr("Reason for deletion")}<textarea dir="auto" value={reason} onChange={(event) => setReason(event.target.value)} minLength={10} maxLength={1000} rows={4} placeholder={tr("Explain why this record should be deleted (minimum 10 characters).")} autoFocus />
         </label>
-        <small>{reason.trim().length}/1000 characters</small>
-        {error ? <div className="deletion-request-error">{error}</div> : null}
+        <small>{reason.trim().length}{tr("/1000 characters")}</small>
+        {error ? <div className="deletion-request-error">{tr(error)}</div> : null}
         <footer>
-          <button type="button" className="secondary-action-button" onClick={onClose} disabled={submitting}>Cancel</button>
+          <button type="button" className="secondary-action-button" onClick={onClose} disabled={submitting}>{tr("Cancel")}</button>
           <button type="button" className="primary-action-button" onClick={() => void submit()} disabled={submitting || reason.trim().length < 10}>
-            <Send size={17} />{submitting ? 'Sending…' : 'Send to administrator'}
+            <Send size={17} />{submitting ? tr("Sending…") : tr("Send to administrator")}
           </button>
         </footer>
       </section>

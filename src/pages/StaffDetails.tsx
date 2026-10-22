@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../i18n/locale';
 import {
   AlertCircle,
   ArrowLeft,
@@ -37,6 +38,7 @@ import type {
 import './StaffDetails.css';
 
 export function StaffDetails() {
+  const interfaceLanguage = useLocale();
   const { id } = useParams();
 
   const [staffMember, setStaffMember] =
@@ -122,7 +124,7 @@ export function StaffDetails() {
       <div className="page-container staff-details-page">
         <div className="staff-details-state">
           <UserRound size={30} />
-          <strong>Loading staff profile…</strong>
+          <strong>{tr("Loading staff profile…")}</strong>
         </div>
       </div>
     );
@@ -133,16 +135,14 @@ export function StaffDetails() {
       <div className="page-container staff-details-page">
         <div className="staff-details-state error">
           <AlertCircle size={30} />
-          <strong>Unable to open staff profile</strong>
-          <span>{error ?? 'Staff member was not found.'}</span>
+          <strong>{tr("Unable to open staff profile")}</strong>
+          <span>{error ?? tr("Staff member was not found.")}</span>
 
           <Link
             className="secondary-action-button"
             to="/staff"
           >
-            <ArrowLeft size={16} />
-            Back to Staff
-          </Link>
+            <ArrowLeft size={16} />{tr("Back to Staff")}</Link>
         </div>
       </div>
     );
@@ -154,9 +154,7 @@ export function StaffDetails() {
         className="staff-details-back"
         to="/staff"
       >
-        <ArrowLeft size={16} />
-        Back to Staff
-      </Link>
+        <ArrowLeft size={16} />{tr("Back to Staff")}</Link>
 
       <section className="staff-profile-header">
         <div className="staff-profile-avatar">
@@ -164,9 +162,7 @@ export function StaffDetails() {
         </div>
 
         <div className="staff-profile-heading">
-          <p className="page-eyebrow">
-            Employee workspace
-          </p>
+          <p className="page-eyebrow">{tr("Employee workspace")}</p>
 
           <h2>{staffMember.full_name}</h2>
 
@@ -187,25 +183,25 @@ export function StaffDetails() {
       <section className="staff-profile-overview-grid">
         <ProfileItem
           icon={<Mail size={18} />}
-          label="Email"
+          label={tr("Email")}
           value={staffMember.email ?? 'Not provided'}
         />
 
         <ProfileItem
           icon={<Phone size={18} />}
-          label="Phone"
+          label={tr("Phone")}
           value={staffMember.phone ?? 'Not provided'}
         />
 
         <ProfileItem
           icon={<BriefcaseBusiness size={18} />}
-          label="Role"
+          label={tr("Role")}
           value={formatLabel(staffMember.role ?? 'Staff')}
         />
 
         <ProfileItem
           icon={<ShieldCheck size={18} />}
-          label="Status"
+          label={tr("Status")}
           value={formatLabel(staffMember.status)}
         />
       </section>
@@ -213,22 +209,18 @@ export function StaffDetails() {
       <section className="staff-profile-workspace">
         <div className="staff-workload-heading">
           <div>
-            <span className="page-eyebrow">
-              Operational workload
-            </span>
+            <span className="page-eyebrow">{tr("Operational workload")}</span>
 
-            <h3>Employee Workspace</h3>
+            <h3>{tr("Employee Workspace")}</h3>
 
-            <p>
-              Live records linked to this staff member.
-            </p>
+            <p>{tr("Live records linked to this staff member.")}</p>
           </div>
         </div>
 
         <div className="staff-workload-grid">
           <WorkloadCard
             icon={<BriefcaseBusiness size={20} />}
-            label="Cases"
+            label={tr("Cases")}
             value={workload.cases}
             loading={workloadLoading}
             to={`/cases?assignedStaffId=${staffMember.id}`}
@@ -236,7 +228,7 @@ export function StaffDetails() {
 
           <WorkloadCard
             icon={<ListTodo size={20} />}
-            label="Tasks"
+            label={tr("Tasks")}
             value={workload.tasks}
             loading={workloadLoading}
             to={`/tasks?assignedStaffId=${staffMember.id}`}
@@ -244,7 +236,7 @@ export function StaffDetails() {
 
           <WorkloadCard
             icon={<Gavel size={20} />}
-            label="Hearings"
+            label={tr("Hearings")}
             value={workload.hearings}
             loading={workloadLoading}
             to={`/hearings?staffId=${staffMember.id}`}
@@ -252,7 +244,7 @@ export function StaffDetails() {
 
           <WorkloadCard
             icon={<FileText size={20} />}
-            label="Documents"
+            label={tr("Documents")}
             value={workload.documents}
             loading={workloadLoading}
             to={`/documents?staffId=${staffMember.id}`}
@@ -276,6 +268,7 @@ function WorkloadCard({
   loading: boolean;
   to: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <Link
       className="staff-workload-card"
@@ -291,7 +284,7 @@ function WorkloadCard({
         {loading ? '…' : value}
       </strong>
 
-      <small>Open records</small>
+      <small>{tr("Open records")}</small>
     </Link>
   );
 }
@@ -305,6 +298,7 @@ function ProfileItem({
   label: string;
   value: string;
 }) {
+  const interfaceLanguage = useLocale();
   return (
     <article className="staff-profile-item">
       <div>{icon}</div>
@@ -326,9 +320,9 @@ function getInitials(name: string): string {
 }
 
 function formatLabel(value: string): string {
-  return value
+  return tr(value
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (letter) =>
       letter.toUpperCase(),
-    );
+    ));
 }

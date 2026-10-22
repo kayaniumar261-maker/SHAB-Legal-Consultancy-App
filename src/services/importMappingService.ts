@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import type {
   ImportCellValue,
   ImportEntityType,
@@ -31,7 +32,7 @@ export type ImportValidationResult = {
 const clientFields: ImportFieldDefinition[] = [
   {
     key: 'legacy_client_id',
-    label: 'Legacy client ID',
+    get label() { return tr("Legacy client ID"); },
     required: false,
     aliases: [
       'client id',
@@ -43,7 +44,7 @@ const clientFields: ImportFieldDefinition[] = [
   },
   {
     key: 'full_name',
-    label: 'Full name',
+    get label() { return tr("Full name"); },
     required: true,
     aliases: [
       'client name',
@@ -54,7 +55,7 @@ const clientFields: ImportFieldDefinition[] = [
   },
   {
     key: 'client_type',
-    label: 'Client type',
+    get label() { return tr("Client type"); },
     required: false,
     aliases: [
       'client type',
@@ -63,7 +64,7 @@ const clientFields: ImportFieldDefinition[] = [
   },
   {
     key: 'email',
-    label: 'Email',
+    get label() { return tr("Email"); },
     required: false,
     aliases: [
       'email',
@@ -72,7 +73,7 @@ const clientFields: ImportFieldDefinition[] = [
   },
   {
     key: 'phone',
-    label: 'Phone',
+    get label() { return tr("Phone"); },
     required: false,
     aliases: [
       'phone',
@@ -83,7 +84,7 @@ const clientFields: ImportFieldDefinition[] = [
   },
   {
     key: 'nationality',
-    label: 'Nationality',
+    get label() { return tr("Nationality"); },
     required: false,
     aliases: [
       'nationality',
@@ -92,7 +93,7 @@ const clientFields: ImportFieldDefinition[] = [
   },
   {
     key: 'emirates_id',
-    label: 'Emirates ID',
+    get label() { return tr("Emirates ID"); },
     required: false,
     aliases: [
       'emirates id',
@@ -102,7 +103,7 @@ const clientFields: ImportFieldDefinition[] = [
   },
   {
     key: 'passport_number',
-    label: 'Passport number',
+    get label() { return tr("Passport number"); },
     required: false,
     aliases: [
       'passport number',
@@ -113,7 +114,7 @@ const clientFields: ImportFieldDefinition[] = [
   },
   {
     key: 'company_name',
-    label: 'Company name',
+    get label() { return tr("Company name"); },
     required: false,
     aliases: [
       'company',
@@ -124,7 +125,7 @@ const clientFields: ImportFieldDefinition[] = [
   },
   {
     key: 'trade_license_number',
-    label: 'Trade licence number',
+    get label() { return tr("Trade licence number"); },
     required: false,
     aliases: [
       'trade license number',
@@ -134,7 +135,7 @@ const clientFields: ImportFieldDefinition[] = [
   },
   {
     key: 'address',
-    label: 'Address',
+    get label() { return tr("Address"); },
     required: false,
     aliases: [
       'address',
@@ -143,7 +144,7 @@ const clientFields: ImportFieldDefinition[] = [
   },
   {
     key: 'notes',
-    label: 'Notes',
+    get label() { return tr("Notes"); },
     required: false,
     aliases: [
       'notes',
@@ -153,7 +154,7 @@ const clientFields: ImportFieldDefinition[] = [
   },
   {
     key: 'status',
-    label: 'Status',
+    get label() { return tr("Status"); },
     required: false,
     aliases: [
       'status',
@@ -164,7 +165,7 @@ const clientFields: ImportFieldDefinition[] = [
 const caseFields: ImportFieldDefinition[] = [
   {
     key: 'client_name',
-    label: 'Client name',
+    get label() { return tr("Client name"); },
     required: true,
     aliases: [
       'client name',
@@ -174,7 +175,7 @@ const caseFields: ImportFieldDefinition[] = [
   },
   {
     key: 'case_number',
-    label: 'Case number',
+    get label() { return tr("Case number"); },
     required: false,
     aliases: [
       'case number',
@@ -185,7 +186,7 @@ const caseFields: ImportFieldDefinition[] = [
   },
   {
     key: 'case_type',
-    label: 'Case type',
+    get label() { return tr("Case type"); },
     required: true,
     aliases: [
       'case type',
@@ -195,7 +196,7 @@ const caseFields: ImportFieldDefinition[] = [
   },
   {
     key: 'court',
-    label: 'Court',
+    get label() { return tr("Court"); },
     required: false,
     aliases: [
       'court',
@@ -204,7 +205,7 @@ const caseFields: ImportFieldDefinition[] = [
   },
   {
     key: 'jurisdiction',
-    label: 'Jurisdiction',
+    get label() { return tr("Jurisdiction"); },
     required: false,
     aliases: [
       'jurisdiction',
@@ -212,7 +213,7 @@ const caseFields: ImportFieldDefinition[] = [
   },
   {
     key: 'opponent_name',
-    label: 'Opponent party',
+    get label() { return tr("Opponent party"); },
     required: false,
     aliases: [
       'opponent party',
@@ -223,7 +224,7 @@ const caseFields: ImportFieldDefinition[] = [
   },
   {
     key: 'responsible_lawyer_name',
-    label: 'Assigned lawyer',
+    get label() { return tr("Assigned lawyer"); },
     required: false,
     aliases: [
       'assigned lawyer',
@@ -233,7 +234,7 @@ const caseFields: ImportFieldDefinition[] = [
   },
   {
     key: 'status',
-    label: 'Case status',
+    get label() { return tr("Case status"); },
     required: false,
     aliases: [
       'case status',
@@ -242,7 +243,7 @@ const caseFields: ImportFieldDefinition[] = [
   },
   {
     key: 'filing_date',
-    label: 'Date opened',
+    get label() { return tr("Date opened"); },
     required: false,
     aliases: [
       'date opened',
@@ -252,7 +253,7 @@ const caseFields: ImportFieldDefinition[] = [
   },
   {
     key: 'closed_at',
-    label: 'Date closed',
+    get label() { return tr("Date closed"); },
     required: false,
     aliases: [
       'date closed',
@@ -261,7 +262,7 @@ const caseFields: ImportFieldDefinition[] = [
   },
   {
     key: 'case_value',
-    label: 'Case value',
+    get label() { return tr("Case value"); },
     required: false,
     aliases: [
       'case value',
@@ -271,7 +272,7 @@ const caseFields: ImportFieldDefinition[] = [
   },
   {
     key: 'description',
-    label: 'Description',
+    get label() { return tr("Description"); },
     required: false,
     aliases: [
       'description/remarks',

@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale } from '../i18n/locale';
 import {
   Download,
   Eye,
@@ -83,6 +84,7 @@ const emptyUploadForm: UploadFormState = {
 };
 
 export function Documents() {
+  const interfaceLanguage = useLocale();
   const { profile } = useAccessProfile();
   const administrator = profile?.access_role === 'administrator' && profile.is_active;
   const [documents, setDocuments] =
@@ -302,7 +304,7 @@ export function Documents() {
       (caseItem) =>
         caseItem.client_id === uploadForm.client_id,
     );
-  }, [cases, uploadForm.client_id]);
+  }, [cases, uploadForm.client_id, interfaceLanguage]);
 
   const filteredCaseOptions = useMemo(() => {
     if (clientFilter === 'all') {
@@ -313,7 +315,7 @@ export function Documents() {
       (caseItem) =>
         caseItem.client_id === clientFilter,
     );
-  }, [cases, clientFilter]);
+  }, [cases, clientFilter, interfaceLanguage]);
 
   const totalPages = Math.max(
     1,
@@ -386,7 +388,7 @@ export function Documents() {
         };
       })
       .sort((left, right) => left.name.localeCompare(right.name));
-  }, [documents]);
+  }, [documents, interfaceLanguage]);
 
   const clearFilters = () => {
     setSearch('');
@@ -597,16 +599,11 @@ export function Documents() {
     <div className="documents-page page-container">
       <section className="page-heading documents-heading">
         <div>
-          <p className="page-eyebrow">
-            Document management
-          </p>
+          <p className="page-eyebrow">{tr("Document management")}</p>
 
-          <h2>Documents</h2>
+          <h2>{tr("Documents")}</h2>
 
-          <p className="page-intro">
-            Store, review and manage confidential legal files
-            linked to clients and matters.
-          </p>
+          <p className="page-intro">{tr("Store, review and manage confidential legal files linked to clients and matters.")}</p>
         </div>
 
         <button
@@ -614,9 +611,7 @@ export function Documents() {
           className="primary-action-button"
           onClick={() => setUploadOpen(true)}
         >
-          <Upload size={18} />
-          Upload Document
-        </button>
+          <Upload size={18} />{tr("Upload Document")}</button>
       </section>
 
       {(clientFilter !== 'all' || caseFilter !== 'all') && (
@@ -624,8 +619,8 @@ export function Documents() {
           <div>
             <strong>
               {caseFilter !== 'all'
-                ? 'Documents for case'
-                : 'Documents for client'}
+                ? tr("Documents for case")
+                : tr("Documents for client")}
               <span>
                 {caseFilter !== 'all'
                   ? cases.find((caseItem) => caseItem.id === caseFilter)
@@ -645,9 +640,7 @@ export function Documents() {
               setPage(1);
               setSearchParams({}, { replace: true });
             }}
-          >
-            Clear context
-          </button>
+          >{tr("Clear context")}</button>
         </section>
       )}
 
@@ -658,7 +651,7 @@ export function Documents() {
           </div>
 
           <div>
-            <span>Total Documents</span>
+            <span>{tr("Total Documents")}</span>
             <strong>{totalCount}</strong>
           </div>
         </article>
@@ -669,7 +662,7 @@ export function Documents() {
           </div>
 
           <div>
-            <span>Confidential</span>
+            <span>{tr("Confidential")}</span>
             <strong>
               {
                 documents.filter(
@@ -686,19 +679,19 @@ export function Documents() {
         <div className="documents-search">
           <Search size={18} />
 
-          <input
+          <input dir="auto"
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
               setPage(1);
             }}
-            placeholder="Search document name, type or description"
+            placeholder={tr("Search document name, type or description")}
           />
         </div>
 
         <div className="documents-filters">
           <label>
-            <span>Client</span>
+            <span>{tr("Client")}</span>
 
             <select
               value={clientFilter}
@@ -711,9 +704,7 @@ export function Documents() {
                 setPage(1);
               }}
             >
-              <option value="all">
-                All clients
-              </option>
+              <option value="all">{tr("All clients")}</option>
 
               {clients.map((client) => (
                 <option
@@ -727,7 +718,7 @@ export function Documents() {
           </label>
 
           <label>
-            <span>Case</span>
+            <span>{tr("Case")}</span>
 
             <select
               value={caseFilter}
@@ -738,9 +729,7 @@ export function Documents() {
                 setPage(1);
               }}
             >
-              <option value="all">
-                All cases
-              </option>
+              <option value="all">{tr("All cases")}</option>
 
               {filteredCaseOptions.map(
                 (caseItem) => (
@@ -757,7 +746,7 @@ export function Documents() {
           </label>
 
           <label>
-            <span>Privacy</span>
+            <span>{tr("Privacy")}</span>
 
             <select
               value={confidentialFilter}
@@ -772,17 +761,11 @@ export function Documents() {
                 setPage(1);
               }}
             >
-              <option value="all">
-                All documents
-              </option>
+              <option value="all">{tr("All documents")}</option>
 
-              <option value="confidential">
-                Confidential
-              </option>
+              <option value="confidential">{tr("Confidential")}</option>
 
-              <option value="standard">
-                Standard
-              </option>
+              <option value="standard">{tr("Standard")}</option>
             </select>
           </label>
         </div>
@@ -792,15 +775,15 @@ export function Documents() {
         <div>
           <strong>
             {hasFilters
-              ? 'Filtered Documents'
-              : 'Document Register'}
+              ? tr("Filtered Documents")
+              : tr("Document Register")}
           </strong>
 
           <span>
             {totalCount}{' '}
             {totalCount === 1
-              ? 'document'
-              : 'documents'}
+              ? tr("document")
+              : tr("documents")}
           </span>
         </div>
 
@@ -808,30 +791,24 @@ export function Documents() {
           <button
             type="button"
             onClick={clearFilters}
-          >
-            Clear filters
-          </button>
+          >{tr("Clear filters")}</button>
         )}
 
-        <div className="documents-view-switch" aria-label="Document view">
+        <div className="documents-view-switch" aria-label={tr("Document view")}>
           <button
             type="button"
             className={viewMode === 'folders' ? 'active' : ''}
             onClick={() => setViewMode('folders')}
             aria-pressed={viewMode === 'folders'}
           >
-            <LayoutGrid size={15} />
-            Folders
-          </button>
+            <LayoutGrid size={15} />{tr("Folders")}</button>
           <button
             type="button"
             className={viewMode === 'list' ? 'active' : ''}
             onClick={() => setViewMode('list')}
             aria-pressed={viewMode === 'list'}
           >
-            <List size={15} />
-            List
-          </button>
+            <List size={15} />{tr("List")}</button>
         </div>
       </section>
 
@@ -840,16 +817,16 @@ export function Documents() {
           className="documents-error"
           role="alert"
         >
-          {error}
+          {tr(error)}
         </div>
       )}
 
       {viewMode === 'folders' && (
         <section className="documents-folder-view">
           {loading ? (
-            <div className="documents-folder-state">Loading folders…</div>
+            <div className="documents-folder-state">{tr("Loading folders…")}</div>
           ) : documentFolders.length === 0 ? (
-            <div className="documents-folder-state">No documents found.</div>
+            <div className="documents-folder-state">{tr("No documents found.")}</div>
           ) : (
             documentFolders.map((clientFolder) => (
               <details
@@ -866,8 +843,8 @@ export function Documents() {
                     <small>
                       {clientFolder.documentCount}{' '}
                       {clientFolder.documentCount === 1
-                        ? 'document'
-                        : 'documents'}
+                        ? tr("document")
+                        : tr("documents")}
                     </small>
                   </span>
                 </summary>
@@ -904,10 +881,10 @@ export function Documents() {
                                     getFileTypeLabel(document.mime_type)}
                                   {' · '}
                                   {formatFileSize(document.size_bytes)}
-                                  {' · '}Uploaded by{' '}
+                                  {' · '}{tr("Uploaded by")}{' '}
                                   {document.uploaded_by_name ??
                                     document.uploaded_by_staff?.full_name ??
-                                    'Unknown'}
+                                    tr("Unknown")}
                                 </span>
                               </div>
                               <time>{formatDate(document.created_at)}</time>
@@ -916,7 +893,7 @@ export function Documents() {
                                   type="button"
                                   onClick={() => handleShowDetails(document)}
                                   disabled={actionLoading}
-                                  title="View details"
+                                  title={tr("View details")}
                                 >
                                   <Eye size={16} />
                                 </button>
@@ -924,7 +901,7 @@ export function Documents() {
                                   type="button"
                                   onClick={() => void handleDownload(document)}
                                   disabled={actionLoading}
-                                  title="Download"
+                                  title={tr("Download")}
                                 >
                                   <Download size={16} />
                                 </button>
@@ -933,7 +910,7 @@ export function Documents() {
                                   className="danger"
                                   onClick={() => void beginDelete(document)}
                                   disabled={actionLoading}
-                                  title={administrator ? 'Delete' : 'Request deletion'}
+                                  title={administrator ? tr("Delete") : tr("Request deletion")}
                                 >
                                   <Trash2 size={16} />
                                 </button>
@@ -956,15 +933,15 @@ export function Documents() {
         <table className="documents-table">
           <thead>
             <tr>
-              <th>Document</th>
-              <th>Client</th>
-              <th>Case</th>
-              <th>Type</th>
-              <th>Privacy</th>
-              <th>Size</th>
-              <th>Uploaded</th>
-              <th>Uploaded by</th>
-              <th>Actions</th>
+              <th>{tr("Document")}</th>
+              <th>{tr("Client")}</th>
+              <th>{tr("Case")}</th>
+              <th>{tr("Type")}</th>
+              <th>{tr("Privacy")}</th>
+              <th>{tr("Size")}</th>
+              <th>{tr("Uploaded")}</th>
+              <th>{tr("Uploaded by")}</th>
+              <th>{tr("Actions")}</th>
             </tr>
           </thead>
 
@@ -974,18 +951,14 @@ export function Documents() {
                 <td
                   colSpan={9}
                   className="documents-state-cell"
-                >
-                  Loading documents…
-                </td>
+                >{tr("Loading documents…")}</td>
               </tr>
             ) : documents.length === 0 ? (
               <tr>
                 <td
                   colSpan={9}
                   className="documents-state-cell"
-                >
-                  No documents found.
-                </td>
+                >{tr("No documents found.")}</td>
               </tr>
             ) : (
               documents.map((document) => {
@@ -1040,8 +1013,8 @@ export function Documents() {
                         }
                       >
                         {document.is_confidential
-                          ? 'Confidential'
-                          : 'Standard'}
+                          ? tr("Confidential")
+                          : tr("Standard")}
                       </span>
                     </td>
 
@@ -1060,7 +1033,7 @@ export function Documents() {
                     <td>
                       {document.uploaded_by_name ??
                         document.uploaded_by_staff?.full_name ??
-                        'Unknown'}
+                        tr("Unknown")}
                     </td>
 
                     <td>
@@ -1073,7 +1046,7 @@ export function Documents() {
                             )
                           }
                           disabled={actionLoading}
-                          title="View details"
+                          title={tr("View details")}
                         >
                           <Eye size={16} />
                         </button>
@@ -1086,7 +1059,7 @@ export function Documents() {
                             )
                           }
                           disabled={actionLoading}
-                          title="Download"
+                          title={tr("Download")}
                         >
                           <Download size={16} />
                         </button>
@@ -1100,7 +1073,7 @@ export function Documents() {
                             )
                           }
                           disabled={actionLoading}
-                          title={administrator ? 'Delete' : 'Request deletion'}
+                          title={administrator ? tr("Delete") : tr("Request deletion")}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -1125,12 +1098,9 @@ export function Documents() {
               )
             }
             disabled={page <= 1 || loading}
-          >
-            Previous
-          </button>
+          >{tr("Previous")}</button>
 
-          <span>
-            Page {page} of {totalPages}
+          <span>{tr("Page")}{" "}{page}{" "}{tr("of")}{" "}{totalPages}
           </span>
 
           <button
@@ -1146,9 +1116,7 @@ export function Documents() {
             disabled={
               page >= totalPages || loading
             }
-          >
-            Next
-          </button>
+          >{tr("Next")}</button>
         </section>
       )}
 
@@ -1158,7 +1126,7 @@ export function Documents() {
             type="button"
             className="document-modal-backdrop"
             onClick={closeUpload}
-            aria-label="Close upload form"
+            aria-label={tr("Close upload form")}
           />
 
           <section
@@ -1168,13 +1136,9 @@ export function Documents() {
           >
             <header className="document-modal-header">
               <div>
-                <p className="page-eyebrow">
-                  Secure file upload
-                </p>
+                <p className="page-eyebrow">{tr("Secure file upload")}</p>
 
-                <h3>
-                  Upload Document
-                </h3>
+                <h3>{tr("Upload Document")}</h3>
               </div>
 
               <button
@@ -1191,7 +1155,7 @@ export function Documents() {
               onSubmit={handleUpload}
             >
               <label className="document-form-field document-form-wide">
-                <span>File</span>
+                <span>{tr("File")}</span>
 
                 <input
                   type="file"
@@ -1201,9 +1165,9 @@ export function Documents() {
               </label>
 
               <label className="document-form-field document-form-wide">
-                <span>Document Name</span>
+                <span>{tr("Document Name")}</span>
 
-                <input
+                <input dir="auto"
                   value={uploadForm.name}
                   onChange={(event) =>
                     setUploadForm(
@@ -1214,12 +1178,12 @@ export function Documents() {
                       }),
                     )
                   }
-                  placeholder="Document name"
+                  placeholder={tr("Document name")}
                 />
               </label>
 
               <label className="document-form-field">
-                <span>Client</span>
+                <span>{tr("Client")}</span>
 
                 <select
                   value={uploadForm.client_id}
@@ -1234,9 +1198,7 @@ export function Documents() {
                     )
                   }
                 >
-                  <option value="">
-                    No client
-                  </option>
+                  <option value="">{tr("No client")}</option>
 
                   {clients.map((client) => (
                     <option
@@ -1250,7 +1212,7 @@ export function Documents() {
               </label>
 
               <label className="document-form-field">
-                <span>Case</span>
+                <span>{tr("Case")}</span>
 
                 <select
                   value={uploadForm.case_id}
@@ -1267,9 +1229,7 @@ export function Documents() {
                     !uploadForm.client_id
                   }
                 >
-                  <option value="">
-                    No case
-                  </option>
+                  <option value="">{tr("No case")}</option>
 
                   {filteredUploadCases.map(
                     (caseItem) => (
@@ -1286,9 +1246,9 @@ export function Documents() {
               </label>
 
               <label className="document-form-field">
-                <span>Document Type</span>
+                <span>{tr("Document Type")}</span>
 
-                <input
+                <input dir="auto"
                   value={
                     uploadForm.document_type
                   }
@@ -1301,7 +1261,7 @@ export function Documents() {
                       }),
                     )
                   }
-                  placeholder="Legal notice, evidence, contract..."
+                  placeholder={tr("Legal notice, evidence, contract...")}
                 />
               </label>
 
@@ -1322,15 +1282,13 @@ export function Documents() {
                   }
                 />
 
-                <span>
-                  Confidential document
-                </span>
+                <span>{tr("Confidential document")}</span>
               </label>
 
               <label className="document-form-field document-form-wide">
-                <span>Description</span>
+                <span>{tr("Description")}</span>
 
-                <textarea
+                <textarea dir="auto"
                   value={
                     uploadForm.description
                   }
@@ -1344,7 +1302,7 @@ export function Documents() {
                     )
                   }
                   rows={4}
-                  placeholder="Internal document description"
+                  placeholder={tr("Internal document description")}
                 />
               </label>
 
@@ -1354,9 +1312,7 @@ export function Documents() {
                   className="secondary-action-button"
                   onClick={closeUpload}
                   disabled={uploadLoading}
-                >
-                  Cancel
-                </button>
+                >{tr("Cancel")}</button>
 
                 <button
                   type="submit"
@@ -1366,8 +1322,8 @@ export function Documents() {
                   <Plus size={17} />
 
                   {uploadLoading
-                    ? 'Uploading…'
-                    : 'Upload Document'}
+                    ? tr("Uploading…")
+                    : tr("Upload Document")}
                 </button>
               </footer>
             </form>
@@ -1379,7 +1335,7 @@ export function Documents() {
         open={documentDetailsOpen}
         document={selectedDocument}
         loading={detailsLoading}
-        error={detailsError}
+        error={tr(detailsError)}
         onClose={closeDetails}
         onOpenFile={handleOpenFile}
         onDownload={async () => {
@@ -1422,7 +1378,7 @@ export function Documents() {
         open={!administrator && Boolean(deletionRequestTarget)}
         entityType="document"
         recordId={deletionRequestTarget?.id ?? null}
-        recordLabel={deletionRequestTarget?.name ?? 'Document record'}
+        recordLabel={deletionRequestTarget?.name ?? tr("Document record")}
         onClose={() => setDeletionRequestTarget(null)}
       />
     </div>
@@ -1438,7 +1394,7 @@ function formatDate(
     return '—';
   }
 
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getLocale("en-GB"), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

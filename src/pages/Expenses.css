@@ -28,7 +28,7 @@
 .expense-toolbar select { padding: 9px 10px; border: 1px solid #d8dee8; border-radius: 9px; background: #fff; color: #475569; font: inherit; font-size: .69rem; }
 .expense-table-wrap { overflow-x: auto; }
 .expense-table { width: 100%; border-collapse: collapse; }
-.expense-table th, .expense-table td { padding: 11px 12px; border-bottom: 1px solid #eef2f7; text-align: left; vertical-align: middle; white-space: nowrap; }
+.expense-table th, .expense-table td { padding: 11px 12px; border-bottom: 1px solid #eef2f7; text-align: start; vertical-align: middle; white-space: nowrap; }
 .expense-table th { color: #64748b; font-size: .56rem; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
 .expense-table td { color: #334155; font-size: .67rem; }
 .expense-table tbody tr:last-child td { border-bottom: 0; }
@@ -117,13 +117,13 @@
 .expense-date-filter span { font-size: 11px; font-weight: 700; color: #697386; text-transform: uppercase; }
 .expense-date-filter input { border: 0; outline: 0; background: transparent; font: inherit; }
 .expense-clear-filters { display: inline-flex; align-items: center; gap: 5px; min-height: 38px; padding: 0 11px; border: 1px solid #f0b8b8; border-radius: 8px; color: #a12c2c; background: #fff7f7; font-weight: 700; cursor: pointer; }
-.expense-report-result { margin-left: auto; display: flex; align-items: baseline; gap: 6px; min-height: 38px; padding: 8px 12px; border-radius: 8px; background: #f4f7fb; color: #667085; font-size: 12px; }
+.expense-report-result { margin-inline-start: auto; display: flex; align-items: baseline; gap: 6px; min-height: 38px; padding: 8px 12px; border-radius: 8px; background: #f4f7fb; color: #667085; font-size: 12px; }
 .expense-report-result strong { color: #182230; font-size: 13px; }
 @media (max-width: 760px) {
   .expense-heading-actions { width: 100%; }
   .expense-heading-actions button { flex: 1; justify-content: center; }
   .expense-date-filter { flex: 1 1 160px; }
-  .expense-report-result { margin-left: 0; width: 100%; justify-content: center; }
+  .expense-report-result { margin-inline-start: 0; width: 100%; justify-content: center; }
 }
 
 /* Reusable expense vendors */

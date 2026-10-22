@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlarmClock,
@@ -78,6 +79,7 @@ export function HearingFormModal({
   onClose,
   onSave,
 }: HearingFormModalProps) {
+  const interfaceLanguage = useLocale();
   const isEditing = Boolean(hearing);
 
   const [formData, setFormData] = useState<HearingInsert>(() => ({
@@ -172,17 +174,17 @@ export function HearingFormModal({
       hearing,
       preselectedCaseId,
       preselectedClientId,
-    ],
+    , interfaceLanguage],
   );
 
   const selectedCase = useMemo(
     () => caseOptions.find((item) => item.id === formData.case_id),
-    [caseOptions, formData.case_id]
+    [caseOptions, formData.case_id, interfaceLanguage]
   );
 
   const selectedStaff = useMemo(
     () => staffOptions.find((item) => item.id === formData.assigned_staff_id),
-    [staffOptions, formData.assigned_staff_id]
+    [staffOptions, formData.assigned_staff_id, interfaceLanguage]
   );
 
   const validateForm = (): boolean => {
@@ -303,15 +305,12 @@ export function HearingFormModal({
         <div className="hearing-modal-header hearing-form-header">
           <div>
             <span className="hearing-form-eyebrow">
-              {isEditing ? 'Update court schedule' : 'New court schedule'}
+              {isEditing ? tr("Update court schedule") : tr("New court schedule")}
             </span>
             <h2 id="hearing-form-title">
-              {isEditing ? 'Edit Hearing' : 'Schedule Hearing'}
+              {isEditing ? tr("Edit Hearing") : tr("Schedule Hearing")}
             </h2>
-            <p>
-              Record the matter, court details, assigned professional, timing,
-              reminder and hearing notes.
-            </p>
+            <p>{tr("Record the matter, court details, assigned professional, timing, reminder and hearing notes.")}</p>
           </div>
 
           <button
@@ -319,7 +318,7 @@ export function HearingFormModal({
             className="hearing-modal-close"
             onClick={onClose}
             disabled={saving}
-            aria-label="Close hearing form"
+            aria-label={tr("Close hearing form")}
           >
             <X size={20} />
           </button>
@@ -327,7 +326,7 @@ export function HearingFormModal({
 
         {error && (
           <div className="hearing-modal-error" role="alert">
-            {error}
+            {tr(error)}
           </div>
         )}
 
@@ -339,15 +338,14 @@ export function HearingFormModal({
                   <BriefcaseBusiness size={18} />
                 </div>
                 <div>
-                  <h3>Matter & Assignment</h3>
-                  <p>Connect this hearing to the correct file and responsible staff member.</p>
+                  <h3>{tr("Matter & Assignment")}</h3>
+                  <p>{tr("Connect this hearing to the correct file and responsible staff member.")}</p>
                 </div>
               </div>
 
               <div className="hearing-form-grid">
                 <div className="hearing-form-group hearing-form-group-full">
-                  <label htmlFor="case_id">
-                    Matter <span className="hearing-required">*</span>
+                  <label htmlFor="case_id">{tr("Matter")}{" "}<span className="hearing-required">*</span>
                   </label>
                   <select
                     id="case_id"
@@ -358,7 +356,7 @@ export function HearingFormModal({
                     className={validationErrors.case_id ? 'is-invalid' : ''}
                   >
                     <option value="">
-                      {loadingOptions ? 'Loading matters...' : 'Select a matter'}
+                      {loadingOptions ? tr("Loading matters...") : tr("Select a matter")}
                     </option>
                     {caseOptions.map((caseOption) => (
                       <option key={caseOption.id} value={caseOption.id}>
@@ -367,8 +365,7 @@ export function HearingFormModal({
                     ))}
                   </select>
                   {selectedCase && (
-                    <span className="hearing-field-hint">
-                      Client: {selectedCase.client_name}
+                    <span className="hearing-field-hint">{tr("Client:")}{" "}{selectedCase.client_name}
                     </span>
                   )}
                   {validationErrors.case_id && (
@@ -378,9 +375,7 @@ export function HearingFormModal({
 
                 <div className="hearing-form-group">
                   <label htmlFor="assigned_staff_id">
-                    <UserRound size={15} />
-                    Assigned Professional
-                  </label>
+                    <UserRound size={15} />{tr("Assigned Professional")}</label>
                   <select
                     id="assigned_staff_id"
                     name="assigned_staff_id"
@@ -389,7 +384,7 @@ export function HearingFormModal({
                     disabled={disabled}
                   >
                     <option value="">
-                      {loadingOptions ? 'Loading staff...' : 'Unassigned'}
+                      {loadingOptions ? tr("Loading staff...") : tr("Unassigned")}
                     </option>
                     {staffOptions.map((staff) => (
                       <option key={staff.id} value={staff.id}>
@@ -398,24 +393,22 @@ export function HearingFormModal({
                     ))}
                   </select>
                   {selectedStaff && (
-                    <span className="hearing-field-hint">
-                      Responsible: {selectedStaff.full_name}
+                    <span className="hearing-field-hint">{tr("Responsible:")}{" "}{selectedStaff.full_name}
                     </span>
                   )}
                 </div>
 
                 <div className="hearing-form-group">
                   <label htmlFor="title">
-                    <FileText size={15} />
-                    Hearing Title <span className="hearing-required">*</span>
+                    <FileText size={15} />{tr("Hearing Title")}{" "}<span className="hearing-required">*</span>
                   </label>
-                  <input
+                  <input dir="auto"
                     id="title"
                     name="title"
                     type="text"
                     value={formData.title}
                     onChange={handleTextChange}
-                    placeholder="e.g. First Instance Hearing"
+                    placeholder={tr("e.g. First Instance Hearing")}
                     disabled={disabled}
                     className={validationErrors.title ? 'is-invalid' : ''}
                   />
@@ -432,18 +425,17 @@ export function HearingFormModal({
                   <CalendarDays size={18} />
                 </div>
                 <div>
-                  <h3>Schedule</h3>
-                  <p>Set the hearing time, expected completion and reminder interval.</p>
+                  <h3>{tr("Schedule")}</h3>
+                  <p>{tr("Set the hearing time, expected completion and reminder interval.")}</p>
                 </div>
               </div>
 
               <div className="hearing-form-grid hearing-form-grid-three">
                 <div className="hearing-form-group">
                   <label htmlFor="hearing_at">
-                    <CalendarDays size={15} />
-                    Start Date & Time <span className="hearing-required">*</span>
+                    <CalendarDays size={15} />{tr("Start Date & Time")}{" "}<span className="hearing-required">*</span>
                   </label>
-                  <input
+                  <input dir="ltr"
                     id="hearing_at"
                     name="hearing_at"
                     type="datetime-local"
@@ -459,10 +451,8 @@ export function HearingFormModal({
 
                 <div className="hearing-form-group">
                   <label htmlFor="end_at">
-                    <Clock3 size={15} />
-                    Expected End
-                  </label>
-                  <input
+                    <Clock3 size={15} />{tr("Expected End")}</label>
+                  <input dir="ltr"
                     id="end_at"
                     name="end_at"
                     type="datetime-local"
@@ -478,9 +468,7 @@ export function HearingFormModal({
 
                 <div className="hearing-form-group">
                   <label htmlFor="reminder_minutes">
-                    <AlarmClock size={15} />
-                    Reminder
-                  </label>
+                    <AlarmClock size={15} />{tr("Reminder")}</label>
                   <select
                     id="reminder_minutes"
                     name="reminder_minutes"
@@ -489,15 +477,15 @@ export function HearingFormModal({
                     disabled={disabled}
                     className={validationErrors.reminder_minutes ? 'is-invalid' : ''}
                   >
-                    <option value="">No reminder</option>
-                    <option value="15">15 minutes before</option>
-                    <option value="30">30 minutes before</option>
-                    <option value="60">1 hour before</option>
-                    <option value="180">3 hours before</option>
-                    <option value="720">12 hours before</option>
-                    <option value="1440">1 day before</option>
-                    <option value="2880">2 days before</option>
-                    <option value="10080">1 week before</option>
+                    <option value="">{tr("No reminder")}</option>
+                    <option value="15">{tr("15 minutes before")}</option>
+                    <option value="30">{tr("30 minutes before")}</option>
+                    <option value="60">{tr("1 hour before")}</option>
+                    <option value="180">{tr("3 hours before")}</option>
+                    <option value="720">{tr("12 hours before")}</option>
+                    <option value="1440">{tr("1 day before")}</option>
+                    <option value="2880">{tr("2 days before")}</option>
+                    <option value="10080">{tr("1 week before")}</option>
                   </select>
                   {validationErrors.reminder_minutes && (
                     <span className="hearing-error">
@@ -514,24 +502,23 @@ export function HearingFormModal({
                   <Building2 size={18} />
                 </div>
                 <div>
-                  <h3>Court & Venue</h3>
-                  <p>Record the court, courtroom and physical or remote location.</p>
+                  <h3>{tr("Court & Venue")}</h3>
+                  <p>{tr("Record the court, courtroom and physical or remote location.")}</p>
                 </div>
               </div>
 
               <div className="hearing-form-grid">
                 <div className="hearing-form-group hearing-form-group-full">
                   <label htmlFor="court">
-                    <Gavel size={15} />
-                    Court <span className="hearing-required">*</span>
+                    <Gavel size={15} />{tr("Court")}{" "}<span className="hearing-required">*</span>
                   </label>
-                  <input
+                  <input dir="auto"
                     id="court"
                     name="court"
                     type="text"
                     value={formData.court}
                     onChange={handleTextChange}
-                    placeholder="e.g. Dubai Courts — Commercial Court"
+                    placeholder={tr("e.g. Dubai Courts — Commercial Court")}
                     disabled={disabled}
                     className={validationErrors.court ? 'is-invalid' : ''}
                   />
@@ -542,32 +529,28 @@ export function HearingFormModal({
 
                 <div className="hearing-form-group">
                   <label htmlFor="courtroom">
-                    <Building2 size={15} />
-                    Courtroom / Chamber
-                  </label>
-                  <input
+                    <Building2 size={15} />{tr("Courtroom / Chamber")}</label>
+                  <input dir="auto"
                     id="courtroom"
                     name="courtroom"
                     type="text"
                     value={formData.courtroom || ''}
                     onChange={handleTextChange}
-                    placeholder="e.g. Chamber 4, Room 101"
+                    placeholder={tr("e.g. Chamber 4, Room 101")}
                     disabled={disabled}
                   />
                 </div>
 
                 <div className="hearing-form-group">
                   <label htmlFor="location">
-                    <MapPin size={15} />
-                    Location / Remote Link
-                  </label>
-                  <input
+                    <MapPin size={15} />{tr("Location / Remote Link")}</label>
+                  <input dir="auto"
                     id="location"
                     name="location"
                     type="text"
                     value={formData.location || ''}
                     onChange={handleTextChange}
-                    placeholder="Court address or online hearing link"
+                    placeholder={tr("Court address or online hearing link")}
                     disabled={disabled}
                   />
                 </div>
@@ -580,14 +563,14 @@ export function HearingFormModal({
                   <Gavel size={18} />
                 </div>
                 <div>
-                  <h3>Classification & Result</h3>
-                  <p>Classify the hearing and record its present status or result.</p>
+                  <h3>{tr("Classification & Result")}</h3>
+                  <p>{tr("Classify the hearing and record its present status or result.")}</p>
                 </div>
               </div>
 
               <div className="hearing-form-grid">
                 <div className="hearing-form-group">
-                  <label htmlFor="hearing_type">Hearing Type</label>
+                  <label htmlFor="hearing_type">{tr("Hearing Type")}</label>
                   <select
                     id="hearing_type"
                     name="hearing_type"
@@ -595,16 +578,16 @@ export function HearingFormModal({
                     onChange={handleSelectChange}
                     disabled={disabled}
                   >
-                    <option value="Preliminary">Preliminary</option>
-                    <option value="Case Management">Case Management</option>
-                    <option value="Final Hearing">Final Hearing</option>
-                    <option value="Appeal">Appeal</option>
-                    <option value="Other">Other</option>
+                    <option value="Preliminary">{tr("Preliminary")}</option>
+                    <option value="Case Management">{tr("Case Management")}</option>
+                    <option value="Final Hearing">{tr("Final Hearing")}</option>
+                    <option value="Appeal">{tr("Appeal")}</option>
+                    <option value="Other">{tr("Other")}</option>
                   </select>
                 </div>
 
                 <div className="hearing-form-group">
-                  <label htmlFor="status">Status</label>
+                  <label htmlFor="status">{tr("Status")}</label>
                   <select
                     id="status"
                     name="status"
@@ -612,35 +595,35 @@ export function HearingFormModal({
                     onChange={handleSelectChange}
                     disabled={disabled}
                   >
-                    <option value="Scheduled">Scheduled</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Adjourned">Adjourned</option>
-                    <option value="Cancelled">Cancelled</option>
+                    <option value="Scheduled">{tr("Scheduled")}</option>
+                    <option value="Pending">{tr("Pending")}</option>
+                    <option value="Completed">{tr("Completed")}</option>
+                    <option value="Adjourned">{tr("Adjourned")}</option>
+                    <option value="Cancelled">{tr("Cancelled")}</option>
                   </select>
                 </div>
 
                 <div className="hearing-form-group hearing-form-group-full">
-                  <label htmlFor="outcome">Outcome / Court Direction</label>
-                  <input
+                  <label htmlFor="outcome">{tr("Outcome / Court Direction")}</label>
+                  <input dir="auto"
                     id="outcome"
                     name="outcome"
                     type="text"
                     value={formData.outcome || ''}
                     onChange={handleTextChange}
-                    placeholder="e.g. Adjourned for submission of reply memorandum"
+                    placeholder={tr("e.g. Adjourned for submission of reply memorandum")}
                     disabled={disabled}
                   />
                 </div>
 
                 <div className="hearing-form-group hearing-form-group-full">
-                  <label htmlFor="notes">Internal Hearing Notes</label>
-                  <textarea
+                  <label htmlFor="notes">{tr("Internal Hearing Notes")}</label>
+                  <textarea dir="auto"
                     id="notes"
                     name="notes"
                     value={formData.notes || ''}
                     onChange={handleTextChange}
-                    placeholder="Record attendance, oral submissions, judge directions, required documents and next actions..."
+                    placeholder={tr("Record attendance, oral submissions, judge directions, required documents and next actions...")}
                     rows={6}
                     disabled={disabled}
                   />
@@ -651,9 +634,7 @@ export function HearingFormModal({
 
           <div className="hearing-form-footer">
             <div className="hearing-form-footer-note">
-              <AlarmClock size={16} />
-              Reminder delivery will use the configured hearing notification workflow.
-            </div>
+              <AlarmClock size={16} />{tr("Reminder delivery will use the configured hearing notification workflow.")}</div>
 
             <div className="hearing-form-footer-actions">
               <button
@@ -661,9 +642,7 @@ export function HearingFormModal({
                 className="hearing-button-cancel"
                 onClick={onClose}
                 disabled={saving}
-              >
-                Cancel
-              </button>
+              >{tr("Cancel")}</button>
               <button
                 type="submit"
                 className="hearing-button-submit"
@@ -671,10 +650,10 @@ export function HearingFormModal({
               >
                 <Save size={17} />
                 {saving
-                  ? 'Saving...'
+                  ? tr("Saving...")
                   : isEditing
-                    ? 'Update Hearing'
-                    : 'Schedule Hearing'}
+                    ? tr("Update Hearing")
+                    : tr("Schedule Hearing")}
               </button>
             </div>
           </div>

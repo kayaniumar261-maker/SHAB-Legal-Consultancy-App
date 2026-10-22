@@ -1,3 +1,4 @@
+import { tr, getLocale, useLocale, trEnum } from '../../i18n/locale';
 import {
   CheckCircle2,
   Clock3,
@@ -41,13 +42,14 @@ function formatTime(value: string): string {
     return 'N/A';
   }
 
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(getLocale("en-GB"), {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
 }
 
 export function TaskWidget() {
+  const interfaceLanguage = useLocale();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingTaskId, setUpdatingTaskId] =
@@ -108,24 +110,18 @@ export function TaskWidget() {
     <section className="dashboard-panel task-widget-panel">
       <div className="panel-heading-row">
         <div>
-          <span className="section-tag">
-            DAILY WORK
-          </span>
+          <span className="section-tag">{tr("DAILY WORK")}</span>
 
-          <h3>Tasks Due Today</h3>
+          <h3>{tr("Tasks Due Today")}</h3>
 
-          <p>
-            Priority work requiring attention today.
-          </p>
+          <p>{tr("Priority work requiring attention today.")}</p>
         </div>
 
         <div className="task-widget-actions">
           <Link
             className="secondary-action-button"
             to="/tasks?date=today"
-          >
-            View All
-          </Link>
+          >{tr("View All")}</Link>
           <div className="task-count-badge">
             {tasks.length}
           </div>
@@ -133,20 +129,16 @@ export function TaskWidget() {
       </div>
 
       {loading ? (
-        <div className="dashboard-widget-state">
-          Loading today's tasks…
-        </div>
+        <div className="dashboard-widget-state">{tr("Loading today's tasks…")}</div>
       ) : error && tasks.length === 0 ? (
         <div className="dashboard-widget-state error">
-          {error}
+          {tr(error)}
         </div>
       ) : tasks.length === 0 ? (
         <div className="dashboard-widget-state">
           <ListTodo size={22} />
 
-          <span>
-            No outstanding tasks due today.
-          </span>
+          <span>{tr("No outstanding tasks due today.")}</span>
         </div>
       ) : (
         <div className="task-dashboard-list">
@@ -176,7 +168,7 @@ export function TaskWidget() {
                         task.priority,
                       )}
                     >
-                      {task.priority || 'Normal'}
+                      {task.priority || tr("Normal")}
                     </span>
 
                     {task.due_at && (
@@ -187,7 +179,7 @@ export function TaskWidget() {
                     )}
 
                     <span>
-                      {task.status}
+                      {trEnum(task.status)}
                     </span>
                   </div>
                 </div>
@@ -202,7 +194,7 @@ export function TaskWidget() {
                   disabled={
                     updatingTaskId === task.id
                   }
-                  title="Mark task completed"
+                  title={tr("Mark task completed")}
                 >
                   <CheckCircle2 size={17} />
                 </button>
@@ -214,7 +206,7 @@ export function TaskWidget() {
 
       {error && tasks.length > 0 && (
         <div className="dashboard-inline-error">
-          {error}
+          {tr(error)}
         </div>
       )}
     </section>

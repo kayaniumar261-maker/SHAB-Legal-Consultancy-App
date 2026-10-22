@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { Client } from '../../types/client';
@@ -100,6 +101,7 @@ export function ClientFormModal({
   onSave,
   loading,
 }: ClientFormModalProps) {
+  const interfaceLanguage = useLocale();
   const { user } = useAuth();
   const draftStorageKey = draftKeyForUser(user?.id, client?.id
     ? `shab-client-form-draft-${client.id}`
@@ -186,7 +188,7 @@ export function ClientFormModal({
     }
 
     return errors;
-  }, [formState, isCompany]);
+  }, [formState, isCompany, interfaceLanguage]);
 
   if (!open) {
     return null;
@@ -242,26 +244,24 @@ export function ClientFormModal({
         type="button"
         className="client-modal-backdrop"
         onClick={onClose}
-        aria-label="Close client form"
+        aria-label={tr("Close client form")}
       />
 
       <section className="client-modal" role="dialog" aria-modal="true">
         <header className="client-modal-header">
           <div>
-            <p className="modal-eyebrow">Client record</p>
+            <p className="modal-eyebrow">{tr("Client record")}</p>
             <h3>
-              {client ? 'Edit Client' : 'Add New Client'}
+              {client ? tr("Edit Client") : tr("Add New Client")}
             </h3>
-            <p className="modal-description">
-              Manage individual and company client records with all required identification and contact details.
-            </p>
+            <p className="modal-description">{tr("Manage individual and company client records with all required identification and contact details.")}</p>
           </div>
 
           <button
             type="button"
             className="client-modal-close"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={tr("Close")}
           >
             ✕
           </button>
@@ -270,8 +270,7 @@ export function ClientFormModal({
         <form className="client-form" onSubmit={handleSubmit}>
           <div className="client-form-grid">
             <div className="client-form-field">
-              <span>
-                Client Type<strong aria-hidden="true">*</strong>
+              <span>{tr("Client Type")}<strong aria-hidden="true">*</strong>
               </span>
               <select
                 value={formState.client_type}
@@ -282,16 +281,15 @@ export function ClientFormModal({
                   }))
                 }
               >
-                <option value="individual">Individual</option>
-                <option value="company">Company</option>
+                <option value="individual">{tr("Individual")}</option>
+                <option value="company">{tr("Company")}</option>
               </select>
             </div>
 
             <div className="client-form-field">
-              <span>
-                Full Name<strong aria-hidden="true">*</strong>
+              <span>{tr("Full Name")}<strong aria-hidden="true">*</strong>
               </span>
-              <input
+              <input dir="auto"
                 type="text"
                 value={formState.full_name}
                 onChange={(event) =>
@@ -300,14 +298,14 @@ export function ClientFormModal({
                     full_name: event.target.value,
                   }))
                 }
-                placeholder="Full legal name"
+                placeholder={tr("Full legal name")}
                 autoFocus
               />
             </div>
 
             <div className="client-form-field">
-              <span>Email</span>
-              <input
+              <span>{tr("Email")}</span>
+              <input dir="ltr"
                 type="email"
                 value={formState.email}
                 onChange={(event) =>
@@ -321,8 +319,8 @@ export function ClientFormModal({
             </div>
 
             <div className="client-form-field">
-              <span>Phone</span>
-              <input
+              <span>{tr("Phone")}</span>
+              <input dir="ltr"
                 type="tel"
                 value={formState.phone}
                 onChange={(event) =>
@@ -336,8 +334,8 @@ export function ClientFormModal({
             </div>
 
             <div className="client-form-field">
-              <span>Nationality</span>
-              <input
+              <span>{tr("Nationality")}</span>
+              <input dir="auto"
                 type="text"
                 value={formState.nationality}
                 onChange={(event) =>
@@ -346,12 +344,12 @@ export function ClientFormModal({
                     nationality: event.target.value,
                   }))
                 }
-                placeholder="Nationality"
+                placeholder={tr("Nationality")}
               />
             </div>
 
             <div className="client-form-field">
-              <span>Status</span>
+              <span>{tr("Status")}</span>
               <select
                 value={formState.status}
                 onChange={(event) =>
@@ -361,15 +359,15 @@ export function ClientFormModal({
                   }))
                 }
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="prospect">Prospect</option>
+                <option value="active">{tr("Active")}</option>
+                <option value="inactive">{tr("Inactive")}</option>
+                <option value="prospect">{tr("Prospect")}</option>
               </select>
             </div>
 
             <div className="client-form-field">
-              <span>Emirates ID</span>
-              <input
+              <span>{tr("Emirates ID")}</span>
+              <input dir="auto"
                 type="text"
                 value={formState.emirates_id}
                 onChange={(event) =>
@@ -378,13 +376,13 @@ export function ClientFormModal({
                     emirates_id: event.target.value,
                   }))
                 }
-                placeholder="784-XXXX-XXXXXXX-X"
+                placeholder={tr("784-XXXX-XXXXXXX-X")}
               />
             </div>
 
             <div className="client-form-field">
-              <span>Passport Number</span>
-              <input
+              <span>{tr("Passport Number")}</span>
+              <input dir="auto"
                 type="text"
                 value={formState.passport_number}
                 onChange={(event) =>
@@ -393,17 +391,16 @@ export function ClientFormModal({
                     passport_number: event.target.value,
                   }))
                 }
-                placeholder="Passport number"
+                placeholder={tr("Passport number")}
               />
             </div>
 
             {isCompany && (
               <>
                 <div className="client-form-field">
-                  <span>
-                    Company Name<strong aria-hidden="true">*</strong>
+                  <span>{tr("Company Name")}<strong aria-hidden="true">*</strong>
                   </span>
-                  <input
+                  <input dir="auto"
                     type="text"
                     value={formState.company_name}
                     onChange={(event) =>
@@ -412,13 +409,13 @@ export function ClientFormModal({
                         company_name: event.target.value,
                       }))
                     }
-                    placeholder="Registered company name"
+                    placeholder={tr("Registered company name")}
                   />
                 </div>
 
                 <div className="client-form-field">
-                  <span>Trade License Number</span>
-                  <input
+                  <span>{tr("Trade License Number")}</span>
+                  <input dir="auto"
                     type="text"
                     value={formState.trade_license_number}
                     onChange={(event) =>
@@ -427,15 +424,15 @@ export function ClientFormModal({
                         trade_license_number: event.target.value,
                       }))
                     }
-                    placeholder="License number"
+                    placeholder={tr("License number")}
                   />
                 </div>
               </>
             )}
 
             <div className="client-form-field client-form-field-wide">
-              <span>Address</span>
-              <input
+              <span>{tr("Address")}</span>
+              <input dir="auto"
                 type="text"
                 value={formState.address}
                 onChange={(event) =>
@@ -444,13 +441,13 @@ export function ClientFormModal({
                     address: event.target.value,
                   }))
                 }
-                placeholder="Residential or business address"
+                placeholder={tr("Residential or business address")}
               />
             </div>
 
             <div className="client-form-field client-form-field-wide">
-              <span>Notes</span>
-              <textarea
+              <span>{tr("Notes")}</span>
+              <textarea dir="auto"
                 rows={4}
                 value={formState.notes}
                 onChange={(event) =>
@@ -459,14 +456,14 @@ export function ClientFormModal({
                     notes: event.target.value,
                   }))
                 }
-                placeholder="Internal remarks or additional context"
+                placeholder={tr("Internal remarks or additional context")}
               />
             </div>
           </div>
 
           {error && (
             <div className="validation-error" role="alert">
-              {error}
+              {tr(error)}
             </div>
           )}
 
@@ -478,8 +475,8 @@ export function ClientFormModal({
             }
           >
             {isOnline
-              ? 'Draft is saved locally on this device until the client is successfully saved.'
-              : 'Offline — draft is saved locally. Reconnect before saving this client to SHAB.'}
+              ? tr("Draft is saved locally on this device until the client is successfully saved.")
+              : tr("Offline — draft is saved locally. Reconnect before saving this client to SHAB.")}
           </div>
 
           <footer className="client-form-actions">
@@ -487,19 +484,17 @@ export function ClientFormModal({
               type="button"
               className="secondary-action-button"
               onClick={onClose}
-            >
-              Cancel
-            </button>
+            >{tr("Cancel")}</button>
             <button
               type="submit"
               className="primary-action-button"
               disabled={loading || !isOnline}
             >
               {loading
-                ? 'Saving…'
+                ? tr("Saving…")
                 : client
-                ? 'Save Client'
-                : 'Create Client'}
+                ? tr("Save Client")
+                : tr("Create Client")}
             </button>
           </footer>
         </form>

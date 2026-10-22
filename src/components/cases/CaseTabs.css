@@ -124,7 +124,7 @@
 .case-documents-table td {
   padding: 14px 16px;
   border-bottom: 1px solid #eef2f7;
-  text-align: left;
+  text-align: start;
   vertical-align: top;
 }
 
@@ -382,8 +382,8 @@
 .case-hearing-date {
   display: grid;
   justify-items: center;
-  padding-right: 12px;
-  border-right: 1px solid #eef2f7;
+  padding-inline-end: 12px;
+  border-inline-end: 1px solid #eef2f7;
 }
 
 .case-hearing-date strong {

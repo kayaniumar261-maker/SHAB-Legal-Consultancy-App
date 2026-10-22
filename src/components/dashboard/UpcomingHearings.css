@@ -74,8 +74,8 @@
     justify-content:center;
     gap:8px;
     color:#9a7825;
-    border-right:1px solid #edf2f7;
-    padding-right:18px;
+    border-inline-end:1px solid #edf2f7;
+    padding-inline-end:18px;
 }
 
 .hearing-time strong{
@@ -129,9 +129,9 @@ flex-direction:column;
 }
 
 .hearing-time{
-border-right:none;
+border-inline-end:none;
 border-bottom:1px solid #edf2f7;
-padding-right:0;
+padding-inline-end:0;
 padding-bottom:15px;
 }
 

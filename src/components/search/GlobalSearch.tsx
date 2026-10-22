@@ -1,3 +1,4 @@
+import { tr, useLocale } from '../../i18n/locale';
 import {
   BriefcaseBusiness,
   CheckSquare,
@@ -41,6 +42,7 @@ const categoryOrder: GlobalSearchCategory[] = [
 ];
 
 export function GlobalSearch() {
+  const interfaceLanguage = useLocale();
   const navigate = useNavigate();
 
   const inputRef =
@@ -179,7 +181,7 @@ export function GlobalSearch() {
         .filter(
           (group) => group.items.length > 0,
         ),
-    [results],
+    [results, interfaceLanguage],
   );
 
   function closeSearch() {
@@ -248,14 +250,14 @@ export function GlobalSearch() {
         type="button"
         className="global-search-trigger"
         onClick={() => setOpen(true)}
-        aria-label="Open global search"
+        aria-label={tr("Open global search")}
       >
         <Search size={17} />
 
-        <span>Search anything…</span>
+        <span>{tr("Search anything…")}</span>
 
         <kbd>
-          {isMacPlatform() ? '⌘' : 'Ctrl'} K
+          {isMacPlatform() ? '⌘' : tr("Ctrl")} K
         </kbd>
       </button>
 
@@ -264,12 +266,12 @@ export function GlobalSearch() {
           className="global-search-layer"
           role="dialog"
           aria-modal="true"
-          aria-label="Global search"
+          aria-label={tr("Global search")}
         >
           <button
             type="button"
             className="global-search-backdrop"
-            aria-label="Close search"
+            aria-label={tr("Close search")}
             onClick={closeSearch}
           />
 
@@ -277,15 +279,15 @@ export function GlobalSearch() {
             <header className="global-search-input-row">
               <Search size={20} />
 
-              <input
+              <input dir="auto"
                 ref={inputRef}
                 value={query}
                 onChange={(event) =>
                   setQuery(event.target.value)
                 }
                 onKeyDown={handleKeyDown}
-                placeholder="Search clients, cases, tasks, documents, invoices…"
-                aria-label="Search across SHAB"
+                placeholder={tr("Search clients, cases, tasks, documents, invoices…")}
+                aria-label={tr("Search across SHAB")}
               />
 
               {loading ? (
@@ -297,7 +299,7 @@ export function GlobalSearch() {
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  aria-label="Clear search"
+                  aria-label={tr("Clear search")}
                 >
                   <X size={18} />
                 </button>
@@ -311,40 +313,25 @@ export function GlobalSearch() {
                     <Search size={25} />
                   </div>
 
-                  <strong>
-                    Search the entire practice
-                  </strong>
+                  <strong>{tr("Search the entire practice")}</strong>
 
-                  <p>
-                    Find clients, matters, tasks,
-                    hearings, documents, invoices,
-                    and staff.
-                  </p>
+                  <p>{tr("Find clients, matters, tasks, hearings, documents, invoices, and staff.")}</p>
 
-                  <span>
-                    Type at least two characters.
-                  </span>
+                  <span>{tr("Type at least two characters.")}</span>
                 </div>
               ) : error ? (
                 <div className="global-search-state error">
-                  <strong>
-                    Unable to complete search
-                  </strong>
+                  <strong>{tr("Unable to complete search")}</strong>
 
-                  <span>{error}</span>
+                  <span>{tr(error)}</span>
                 </div>
               ) : loading && results.length === 0 ? (
-                <div className="global-search-state">
-                  Searching SHAB records…
-                </div>
+                <div className="global-search-state">{tr("Searching SHAB records…")}</div>
               ) : results.length === 0 ? (
                 <div className="global-search-state">
-                  <strong>No results found</strong>
+                  <strong>{tr("No results found")}</strong>
 
-                  <span>
-                    Try a client name, matter number,
-                    invoice number, or document title.
-                  </span>
+                  <span>{tr("Try a client name, matter number, invoice number, or document title.")}</span>
                 </div>
               ) : (
                 <div className="global-search-groups">
@@ -429,19 +416,13 @@ export function GlobalSearch() {
             <footer className="global-search-footer">
               <span>
                 <kbd>↑</kbd>
-                <kbd>↓</kbd>
-                Navigate
-              </span>
+                <kbd>↓</kbd>{tr("Navigate")}</span>
 
               <span>
-                <kbd>Enter</kbd>
-                Open
-              </span>
+                <kbd>{tr("Enter")}</kbd>{tr("Open")}</span>
 
               <span>
-                <kbd>Esc</kbd>
-                Close
-              </span>
+                <kbd>{tr("Esc")}</kbd>{tr("Close")}</span>
             </footer>
           </section>
         </div>
