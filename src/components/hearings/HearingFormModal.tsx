@@ -369,7 +369,7 @@ export function HearingFormModal({
                     </span>
                   )}
                   {validationErrors.case_id && (
-                    <span className="hearing-error">{validationErrors.case_id}</span>
+                    <span className="hearing-error">{tr(validationErrors.case_id)}</span>
                   )}
                 </div>
 
@@ -413,7 +413,7 @@ export function HearingFormModal({
                     className={validationErrors.title ? 'is-invalid' : ''}
                   />
                   {validationErrors.title && (
-                    <span className="hearing-error">{validationErrors.title}</span>
+                    <span className="hearing-error">{tr(validationErrors.title)}</span>
                   )}
                 </div>
               </div>
@@ -445,7 +445,7 @@ export function HearingFormModal({
                     className={validationErrors.hearing_at ? 'is-invalid' : ''}
                   />
                   {validationErrors.hearing_at && (
-                    <span className="hearing-error">{validationErrors.hearing_at}</span>
+                    <span className="hearing-error">{tr(validationErrors.hearing_at)}</span>
                   )}
                 </div>
 
@@ -462,7 +462,7 @@ export function HearingFormModal({
                     className={validationErrors.end_at ? 'is-invalid' : ''}
                   />
                   {validationErrors.end_at && (
-                    <span className="hearing-error">{validationErrors.end_at}</span>
+                    <span className="hearing-error">{tr(validationErrors.end_at)}</span>
                   )}
                 </div>
 
@@ -489,7 +489,7 @@ export function HearingFormModal({
                   </select>
                   {validationErrors.reminder_minutes && (
                     <span className="hearing-error">
-                      {validationErrors.reminder_minutes}
+                      {tr(validationErrors.reminder_minutes)}
                     </span>
                   )}
                 </div>
@@ -523,7 +523,7 @@ export function HearingFormModal({
                     className={validationErrors.court ? 'is-invalid' : ''}
                   />
                   {validationErrors.court && (
-                    <span className="hearing-error">{validationErrors.court}</span>
+                    <span className="hearing-error">{tr(validationErrors.court)}</span>
                   )}
                 </div>
 

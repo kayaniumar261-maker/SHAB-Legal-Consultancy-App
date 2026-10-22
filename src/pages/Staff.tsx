@@ -351,7 +351,7 @@ export function Staff() {
     member: StaffRecord,
   ) => {
     const confirmed = window.confirm(
-      `Are you sure you want to delete ${member.full_name}?`,
+      tr("Are you sure you want to delete {0}?", [member.full_name]),
     );
 
     if (!confirmed) {

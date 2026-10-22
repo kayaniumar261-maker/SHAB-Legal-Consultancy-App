@@ -197,7 +197,7 @@ export function CaseDetails() {
     }
 
     const confirmed = window.confirm(
-      `Delete ${matterReference}? This action cannot be undone.`,
+      tr("Delete {0}? This action cannot be undone.", [matterReference]),
     );
 
     if (!confirmed) {

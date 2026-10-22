@@ -63,7 +63,7 @@ export function StaffAccessAdministration() {
   );
 
   const inviteAdministrator = async (administrator: typeof approvedAdministrators[number]) => {
-    if (!window.confirm(`Send an administrator invitation to ${administrator.email}?`)) return;
+    if (!window.confirm(tr("Send an administrator invitation to {0}?", [administrator.email]))) return;
     try {
       setWorking(`admin-${administrator.email}`);
       setError(null);
@@ -108,7 +108,7 @@ export function StaffAccessAdministration() {
 
   const changeStatus = async (account: AccessAccount) => {
     const next = !account.is_active;
-    if (!window.confirm(`${next ? 'Activate' : 'Suspend'} ${account.email}?`)) return;
+    if (!window.confirm(tr("{0} {1}?", [next ? 'Activate' : 'Suspend', account.email]))) return;
     try {
       setWorking(account.user_id);
       setError(null);

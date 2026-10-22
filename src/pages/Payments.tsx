@@ -1793,7 +1793,7 @@ export function Payments() {
     }
 
     const confirmed = window.confirm(
-      `Delete invoice ${invoice.invoice_number}?`,
+      tr("Delete invoice {0}?", [invoice.invoice_number]),
     );
 
     if (!confirmed) {
@@ -1821,7 +1821,7 @@ export function Payments() {
     payment: Payment,
   ) => {
     const confirmed = window.confirm(
-      'Delete this payment record?',
+      tr("Delete this payment record?"),
     );
 
     if (!confirmed) {

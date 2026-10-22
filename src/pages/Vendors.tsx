@@ -50,7 +50,7 @@ export function Vendors() {
 
   async function toggleActive(vendor: ExpenseVendor) {
     const action = vendor.is_active ? 'deactivate' : 'reactivate';
-    if (!window.confirm(`${action === 'deactivate' ? 'Deactivate' : 'Reactivate'} ${vendor.name}? Historical expenses will remain unchanged.`)) return;
+    if (!window.confirm(tr("{0} {1}? Historical expenses will remain unchanged.", [action === 'deactivate' ? 'Deactivate' : 'Reactivate', vendor.name]))) return;
     try { setBusyId(vendor.id); setError(null); await updateExpenseVendor(vendor.id, { is_active: !vendor.is_active }); setSuccess(`${vendor.name} ${action}d.`); await load(); }
     catch (actionError) { setError(actionError instanceof Error ? actionError.message : `Unable to ${action} vendor.`); }
     finally { setBusyId(null); }

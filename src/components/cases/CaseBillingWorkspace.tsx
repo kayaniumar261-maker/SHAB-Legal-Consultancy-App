@@ -167,9 +167,9 @@ export function CaseBillingWorkspace({
     if (!selected) return;
     let cancellationReason: string | null = null;
     if (status === 'cancelled') {
-      cancellationReason = window.prompt('Reason for cancelling this fee agreement:')?.trim() || null;
+      cancellationReason = window.prompt(tr("Reason for cancelling this fee agreement:"))?.trim() || null;
       if (!cancellationReason) return;
-    } else if (!window.confirm('Complete this fee agreement? No further installments can be changed afterward.')) {
+    } else if (!window.confirm(tr("Complete this fee agreement? No further installments can be changed afterward."))) {
       return;
     }
     try {
@@ -187,7 +187,7 @@ export function CaseBillingWorkspace({
   ) {
     let reason: string | undefined;
     if (status === 'waived' || status === 'cancelled') {
-      reason = window.prompt(`Reason for marking this installment ${status}:`)?.trim();
+      reason = window.prompt(tr("Reason for marking this installment {0}:", [status]))?.trim();
       if (!reason) return;
     }
 

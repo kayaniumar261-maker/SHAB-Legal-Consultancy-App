@@ -547,7 +547,7 @@ export function Documents() {
     document: DocumentWithRelations,
   ) => {
     const confirmed = window.confirm(
-      `Delete "${document.name}"? This will remove both the database record and the stored file.`,
+      tr("Delete \"{0}\"? This will remove both the database record and the stored file.", [document.name]),
     );
 
     if (!confirmed) {
@@ -1354,7 +1354,7 @@ export function Documents() {
             return;
           }
           const confirmed = window.confirm(
-            `Delete "${selectedDocument.name}"? This will remove both the database record and the stored file.`,
+            tr("Delete \"{0}\"? This will remove both the database record and the stored file.", [selectedDocument.name]),
           );
           if (!confirmed) {
             return;

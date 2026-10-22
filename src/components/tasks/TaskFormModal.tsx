@@ -249,7 +249,7 @@ export function TaskFormModal({
     const errors: string[] = [];
 
     if (!formState.title.trim()) {
-      errors.push('Task title is required.');
+      errors.push(tr("Task title is required."));
     }
 
     return errors;

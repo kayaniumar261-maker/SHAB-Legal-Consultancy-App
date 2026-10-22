@@ -176,15 +176,15 @@ export function ClientFormModal({
     const errors: string[] = [];
 
     if (!formState.full_name.trim()) {
-      errors.push('Full name is required.');
+      errors.push(tr("Full name is required."));
     }
 
     if (!formState.client_type) {
-      errors.push('Client type is required.');
+      errors.push(tr("Client type is required."));
     }
 
     if (isCompany && !formState.company_name.trim()) {
-      errors.push('Company name is required for company clients.');
+      errors.push(tr("Company name is required for company clients."));
     }
 
     return errors;

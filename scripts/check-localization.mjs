@@ -25,6 +25,9 @@ for (const file of sources) {
       for (const token of arabic[key].match(/\{\d+\}/g) ?? []) assert.ok(allowed.has(token), `${key}: unexpected ${token}`);
       messages++;
     }
+    if (ts.isJsxElement(node) && node.openingElement.tagName.getText(source) === 'option' && node.getText(source).includes('tr(')) {
+      assert.ok(node.openingElement.attributes.properties.some((attribute) => attribute.name?.getText(source) === 'value'), `${file}: translated option must retain its original submitted value`);
+    }
     ts.forEachChild(node, visit);
   }
   visit(source);

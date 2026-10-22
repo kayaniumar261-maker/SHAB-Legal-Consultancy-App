@@ -176,7 +176,7 @@ export function AppLayout() {
 
     if (!file || !user) return;
     if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
-      window.alert('Choose a JPG, PNG or WebP image smaller than 5 MB.');
+      window.alert(tr("Choose a JPG, PNG or WebP image smaller than 5 MB."));
       return;
     }
 

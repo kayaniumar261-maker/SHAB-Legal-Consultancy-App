@@ -45,7 +45,7 @@ export function DeletionRequestModal({
       setSubmitting(true);
       setError(null);
       await requestRecordDeletion(entityType, recordId!, reason);
-      window.alert('Deletion request sent to the administrators for review.');
+      window.alert(tr("Deletion request sent to the administrators for review."));
       onSubmitted?.();
       onClose();
     } catch (submissionError) {

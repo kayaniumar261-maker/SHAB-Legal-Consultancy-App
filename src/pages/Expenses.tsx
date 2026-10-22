@@ -242,7 +242,7 @@ export function Expenses() {
   }
 
   async function removeAttachment(attachment: ExpenseAttachment) {
-    if (!attachmentExpense || !window.confirm(`Delete ${attachment.file_name}?`)) return;
+    if (!attachmentExpense || !window.confirm(tr("Delete {0}?", [attachment.file_name]))) return;
     try {
       setAttachmentBusy(true);
       await deleteExpenseAttachment(attachment);
@@ -259,7 +259,7 @@ export function Expenses() {
     const due = new Date();
     due.setDate(due.getDate() + 14);
     const dueDate = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(due.getDate()).padStart(2, '0')}`;
-    if (!window.confirm(`Create a draft invoice for ${expense.expense_number} totalling ${money(Number(expense.total_amount), expense.currency)}?`)) return;
+    if (!window.confirm(tr("Create a draft invoice for {0} totalling {1}?", [expense.expense_number, money(Number(expense.total_amount), expense.currency)]))) return;
     try {
       setBusyId(expense.id);
       setError(null);
@@ -277,7 +277,7 @@ export function Expenses() {
   async function transition(expense: ExpenseWithRelations, status: ExpenseStatus) {
     let reason: string | undefined;
     if (status === 'void') {
-      reason = window.prompt('Reason for voiding this expense:')?.trim();
+      reason = window.prompt(tr("Reason for voiding this expense:"))?.trim();
       if (!reason || reason.length < 5) return;
     } else if (!window.confirm(
       status === 'approved'
@@ -341,7 +341,7 @@ export function Expenses() {
             <option value="all">{tr("All statuses")}</option><option value="draft">{tr("Draft")}</option><option value="approved">{tr("Approved")}</option><option value="paid">{tr("Paid")}</option><option value="void">{tr("Void")}</option>
           </select>
           <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
-            <option value="all">{tr("All categories")}</option>{categories.map((category) => <option key={category} value={category}>{category}</option>)}
+            <option value="all">{tr("All categories")}</option>{categories.map((category) => <option key={category} value={category}>{tr(category)}</option>)}
           </select>
           <select value={clientFilter} onChange={(event) => setClientFilter(event.target.value)}>
             <option value="all">{tr("All clients")}</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}
@@ -521,7 +521,7 @@ function ExpenseModal({ expense, clients, cases, vendors, onAddVendor, onClose, 
       <div className="expense-form-grid">
         <label>{tr("Expense date")}<input dir="ltr" type="date" value={form.expense_date} onChange={(event) => setForm({ ...form, expense_date: event.target.value })} required /></label>
         <label>{tr("Expense type")}<select value={form.expense_type} onChange={(event) => { const expenseType = event.target.value as ExpenseType; setForm({ ...form, expense_type: expenseType, recoverable_from_client: expenseType === 'client_disbursement' ? form.recoverable_from_client : false, client_id: expenseType === 'firm_overhead' ? '' : form.client_id, case_id: expenseType === 'firm_overhead' ? '' : form.case_id }); }}><option value="firm_overhead">{tr("Firm overhead")}</option><option value="client_disbursement">{tr("Client disbursement")}</option></select></label>
-        <label>{tr("Category")}<select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
+        <label>{tr("Category")}<select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>{categories.map((category) => <option key={category} value={category}>{tr(category)}</option>)}</select></label>
         <label>{tr("Vendor / payee")}<div className="expense-vendor-control"><select value={form.vendor_id} onChange={(event) => { const vendor = vendors.find((item) => item.id === event.target.value); setForm({ ...form, vendor_id: event.target.value, vendor_name: vendor?.name ?? '' }); }}><option value="">{tr("No saved vendor")}</option>{vendors.map((vendor) => <option key={vendor.id} value={vendor.id}>{vendor.name}</option>)}</select><button type="button" onClick={onAddVendor}><Plus size={14} />{tr("Add")}</button></div>{!form.vendor_id && <input dir="auto" placeholder={tr("Or enter a one-off payee")} value={form.vendor_name} onChange={(event) => setForm({ ...form, vendor_name: event.target.value })} />}</label>
         <label className="wide">{tr("Description")}<input dir="auto" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} required /></label>
         <label>{tr("Supplier invoice number")}<input dir="auto" value={form.supplier_invoice_number} onChange={(event) => setForm({ ...form, supplier_invoice_number: event.target.value })} /></label>

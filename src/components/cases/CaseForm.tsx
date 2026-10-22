@@ -565,7 +565,7 @@ export function CaseForm({
 
   const clientOptions = useMemo(
     () => [
-      { id: '', full_name: 'Select client' },
+      { id: '', full_name: tr('Select client') },
       ...clients,
     ],
     [clients, interfaceLanguage],
@@ -573,7 +573,7 @@ export function CaseForm({
 
   const staffOptions = useMemo(
     () => [
-      { id: '', full_name: 'Select staff member' },
+      { id: '', full_name: tr('Select staff member') },
       ...staff,
     ],
     [staff, interfaceLanguage],
@@ -583,15 +583,15 @@ export function CaseForm({
     const errors: string[] = [];
 
     if (!formState.client_id) {
-      errors.push('Please assign a client.');
+      errors.push(tr("Please assign a client."));
     }
 
     if (!formState.case_type.trim()) {
-      errors.push('Matter type is required.');
+      errors.push(tr("Matter type is required."));
     }
 
     if (!formState.assigned_staff_id) {
-      errors.push('Assigned staff is required.');
+      errors.push(tr("Assigned staff is required."));
     }
 
     if (
@@ -600,7 +600,7 @@ export function CaseForm({
         Number(formState.completion_percentage) > 100)
     ) {
       errors.push(
-        'Completion percentage must be between 0 and 100.',
+        tr("Completion percentage must be between 0 and 100."),
       );
     }
 
@@ -623,7 +623,7 @@ export function CaseForm({
         (Number.isNaN(Number(value)) ||
           Number(value) < 0)
       ) {
-        errors.push(`${label} must be a valid number.`);
+        errors.push(tr("{0} must be a valid number.", [label]));
       }
     });
 

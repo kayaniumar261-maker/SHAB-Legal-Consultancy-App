@@ -105,10 +105,10 @@ export function Accounting() {
     const locking = period.status !== 'locked';
     let reason = 'Reopened for an authorised accounting correction.';
     if (locking) {
-      reason = window.prompt('Reason for locking this accounting period:')?.trim() ?? '';
+      reason = window.prompt(tr("Reason for locking this accounting period:"))?.trim() ?? '';
       if (reason.length < 5) return;
-      if (!window.confirm(`Lock ${formatDate(period.period_start)} to ${formatDate(period.period_end)}? Documents in this period cannot be financially changed.`)) return;
-    } else if (!window.confirm('Reopen this accounting period? Financial documents may become editable again.')) {
+      if (!window.confirm(tr("Lock {0} to {1}? Documents in this period cannot be financially changed.", [formatDate(period.period_start), formatDate(period.period_end)]))) return;
+    } else if (!window.confirm(tr("Reopen this accounting period? Financial documents may become editable again."))) {
       return;
     }
 
