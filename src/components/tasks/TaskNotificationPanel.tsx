@@ -21,36 +21,32 @@ export function TaskNotificationPanel() {
     catch(e){setError(e instanceof Error?e.message:'Unable to save notification settings.');}
     finally{setBusy(false);}
   }
-  const administrators=data?.contacts.filter(c=>c.administrator_user_id && c.active) ?? [];
-  const activeStaff=data?.contacts.filter(c=>c.staff_id && c.active) ?? [];
-  const ready=Boolean(data?.configured?.email && data.configured.whatsapp && data.configured.scheduler)
-    && administrators.length>0 && administrators.every(c=>c.whatsapp_enabled && /^\+[1-9]\d{7,14}$/.test(c.whatsapp_number ?? ''))
-    && activeStaff.every(c=>c.whatsapp_enabled && c.email_enabled && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email ?? '') && /^\+[1-9]\d{7,14}$/.test(c.whatsapp_number ?? ''));
+  const ready=Boolean(data?.configured?.email && data.configured.scheduler);
   return <details className="task-notification-panel" onToggle={e=>{if(e.currentTarget.open && !data && !busy) void load();}}>
-    <summary>{tr('Task email and WhatsApp alerts')}</summary>
-    <p>{tr('Assignment alerts go to staff. Overdue alerts go to all active administrators, with daily follow-ups after 9 AM UAE time.')}</p>
+    <summary>{tr('Task alerts and email settings')}</summary>
+    <p>{tr('In-app task alerts work automatically. Administrators see overdue follow-ups after 9 AM UAE time. WhatsApp messages are prepared manually from each task.')}</p>
     {error && <p role="alert" className="task-alert-error">{tr(error)}</p>}
     {notice && <p role="status">{tr(notice)}</p>}
     {busy && <p role="status">{tr('Loading…')}</p>}
     {data && <>
       <div className="task-alert-controls">
-        <strong>{data.enabled?tr('Sending enabled'):tr('Sending disabled')}</strong>
-        <button type="button" disabled={busy || (!data.enabled && !ready)} onClick={()=>void act(()=>setTaskNotificationsEnabled(!data.enabled),'Notification settings saved.')}>{data.enabled?tr('Pause alerts'):tr('Enable alerts')}</button>
+        <strong>{data.enabled?tr('Email alerts enabled'):tr('Email alerts disabled')}</strong>
+        <button type="button" disabled={busy || (!data.enabled && !ready)} onClick={()=>void act(()=>setTaskNotificationsEnabled(!data.enabled),'Notification settings saved.')}>{data.enabled?tr('Pause email alerts'):tr('Enable email alerts')}</button>
         <button type="button" disabled={busy} onClick={()=>void load()}>{tr('Refresh')}</button>
       </div>
       <p>{tr('Provider acceptance is recorded. Delivery to the recipient device is not confirmed.')}</p>
       <p>{tr('Enabling alerts also checks existing overdue tasks. Save contact settings for every recipient before enabling.')}</p>
-      <p>{tr('Email')}: {data.configured?.email?tr('Configured'):tr('Setup required')} · {tr('WhatsApp')}: {data.configured?.whatsapp?tr('Configured'):tr('Setup required')} · {tr('Scheduler credentials')}: {data.configured?.scheduler?tr('Configured'):tr('Setup required')}</p>
+      <p>{tr('Email')}: {data.configured?.email?tr('Configured'):tr('Setup required')} · {tr('WhatsApp')}: {tr('Manual sending - no API setup required')} · {tr('Scheduler credentials')}: {data.configured?.scheduler?tr('Configured'):tr('Setup required')}</p>
       <h3>{tr('Notification recipients')}</h3>
       <div className="task-alert-table"><table><thead><tr><th>{tr('Name')}</th><th>{tr('Email')}</th><th>{tr('WhatsApp')}</th><th>{tr('Actions')}</th></tr></thead><tbody>
-      {data.contacts.map(c=><tr key={c.recipient_key}><td>{c.name}<small>{c.administrator_user_id?tr('Administrator escalation'):tr('Staff assignment')} · {c.active?tr('Active'):tr('Inactive')}</small></td><td><bdi dir="ltr">{c.email || '—'}</bdi><small>{c.email_enabled?tr('Enabled'):tr('Disabled')}</small></td><td><bdi dir="ltr">{c.whatsapp_number || '—'}</bdi><small>{c.whatsapp_enabled?tr('Enabled'):tr('Disabled')}</small></td><td><button type="button" disabled={busy} onClick={()=>setEdit({...c})}>{tr('Edit')}</button></td></tr>)}
+      {data.contacts.map(c=><tr key={c.recipient_key}><td>{c.name}<small>{c.administrator_user_id?tr('Administrator escalation'):tr('Staff assignment')} · {c.active?tr('Active'):tr('Inactive')}</small></td><td><bdi dir="ltr">{c.email || '—'}</bdi><small>{c.email_enabled?tr('Enabled'):tr('Disabled')}</small></td><td><bdi dir="ltr">{c.whatsapp_number || '—'}</bdi><small>{tr('Manual sending')}</small></td><td><button type="button" disabled={busy} onClick={()=>setEdit({...c})}>{tr('Edit')}</button></td></tr>)}
       </tbody></table></div>
       {edit && <form className="task-alert-form" onSubmit={e=>{e.preventDefault();void act(()=>saveTaskNotificationContact(edit),'Notification contact saved.');}}>
         <h4>{edit.name}</h4>
         <label>{tr('Notification email')}<input dir="ltr" type="email" value={edit.email ?? ''} onChange={e=>setEdit({...edit,email:e.target.value})}/></label>
         <label>{tr('WhatsApp number')}<input dir="ltr" type="tel" placeholder="+971501234567" value={edit.whatsapp_number ?? ''} onChange={e=>setEdit({...edit,whatsapp_number:e.target.value})}/></label>
         <label><input type="checkbox" checked={edit.email_enabled} onChange={e=>setEdit({...edit,email_enabled:e.target.checked})}/>{tr('Enable task email')}</label>
-        <label><input type="checkbox" checked={edit.whatsapp_enabled} onChange={e=>setEdit({...edit,whatsapp_enabled:e.target.checked})}/>{tr('Enable WhatsApp task alerts for this recipient')}</label>
+
         <button type="submit" disabled={busy}>{tr('Save')}</button><button type="button" disabled={busy} onClick={()=>setEdit(null)}>{tr('Cancel')}</button>
       </form>}
       <h3>{tr('Recent alert history')}</h3><div className="task-alert-table"><table><thead><tr><th>{tr('Task')}</th><th>{tr('Recipient')}</th><th>{tr('Channel')}</th><th>{tr('Status')}</th><th>{tr('Details')}</th></tr></thead><tbody>

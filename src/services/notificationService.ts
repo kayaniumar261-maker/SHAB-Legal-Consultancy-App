@@ -120,6 +120,7 @@ export async function getNotificationCenterData():
   const [
     dashboardResult,
     urgentCasesResult,
+    taskAlertsResult,
   ] = await Promise.allSettled([
     getDashboardSummary(),
 
@@ -129,6 +130,7 @@ export async function getNotificationCenterData():
       pageSize: 5,
       isArchived: false,
     }),
+    supabase.rpc('get_my_task_alerts'),
   ]);
 
   const items: PracticeNotification[] = [];
@@ -270,6 +272,19 @@ export async function getNotificationCenterData():
         ? urgentCasesResult.reason.message
         : 'Unable to load urgent matters.',
     );
+  }
+
+  if (taskAlertsResult.status === 'fulfilled' && !taskAlertsResult.value.error) {
+    const detailed = (taskAlertsResult.value.data ?? []).map((task: {id:string;task_id:string;title:string;description:string|null;priority:string;due_at:string|null;assignee:string;kind:string}) => ({
+      id:task.id,
+      title:task.kind === 'overdue' ? 'Overdue task follow-up' : task.kind === 'due_soon' ? 'Task due soon' : 'Task assigned',
+      message:[task.title,task.assignee,task.due_at?new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Dubai',dateStyle:'medium',timeStyle:'short'}).format(new Date(task.due_at))+' UAE':null,task.description].filter(Boolean).join(' · '),
+      tone:(task.kind === 'overdue' ? 'danger' : task.kind === 'due_soon' ? 'warning' : 'info') as NotificationTone,
+      to:`/tasks?taskId=${task.task_id}`,
+    }));
+    items.unshift(...detailed);
+  } else {
+    errors.push('Task alerts could not be loaded.');
   }
 
   return {

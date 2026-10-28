@@ -8,7 +8,7 @@ let index=fs.readFileSync('supabase/functions/task-notifications/index.ts','utf8
 const token='test-only-scheduler-secret';
 const task={id:'task-id',title:'Review file',description:'Fictional task details',priority:'high',status:'pending',due_at:new Date(Date.now()+3600000).toISOString(),notification_revision:1,assigned_staff_id:'staff-id'};
 const contact={name:'Fictional recipient',recipient_key:'staff:staff-id',email:'person@example.invalid',email_enabled:true,whatsapp_number:'+971501234567',whatsapp_enabled:true};
-const job={id:'alert-id',task_id:'task-id',revision:1,recipient_key:'staff:staff-id',channel:'whatsapp',kind:'assigned',attempts:1};
+const job={id:'alert-id',task_id:'task-id',revision:1,recipient_key:'staff:staff-id',channel:'email',kind:'assigned',attempts:1};
 async function run(options={}) {
   const calls=[],updates=[];
   let handler;
@@ -19,7 +19,7 @@ async function run(options={}) {
     async rpc(name){if(name==='plan_task_notifications')return {error:null};if(name==='claim_task_notifications')return {data:[{...job,...options.job}],error:null};if(name==='task_notification_contact')return {data:[{...contact,...options.contact}],error:null};throw Error(name);}};
   const sandbox={...logic.exports,createClient:()=>fake,Deno:{env:{get:n=>vars[n]},serve:fn=>handler=fn},Response,Request,URL,Intl,Date,AbortSignal,JSON,fetch:async(url,init)=>{
     calls.push({url,init});if(options.throwFetch)throw new Error('timeout');
-    return new Response(JSON.stringify(options.providerBody ?? (options.job?.channel==='email'?{id:'email-message'}:{messages:[{id:'whatsapp-message'}]})),{status:options.providerStatus ?? 200});
+    return new Response(JSON.stringify(options.providerBody ?? ({id:'email-message'})),{status:options.providerStatus ?? 200});
   }};
   vm.createContext(sandbox);vm.runInContext(transpile(index),sandbox);
   const response=await handler(new Request('https://project.example.invalid/functions/v1/task-notifications',{method:options.method ?? 'POST',headers:{Authorization:options.authorization ?? `Bearer ${token}`}}));
@@ -30,15 +30,13 @@ result=await run({enabled:false});assert.equal(result.body.processed,0);assert.e
 result=await run({method:'GET',invalidToken:true});assert.equal(result.status,401);
 result=await run({method:'GET',role:'operations_staff'});assert.equal(result.status,403);
 result=await run({method:'GET',active:false});assert.equal(result.status,403);
-result=await run({method:'GET'});assert.equal(result.status,200);assert.equal(result.body.configured.whatsapp,true);assert.equal(result.calls.length,0);
-result=await run();assert.equal(result.updates[0].status,'accepted');assert.equal(result.updates[0].provider_message_id,'whatsapp-message');
-assert.equal(result.calls[0].url,'https://graph.facebook.com/v24.0/123456/messages');
-const payload=JSON.parse(result.calls[0].init.body);assert.equal(payload.to,'971501234567');assert.equal(payload.type,'template');assert.equal(payload.template.name,'shab_task_update');
+result=await run({method:'GET'});assert.equal(result.status,200);assert.equal(result.body.configured.whatsapp_manual,true);assert.equal(result.calls.length,0);
+result=await run({job:{channel:'whatsapp'}});assert.equal(result.updates[0].status,'cancelled');assert.equal(result.calls.length,0);
 result=await run({job:{channel:'email'}});assert.equal(result.updates[0].status,'accepted');assert.equal(result.calls[0].init.headers['Idempotency-Key'],'task-alert-alert-id');
 const mail=JSON.parse(result.calls[0].init.body);assert.equal(mail.from,'SHAB <haider@shabgroup.com>');assert.deepEqual(mail.cc,['umar@shabgroup.com']);
 result=await run({job:{channel:'email'},contact:{email:'umar@shabgroup.com'}});assert.deepEqual(JSON.parse(result.calls[0].init.body).cc,[]);
-result=await run({contact:{whatsapp_enabled:false}});assert.equal(result.updates[0].status,'blocked');assert.equal(result.calls.length,0);
-result=await run({env:{WHATSAPP_ACCESS_TOKEN:''}});assert.equal(result.updates[0].status,'blocked');assert.equal(result.calls.length,0);
+result=await run({contact:{email_enabled:false}});assert.equal(result.updates[0].status,'blocked');assert.equal(result.calls.length,0);
+result=await run({env:{RESEND_API_KEY:''}});assert.equal(result.updates[0].status,'blocked');assert.equal(result.calls.length,0);
 result=await run({task:{...task,notification_revision:2}});assert.equal(result.updates[0].status,'cancelled');assert.equal(result.calls.length,0);
 result=await run({task:{...task,status:'completed'}});assert.equal(result.updates[0].status,'cancelled');assert.equal(result.calls.length,0);
 result=await run({throwFetch:true});assert.equal(result.updates[0].status,'unknown');

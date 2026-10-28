@@ -1,11 +1,11 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.110.7';
-import { destination, makeMessage, whatsappSummary, shouldSend, retryDelay, type Job, type TaskSnapshot, type Contact } from './logic.ts';
+import { destination, makeMessage, shouldSend, retryDelay, type Job, type TaskSnapshot, type Contact } from './logic.ts';
 
 const env = (name: string) => Deno.env.get(name)?.trim() ?? '';
 const headers = {'Content-Type':'application/json', 'Access-Control-Allow-Origin':'*', 'Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type'};
 const reply = (body: unknown, status=200) => new Response(JSON.stringify(body),{status,headers});
 function configuration() {
-  return {email: !!(env('RESEND_API_KEY') && env('TASK_EMAIL_FROM')), whatsapp: !!(env('WHATSAPP_ACCESS_TOKEN') && /^\d+$/.test(env('WHATSAPP_PHONE_NUMBER_ID')) && /^v\d+\.\d+$/.test(env('WHATSAPP_GRAPH_VERSION')) && env('WHATSAPP_TASK_TEMPLATE') && env('WHATSAPP_TEMPLATE_LANGUAGE')), scheduler: !!env('TASK_NOTIFICATION_CRON_SECRET')};
+  return {email: !!(env('RESEND_API_KEY') && env('TASK_EMAIL_FROM')), whatsapp_manual: true, scheduler: !!env('TASK_NOTIFICATION_CRON_SECRET')};
 }
 // No user-supplied destinations, task bodies or scheduler timestamps are accepted.
 Deno.serve(async (request) => {
@@ -44,9 +44,10 @@ Deno.serve(async (request) => {
         if(contactError) throw new Error('Recipient lookup failed');
         const recipient=(contact?.[0] ?? null) as (Contact & {name:string}) | null;
         const to=destination(job,recipient);
-        if(!task || !shouldSend(job,task as TaskSnapshot)) outcome={status:'cancelled',last_error:'Task changed or no longer requires this alert.'};
+        if(job.channel==='whatsapp') outcome={status:'cancelled',last_error:'WhatsApp uses manual sending.'};
+        else if(!task || !shouldSend(job,task as TaskSnapshot)) outcome={status:'cancelled',last_error:'Task changed or no longer requires this alert.'};
         else if(!to) outcome={status:'blocked',last_error:'Recipient is inactive, missing contact details or channel permission.'};
-        else if(!config[job.channel]) outcome={status:'blocked',last_error:'Sending channel is not configured.'};
+        else if(!config.email) outcome={status:'blocked',last_error:'Sending channel is not configured.'};
         else {
           const {data:assignee,error:assigneeError}=task.assigned_staff_id ? await db.from('staff').select('full_name').eq('id',task.assigned_staff_id).maybeSingle() : {data:null,error:null};
           if(assigneeError) throw new Error('Assignee lookup failed');
@@ -54,12 +55,11 @@ Deno.serve(async (request) => {
           let response: Response;
           // A timeout has an uncertain outcome: never automatically retry and risk duplicate alerts.
           try {
-            if(job.channel==='email') response=await fetch('https://api.resend.com/emails',{method:'POST',signal:AbortSignal.timeout(12000),headers:{Authorization:`Bearer ${env('RESEND_API_KEY')}`,'Content-Type':'application/json','Idempotency-Key':`task-alert-${job.id}`},body:JSON.stringify({from:env('TASK_EMAIL_FROM'),to:[to],cc:to.toLowerCase()==='umar@shabgroup.com'?[]:['umar@shabgroup.com'],subject:`SHAB - ${job.kind.replaceAll('_',' ')} - ${task.title}`.replace(/[\r\n]+/g,' ').slice(0,200),text:body})});
-            else response=await fetch(`https://graph.facebook.com/${env('WHATSAPP_GRAPH_VERSION')}/${env('WHATSAPP_PHONE_NUMBER_ID')}/messages`,{method:'POST',signal:AbortSignal.timeout(12000),headers:{Authorization:`Bearer ${env('WHATSAPP_ACCESS_TOKEN')}`,'Content-Type':'application/json'},body:JSON.stringify({messaging_product:'whatsapp',to,type:'template',template:{name:env('WHATSAPP_TASK_TEMPLATE'),language:{code:env('WHATSAPP_TEMPLATE_LANGUAGE')},components:[{type:'body',parameters:[{type:'text',text:whatsappSummary(task as TaskSnapshot,job,assignee?.full_name ?? 'Unassigned',env('TASK_APP_URL') || 'https://shab-legal-consultancy-app.pages.dev',new Date())}]}]}})});
+            response=await fetch('https://api.resend.com/emails',{method:'POST',signal:AbortSignal.timeout(12000),headers:{Authorization:`Bearer ${env('RESEND_API_KEY')}`,'Content-Type':'application/json','Idempotency-Key':`task-alert-${job.id}`},body:JSON.stringify({from:env('TASK_EMAIL_FROM'),to:[to],cc:to.toLowerCase()==='umar@shabgroup.com'?[]:['umar@shabgroup.com'],subject:`SHAB - ${job.kind.replaceAll('_',' ')} - ${task.title}`.replace(/[\r\n]+/g,' ').slice(0,200),text:body})});
           } catch { outcome={status:'unknown',last_error:'Provider outcome unknown. Check provider logs before a manual resend.'}; response=null as unknown as Response; }
           if(response) {
             const result=await response.json().catch(()=>({}));
-            const providerId=job.channel==='email' ? result.id : result.messages?.[0]?.id;
+            const providerId=result.id;
             if(response.ok && providerId) outcome={status:'accepted',provider_message_id:providerId,accepted_at:new Date().toISOString(),last_error:null};
             else if(response.ok) outcome={status:'unknown',last_error:'Provider accepted request without a message ID; verify before resending.'};
             else {

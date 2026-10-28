@@ -13,15 +13,14 @@ export async function loadTaskNotificationSettings() {
     supabase.functions.invoke('task-notifications',{method:'GET'}),
   ]);
   for (const result of [settings,contacts,history]) if(result.error) throw new Error(result.error.message);
-  return {enabled:Boolean(settings.data?.enabled),contacts:(contacts.data ?? []) as TaskNotificationContact[],history:(history.data ?? []) as TaskDelivery[],configured:configuration.error ? null : configuration.data?.configured as {email:boolean;whatsapp:boolean;scheduler:boolean}|null};
+  return {enabled:Boolean(settings.data?.enabled),contacts:(contacts.data ?? []) as TaskNotificationContact[],history:(history.data ?? []) as TaskDelivery[],configured:configuration.error ? null : configuration.data?.configured as {email:boolean;whatsapp_manual:boolean;scheduler:boolean}|null};
 }
 export async function saveTaskNotificationContact(contact: TaskNotificationContact) {
   const email=contact.email?.trim() || null;
   const phone=contact.whatsapp_number?.trim() || null;
   if (contact.email_enabled && (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) throw new Error('Enter a valid notification email.');
   if (phone && !/^\+[1-9]\d{7,14}$/.test(phone)) throw new Error('Enter a WhatsApp number in international format, for example +971501234567.');
-  if (contact.whatsapp_enabled && !phone) throw new Error('Enter a WhatsApp number before enabling WhatsApp notifications.');
-  const {error}=await supabase.from('task_notification_contacts').upsert({recipient_key:contact.recipient_key,staff_id:contact.staff_id,administrator_user_id:contact.administrator_user_id,email,whatsapp_number:phone,email_enabled:contact.email_enabled,whatsapp_enabled:contact.whatsapp_enabled},{onConflict:'recipient_key'});
+  const {error}=await supabase.from('task_notification_contacts').upsert({recipient_key:contact.recipient_key,staff_id:contact.staff_id,administrator_user_id:contact.administrator_user_id,email,whatsapp_number:phone,email_enabled:contact.email_enabled,whatsapp_enabled:false},{onConflict:'recipient_key'});
   if(error) throw new Error(error.message);
 }
 export async function setTaskNotificationsEnabled(enabled:boolean) {

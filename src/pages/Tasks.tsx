@@ -36,6 +36,7 @@ import type {
   TaskStatus,
   TaskFilterOptions,
 } from '../types/task';
+import { TaskWhatsAppButton } from '../components/tasks/TaskWhatsAppButton';
 import { TaskNotificationPanel } from '../components/tasks/TaskNotificationPanel';
 import { TaskFormModal } from '../components/tasks/TaskFormModal';
 import { DeleteTaskModal } from '../components/tasks/DeleteTaskModal';
@@ -733,6 +734,7 @@ export function Tasks() {
                     </td>
 
                     <td className="task-actions">
+                      {administrator && <TaskWhatsAppButton task={task} assignee={task.assigned_staff_id ? staff[task.assigned_staff_id] ?? tr("Unknown staff") : tr("Unassigned")} />}
                       {task.status !== 'Completed' ? (
                         <>
                           <button
