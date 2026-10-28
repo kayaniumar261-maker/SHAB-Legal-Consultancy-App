@@ -24,6 +24,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: node scripts/check-cloudflare-pages-deploy.mjs
       - run: npm run check:navigation
       - run: npm run check:realtime
       - run: npm run check:behavior
@@ -63,3 +64,61 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 14
+
+  deploy-pages:
+    name: Deploy and verify existing Pages website
+    if: github.event_name == 'push' && github.ref == 'refs/heads/shab-2.0'
+    needs: [verify, package-web]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: shab-production-pages
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_ACCOUNT_ID: f73eb9ad75202030f02bb3339d01a045
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Check deployment connection
+        id: credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Website deployment pending: add the CLOUDFLARE_API_TOKEN repository secret."
+            echo "## Website deployment pending" >> "$GITHUB_STEP_SUMMARY"
+            echo "The build passed. Add CLOUDFLARE_API_TOKEN, scoped to this account with Cloudflare Pages Edit, then rerun this deployment job." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Check current production source
+        if: steps.credentials.outputs.configured == 'true'
+        shell: bash
+        run: |
+          git fetch origin shab-2.0
+          test "$(git rev-parse FETCH_HEAD)" = "$GITHUB_SHA" || { echo "A newer production commit exists. Deploy its successful workflow instead."; exit 1; }
+      - name: Verify existing Cloudflare Pages project
+        if: steps.credentials.outputs.configured == 'true'
+        id: project
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/cloudflare-pages-deploy.mjs project
+      - uses: actions/download-artifact@v5
+        if: steps.credentials.outputs.configured == 'true'
+        with:
+          name: SHAB-Web-Pages-${{ github.sha }}
+          path: ${{ runner.temp }}/shab-pages-deploy/site
+      - name: Deploy existing Pages project
+        if: steps.credentials.outputs.configured == 'true'
+        working-directory: ${{ runner.temp }}/shab-pages-deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PAGES_PRODUCTION_BRANCH: ${{ steps.project.outputs.production_branch }}
+        run: npx --yes wrangler@4.148.0 pages deploy site --project-name shab-legal-consultancy-app --branch "$PAGES_PRODUCTION_BRANCH" --commit-hash "$GITHUB_SHA" --commit-dirty=true
+      - name: Verify live website build
+        if: steps.credentials.outputs.configured == 'true'
+        run: node scripts/cloudflare-pages-deploy.mjs verify "$RUNNER_TEMP/shab-pages-deploy/site/index.html"
