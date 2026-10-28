@@ -66,6 +66,9 @@ jobs:
       - name: Verify application behavior
         run: npm run check:behavior
 
+      - name: Verify task notification queue and provider handling
+        run: npm run check:task-notifications
+
       - name: Verify Arabic interface and client ordering
         run: npm run check:localization
 

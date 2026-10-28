@@ -160,7 +160,7 @@ export function NotificationCenter() {
 
       interval = window.setInterval(
         refreshIfActive,
-        300_000,
+        60_000,
       );
     };
 
@@ -223,7 +223,12 @@ export function NotificationCenter() {
       handleVisibilityChange,
     );
 
+    const taskChannel = supabase.channel('task-notification-center')
+      .on('postgres_changes', {event:'*',schema:'public',table:'tasks'}, refreshIfActive)
+      .subscribe();
+
     return () => {
+      void supabase.removeChannel(taskChannel);
       active = false;
       stopPolling();
 
