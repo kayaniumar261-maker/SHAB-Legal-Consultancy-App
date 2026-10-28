@@ -19,7 +19,8 @@
     "check:realtime": "node scripts/check-realtime.mjs",
     "check:behavior": "node scripts/check-app-behavior.mjs",
     "build:desktop": "tsc -b && vite build --base=./ && node scripts/check-entry-assets.mjs --desktop",
-    "check:localization": "node scripts/check-localization.mjs"
+    "check:localization": "node scripts/check-localization.mjs",
+    "check:task-notifications": "node scripts/check-task-notifications.mjs && node scripts/check-task-notification-worker.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",
@@ -31,6 +32,7 @@
     "xlsx": "file:vendor/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",

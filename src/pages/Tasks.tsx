@@ -36,6 +36,7 @@ import type {
   TaskStatus,
   TaskFilterOptions,
 } from '../types/task';
+import { TaskNotificationPanel } from '../components/tasks/TaskNotificationPanel';
 import { TaskFormModal } from '../components/tasks/TaskFormModal';
 import { DeleteTaskModal } from '../components/tasks/DeleteTaskModal';
 import { DeletionRequestModal } from '../components/staff/DeletionRequestModal';
@@ -437,6 +438,8 @@ export function Tasks() {
         >
           <Plus size={18} />{tr("Add Task")}</button>
       </section>
+
+      {administrator && <TaskNotificationPanel />}
 
       <section
         className="tasks-stats-grid"

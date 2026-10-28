@@ -27,6 +27,11 @@ jobs:
       - run: npm run check:navigation
       - run: npm run check:realtime
       - run: npm run check:behavior
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: 2.5.6
+      - run: deno check --node-modules-dir=manual supabase/functions/task-notifications/index.ts
+      - run: npm run check:task-notifications
       - run: npm run check:localization
       - run: npm run build
       - run: npm run build:desktop
