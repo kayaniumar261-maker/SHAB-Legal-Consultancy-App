@@ -4,6 +4,13 @@
 
 Implemented behind a disabled-by-default setting. No live messages are sent by installing the migration alone. This feature does not connect a WhatsApp number, register a sender or approve a WhatsApp template automatically.
 
+## Confirmed sender details (28 October 2026)
+
+- Existing WhatsApp Business sender: **+971 54 292 2855**. Use its actual Meta phone-number ID after official onboarding; the telephone number itself is not that API ID.
+- Task email sender: **haider@shabgroup.com**. Configure `TASK_EMAIL_FROM=SHAB <haider@shabgroup.com>` only after the sending domain is verified with the transactional email provider.
+- Every task email copies **umar@shabgroup.com** in CC. If Umar is the main recipient, the duplicate CC is omitted.
+- These are the owner's confirmed intended settings; provider connectivity and verification are still pending. No live test or notification has been sent.
+
 ## Behavior
 
 - Assignment/reassignment: email and WhatsApp to the assigned active staff member.

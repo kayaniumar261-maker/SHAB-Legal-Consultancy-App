@@ -12,7 +12,7 @@ const job={id:'alert-id',task_id:'task-id',revision:1,recipient_key:'staff:staff
 async function run(options={}) {
   const calls=[],updates=[];
   let handler;
-  const vars={SUPABASE_URL:'https://project.example.invalid',SUPABASE_SERVICE_ROLE_KEY:'server-only-test-key',TASK_NOTIFICATION_CRON_SECRET:token,RESEND_API_KEY:'email-test-key',TASK_EMAIL_FROM:'SHAB <alerts@example.invalid>',WHATSAPP_ACCESS_TOKEN:'whatsapp-test-key',WHATSAPP_PHONE_NUMBER_ID:'123456',WHATSAPP_GRAPH_VERSION:'v24.0',WHATSAPP_TASK_TEMPLATE:'shab_task_update',WHATSAPP_TEMPLATE_LANGUAGE:'en',...options.env};
+  const vars={SUPABASE_URL:'https://project.example.invalid',SUPABASE_SERVICE_ROLE_KEY:'server-only-test-key',TASK_NOTIFICATION_CRON_SECRET:token,RESEND_API_KEY:'email-test-key',TASK_EMAIL_FROM:'SHAB <haider@shabgroup.com>',WHATSAPP_ACCESS_TOKEN:'whatsapp-test-key',WHATSAPP_PHONE_NUMBER_ID:'123456',WHATSAPP_GRAPH_VERSION:'v24.0',WHATSAPP_TASK_TEMPLATE:'shab_task_update',WHATSAPP_TEMPLATE_LANGUAGE:'en',...options.env};
   const tableData=(name)=>({task_notification_settings:{enabled:options.enabled ?? true},tasks:options.task ?? task,staff:{full_name:'Fictional Assignee'},app_user_access:{access_role:options.role ?? 'administrator',is_active:options.active ?? true}}[name]);
   const fake={auth:{getUser:async()=>({data:{user:options.invalidToken?null:{id:'test-user'}},error:options.invalidToken?{message:'bad token'}:null})},
     from(name){return {select(){return this;},eq(){return this;},single:async()=>({data:tableData(name),error:null}),maybeSingle:async()=>({data:tableData(name),error:null}),update(value){updates.push(value);return this;},then(resolve){resolve({error:null});}};},
@@ -35,6 +35,8 @@ result=await run();assert.equal(result.updates[0].status,'accepted');assert.equa
 assert.equal(result.calls[0].url,'https://graph.facebook.com/v24.0/123456/messages');
 const payload=JSON.parse(result.calls[0].init.body);assert.equal(payload.to,'971501234567');assert.equal(payload.type,'template');assert.equal(payload.template.name,'shab_task_update');
 result=await run({job:{channel:'email'}});assert.equal(result.updates[0].status,'accepted');assert.equal(result.calls[0].init.headers['Idempotency-Key'],'task-alert-alert-id');
+const mail=JSON.parse(result.calls[0].init.body);assert.equal(mail.from,'SHAB <haider@shabgroup.com>');assert.deepEqual(mail.cc,['umar@shabgroup.com']);
+result=await run({job:{channel:'email'},contact:{email:'umar@shabgroup.com'}});assert.deepEqual(JSON.parse(result.calls[0].init.body).cc,[]);
 result=await run({contact:{whatsapp_enabled:false}});assert.equal(result.updates[0].status,'blocked');assert.equal(result.calls.length,0);
 result=await run({env:{WHATSAPP_ACCESS_TOKEN:''}});assert.equal(result.updates[0].status,'blocked');assert.equal(result.calls.length,0);
 result=await run({task:{...task,notification_revision:2}});assert.equal(result.updates[0].status,'cancelled');assert.equal(result.calls.length,0);
