@@ -11,3 +11,9 @@
 .private-sales-table { overflow: auto; }
 .private-sales-table table { border-collapse: collapse; width: 100%; }
 .private-sales-table th, .private-sales-table td { text-align: start; padding: .65rem; border-bottom: 1px solid var(--border-color, #adb5bd); }
+.private-sales-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+.private-sales-actions button { border: 1px solid #28596e; border-radius: .45rem; padding: .65rem .9rem; background: #173c50; color: #fff; font-weight: 600; }
+.private-sales-actions button:nth-child(2) { background: #8a520b; border-color: #8a520b; }
+.private-sales-actions button:disabled { opacity: .55; }
+.private-sales-table h2 { margin-block-end: .35rem; }
+.private-sales-table p { margin-block-end: .5rem; }
