@@ -1,0 +1,13 @@
+.private-sales { display: grid; gap: 1rem; min-width: 0; }
+.private-sales h1, .private-sales h2, .private-sales p { margin: 0; }
+.private-sales-totals, .private-sales-fields { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
+.private-sales-totals > div, .private-sales form { border: 1px solid var(--border-color, #adb5bd); border-radius: .6rem; padding: 1rem; }
+.private-sales-totals strong { display: block; margin-top: .3rem; font-size: 1.25rem; }
+.private-sales form { display: grid; gap: .75rem; }
+.private-sales label { display: grid; gap: .35rem; align-content: start; }
+.private-sales label:has(input[type=checkbox]) { display: flex; align-items: center; }
+.private-sales input, .private-sales select, .private-sales button { padding: .55rem; }
+.private-sales button { justify-self: start; }
+.private-sales-table { overflow: auto; }
+.private-sales-table table { border-collapse: collapse; width: 100%; }
+.private-sales-table th, .private-sales-table td { text-align: start; padding: .65rem; border-bottom: 1px solid var(--border-color, #adb5bd); }

@@ -71,6 +71,8 @@ const CaseDetails = lazyNamed(
   'CaseDetails',
 );
 
+const PrivateSales = lazyNamed(() => import('./pages/PrivateSales'), 'PrivateSales');
+
 const Tasks = lazyNamed(
   () => import('./pages/Tasks'),
   'Tasks',
@@ -226,6 +228,8 @@ function App() {
               path="/cases/:id"
               element={<CaseDetails />}
             />
+
+            <Route path="/my-sales" element={<PrivateSales />} />
 
             <Route
               path="/tasks"

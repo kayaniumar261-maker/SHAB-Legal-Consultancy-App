@@ -1,3 +1,4 @@
+import { privateSalesOwner } from '../lib/privateSales';
 import { tr, useLocale } from '../i18n/locale';
 import { LanguageSwitcher } from '../i18n/LanguageSwitcher';
 
@@ -153,6 +154,9 @@ export function AppLayout() {
   const authorizedNavigationItems = navigationItems.filter(
     (item) => !item.adminOnly || administrator,
   );
+  if (user?.id === privateSalesOwner) {
+    authorizedNavigationItems.push({ label: 'My Sales & Commission', path: '/my-sales', icon: BriefcaseBusiness });
+  }
   const mobileMoreItems = authorizedNavigationItems.filter(
     (item) => !mobilePrimaryPaths.includes(item.path),
   );
