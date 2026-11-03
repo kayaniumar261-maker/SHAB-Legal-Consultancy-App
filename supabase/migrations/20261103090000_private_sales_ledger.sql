@@ -11,9 +11,9 @@ create table public.private_sales_entries (
   owner_id uuid not null references public.private_sales_settings(owner_id) on delete cascade default auth.uid(),
   earned_on date not null,
   reference text not null check (length(btrim(reference)) between 1 and 200),
-  kind text not null check (kind in ('closing','sourcing','agreement')),
+  kind text not null check (kind in ('closing','sourcing','agreement','advance')),
   basis numeric(12,2) not null check (basis > 0 and (kind <> 'agreement' or basis = 1)),
-  paid boolean not null default false
+  paid boolean not null default false check (kind <> 'advance' or not paid)
 );
 
 create index private_sales_entries_month on public.private_sales_entries(owner_id, earned_on, id);
