@@ -212,6 +212,7 @@ export function AppLayout() {
       <aside className="desktop-sidebar">
         <SidebarContent
           isAdministrator={administrator}
+          items={authorizedNavigationItems}
           displayName={displayName}
           onSignOut={handleSignOut}
         />
@@ -239,6 +240,7 @@ export function AppLayout() {
             <SidebarContent
               onNavigate={closeMobileMenu}
               isAdministrator={administrator}
+              items={authorizedNavigationItems}
               displayName={displayName}
               onSignOut={handleSignOut}
             />
@@ -374,6 +376,7 @@ export function AppLayout() {
 type SidebarContentProps = {
   onNavigate?: () => void;
   isAdministrator: boolean;
+  items: typeof navigationItems;
   displayName: string;
   onSignOut: () => Promise<void>;
 };
@@ -381,6 +384,7 @@ type SidebarContentProps = {
 function SidebarContent({
   onNavigate,
   isAdministrator,
+  items,
   displayName,
   onSignOut,
 }: SidebarContentProps) {
@@ -396,7 +400,7 @@ function SidebarContent({
       </div>
 
       <nav className="sidebar-navigation">
-        {navigationItems.filter((item) => !item.adminOnly || isAdministrator).map(
+        {items.map(
           ({
             label,
             path,
