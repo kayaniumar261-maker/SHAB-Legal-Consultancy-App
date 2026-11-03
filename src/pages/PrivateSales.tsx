@@ -80,22 +80,35 @@ function SalesLedger() {
   const total = rates ? rows.reduce((sum, row) => sum + commission(row, rates), 0) : 0;
   const unpaid = rates ? rows.reduce((sum, row) => sum + (row.paid ? 0 : commission(row, rates)), 0) : 0;
   const advances = rows.reduce((sum, row) => sum + (row.kind === 'advance' ? cents(row.basis) : 0), 0);
-  const balance = rates ? cents(rates.monthly_salary) + unpaid - advances : 0;
+  const gross = rates ? cents(rates.monthly_salary) + total : 0;
+  const paidCommission = total - unpaid;
+  const net = gross - advances;
+  const balance = net - paidCommission;
+  const reconciliation = rates ? [
+    ['Base salary', cents(rates.monthly_salary)],
+    ['Commission earned', total],
+    ['Gross earnings', gross],
+    ['Less: advances received', -advances],
+    ['Net earnings after advances', net],
+    ['Less: commission already paid', -paidCommission],
+    ['Month-end balance payable', balance],
+  ] as const : [];
   const exportSheet = async () => {
     if (!rates || loaded !== month) return;
     try {
       const xlsx = await import('xlsx');
       const book = xlsx.utils.book_new();
       xlsx.utils.book_append_sheet(book, xlsx.utils.aoa_to_sheet([
-        ['Month', month], ['Currency', 'AED'], ['Monthly base salary', rates.monthly_salary],
-        ['Commission earned', total / 100], ['Commission unpaid', unpaid / 100],
-        ['Advances received', advances / 100], ['Balance after advances and paid commissions', balance / 100],
-        ['Salary + commission earned', (cents(rates.monthly_salary) + total) / 100],
-      ]), 'Summary');
+        ['Month', month], ['Currency', 'AED'],
+        ...reconciliation.map(([label, amount]) => [label, amount / 100]),
+      ]), 'Month-end summary');
       xlsx.utils.book_append_sheet(book, xlsx.utils.aoa_to_sheet([
-        ['Earned date', 'Reference', 'Type', 'Eligible amount or advance (AED)', 'Commission (AED)', 'Payment status'],
-        ...rows.map(row => [row.earned_on, row.reference, kinds[row.kind], row.kind === 'agreement' ? null : row.basis,
-          commission(row, rates) / 100, row.kind === 'advance' ? 'Received' : row.paid ? 'Paid' : 'Unpaid']),
+        ['Earned date', 'Reference', 'Type', 'Eligible amount (AED)', 'Commission earned (AED)', 'Advance received (AED)', 'Payment status'],
+        ...rows.map(row => [row.earned_on, row.reference, kinds[row.kind],
+          row.kind === 'agreement' || row.kind === 'advance' ? null : row.basis,
+          row.kind === 'advance' ? null : commission(row, rates) / 100,
+          row.kind === 'advance' ? row.basis : null,
+          row.kind === 'advance' ? 'Received' : row.paid ? 'Paid' : 'Unpaid']),
       ]), 'Entries');
       xlsx.writeFile(book, 'Private-sales-' + month + '.xlsx');
     } catch { setError('Could not download the spreadsheet.'); }
@@ -110,10 +123,11 @@ function SalesLedger() {
     }} /></label>
     {error && <p role="alert">{error}</p>}
     {(!rates || loaded !== month) ? (!error && <p role="status">Loading your ledger…</p>) : <>
-      <div className="private-sales-totals">
-        {Object.entries({ 'Monthly base salary': cents(rates.monthly_salary), 'Commission earned': total,
-          'Commission unpaid': unpaid, 'Advances received': advances, 'Balance after advances and paid commissions': balance, 'Salary + commission earned': cents(rates.monthly_salary) + total })
-          .map(([label, amount]) => <div key={label}>{label}<strong>{money.format(amount / 100)}</strong></div>)}
+      <div className="private-sales-table">
+        <h2>Month-end reconciliation</h2>
+        <table><tbody>{reconciliation.map(([label, amount]) =>
+          <tr key={label}><th scope="row">{label}</th><td>{money.format(amount / 100)}</td></tr>
+        )}</tbody></table>
       </div>
       <form onSubmit={save}>
         <h2>{editing ? 'Edit entry' : 'Add entry'}</h2>
@@ -136,9 +150,9 @@ function SalesLedger() {
       </form>
       <button type="button" onClick={() => void exportSheet()}>Export month to Excel</button>
       {rows.length === 0 ? <p>No commission entries this month.</p> : <div className="private-sales-table"><table>
-        <thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Eligible amount / advance</th><th>Commission</th><th>Status</th><th>Action</th></tr></thead>
+        <thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Eligible amount</th><th>Commission earned</th><th>Advance received</th><th>Status</th><th>Action</th></tr></thead>
         <tbody>{rows.map(row => <tr key={row.id}><td>{row.earned_on}</td><td>{row.reference}</td><td>{kinds[row.kind]}</td>
-          <td>{row.kind === 'agreement' ? '—' : money.format(row.basis)}</td><td>{money.format(commission(row, rates) / 100)}</td>
+          <td>{row.kind === 'agreement' || row.kind === 'advance' ? '—' : money.format(row.basis)}</td><td>{row.kind === 'advance' ? '—' : money.format(commission(row, rates) / 100)}</td><td>{row.kind === 'advance' ? money.format(row.basis) : '—'}</td>
           <td>{row.kind === 'advance' ? 'Received' : row.paid ? 'Paid' : 'Unpaid'}</td><td><button type="button" disabled={busy} onClick={() => {
             setEditing(row.id); setDate(row.earned_on); setReference(row.reference); setKind(row.kind);
             setBasis(String(row.basis)); setPaid(row.paid);
