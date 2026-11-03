@@ -17,7 +17,8 @@ const commission = (row: Entry, rates: Rates) => row.kind === 'advance' ? 0 : ro
   : Math.round(cents(row.basis) * Math.round((row.kind === 'closing' ? rates.closing_rate : rates.sourcing_rate) * 10000) / 10000);
 
 export function PrivateSales() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return <p role="status">Opening your private ledger…</p>;
   return user?.id === privateSalesOwner ? <SalesLedger key={user.id} /> : <Navigate to="/" replace />;
 }
 
