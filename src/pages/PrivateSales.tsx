@@ -32,6 +32,7 @@ function SalesLedger() {
   const [reference, setReference] = useState('');
   const [basis, setBasis] = useState('');
   const [paid, setPaid] = useState(false);
+  const [openForm, setOpenForm] = useState<'entry' | 'advance' | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [refresh, setRefresh] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -68,6 +69,7 @@ function SalesLedger() {
   const reset = () => { setEditing(null); setReference(''); setBasis(''); setPaid(false); };
   const startEntry = (type: Kind) => {
     reset();
+    setOpenForm('entry');
     setKind(type);
     setDate(today().startsWith(month + '-') ? today() : month + '-01');
     setError('');
@@ -82,7 +84,7 @@ function SalesLedger() {
       const table = supabase.from('private_sales_entries');
       const result = await (editing ? table.update(values).eq('id', editing) : table.insert(values)).select('id').single();
       if (result.error) throw result.error;
-      reset(); setLoaded(''); setRefresh(n => n + 1);
+      reset(); setOpenForm(null); setLoaded(''); setRefresh(n => n + 1);
     } catch { setError('Could not save the entry. Please try again.'); }
     finally { setBusy(false); }
   };
@@ -122,7 +124,7 @@ function SalesLedger() {
         earned_on: received, reference: paymentReference, kind: 'advance', basis: Number(advanceAmount), paid: false,
       }).select('id').single();
       if (result.error) throw result.error;
-      setAdvanceReference(''); setAdvanceAmount(''); setLoaded(''); setRefresh(n => n + 1);
+      setAdvanceReference(''); setAdvanceAmount(''); setOpenForm(null); setLoaded(''); setRefresh(n => n + 1);
     } catch { setError('Could not save the advance. Please try again.'); }
     finally { setBusy(false); }
   };
@@ -152,13 +154,13 @@ function SalesLedger() {
     <p>Private to your app account. Figures are in AED.</p>
     <label>Reporting month <input type="month" value={month} disabled={busy} onChange={e => {
       if (!/^\d{4}-\d{2}$/.test(e.target.value)) return;
-      setAdvanceAmount(''); setAdvanceReference(''); setAdvanceDate(e.target.value + '-01'); setMonth(e.target.value); setDate(e.target.value + '-01'); setError(''); setLoaded(''); reset();
+      setAdvanceAmount(''); setAdvanceReference(''); setAdvanceDate(e.target.value + '-01'); setOpenForm(null); setMonth(e.target.value); setDate(e.target.value + '-01'); setError(''); setLoaded(''); reset();
     }} /></label>
     {error && <p role="alert">{error}</p>}
     {(!rates || loaded !== month) ? (!error && <p role="status">Loading your ledger…</p>) : <>
       <div className="private-sales-actions">
-        <button type="button" disabled={busy} onClick={() => startEntry('closing')}>+ Record commission</button>
-        <button type="button" disabled={busy} onClick={() => { if (kind === 'advance') startEntry('closing'); requestAnimationFrame(() => document.getElementById('sales-advance-amount')?.focus()); }}>+ Record advance</button>
+        <button type="button" disabled={busy} aria-expanded={openForm === 'entry' && kind !== 'advance'} onClick={() => { if (openForm === 'entry' && kind !== 'advance' && !editing) setOpenForm(null); else startEntry('closing'); }}>+ Record commission</button>
+        <button type="button" disabled={busy} aria-expanded={openForm === 'advance'} onClick={() => { if (openForm === 'advance') { setOpenForm(null); return; } setOpenForm('advance'); requestAnimationFrame(() => document.getElementById('sales-advance-amount')?.focus()); }}>+ Record advance</button>
         <button type="button" onClick={() => void exportSheet()}>Export month to Excel</button>
       </div>
       <div className="private-sales-totals">
@@ -174,7 +176,7 @@ function SalesLedger() {
         )}</tbody></table>
       </div>
       <div className="private-sales-forms">
-      <form onSubmit={save}>
+      {openForm === 'entry' && <form onSubmit={save}>
         <h2>{kind === 'advance' ? (editing ? 'Edit advance' : 'Record advance') : (editing ? 'Edit commission' : 'Record commission')}</h2>
         <p>{kind === 'advance' ? 'Use the date you received the money. The advance reduces this month’s balance. Use a bank transfer reference or a short note such as “November salary advance”.' : 'Enter the eligible amount for closing or sourcing. For agreements, record one entry per agreement.'} Record each payment once.</p>
         <div className="private-sales-fields">
@@ -191,9 +193,9 @@ function SalesLedger() {
         {date && !date.startsWith(month + '-') && <p>Select a date in the reporting month.</p>}
         {kind !== 'advance' && <p aria-live="polite"><strong>Calculated commission: {money.format(commissionPreview / 100)}</strong></p>}
         <button disabled={busy || !date.startsWith(month + '-')}>{busy ? 'Saving…' : kind === 'advance' ? 'Save advance' : 'Save commission'}</button>
-        {editing && <button type="button" disabled={busy} onClick={() => startEntry(kind)}>Cancel edit</button>}
-      </form>
-      {kind !== 'advance' && <form key={month} onSubmit={saveNewAdvance}>
+        <button type="button" disabled={busy} onClick={() => setOpenForm(null)}>Cancel</button>
+      </form>}
+      {openForm === 'advance' && <form key={month} onSubmit={saveNewAdvance}>
         <h2>Record advance</h2>
         <p>Record money already received. Each advance reduces the balance for its received month.</p>
         <label>Date received<input required name="received" type="date" min={month + '-01'} value={advanceDate} onChange={e => setAdvanceDate(e.target.value)} /></label>
@@ -201,6 +203,7 @@ function SalesLedger() {
         <label>Amount received (AED)<input required id="sales-advance-amount" type="number" min="0.01" max="9999999999.99" step="0.01" value={advanceAmount} onChange={e => setAdvanceAmount(e.target.value)} /></label>
         <p aria-live="polite"><strong>{advancePreview < 0 ? 'Projected overpayment' : 'Remaining payable after this advance'}: {money.format(Math.abs(advancePreview) / 100)}</strong></p>
         <button disabled={busy}>{busy ? 'Saving…' : 'Save advance'}</button>
+        <button type="button" disabled={busy} onClick={() => setOpenForm(null)}>Cancel</button>
       </form>}
       </div>
       {rows.length === 0 ? <p>No commission or advance entries this month.</p> : <div className="private-sales-table"><table>
@@ -208,7 +211,7 @@ function SalesLedger() {
         <tbody>{rows.map(row => <tr key={row.id}><td>{row.earned_on}</td><td>{row.reference}</td><td>{kinds[row.kind]}</td>
           <td>{row.kind === 'agreement' || row.kind === 'advance' ? '—' : money.format(row.basis)}</td><td>{row.kind === 'advance' ? '—' : money.format(commission(row, rates) / 100)}</td><td>{row.kind === 'advance' ? money.format(row.basis) : '—'}</td>
           <td>{row.kind === 'advance' ? 'Received' : row.paid ? 'Paid' : 'Unpaid'}</td><td><button type="button" disabled={busy} onClick={() => {
-            setEditing(row.id); setDate(row.earned_on); setReference(row.reference); setKind(row.kind);
+            setOpenForm('entry'); setEditing(row.id); setDate(row.earned_on); setReference(row.reference); setKind(row.kind);
             setBasis(String(row.basis)); setPaid(row.paid);
             requestAnimationFrame(() => document.getElementById('sales-entry-reference')?.focus());
           }}>Edit</button></td></tr>)}</tbody>
