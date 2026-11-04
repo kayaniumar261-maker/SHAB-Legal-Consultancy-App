@@ -35,6 +35,9 @@ function SalesLedger() {
   const [editing, setEditing] = useState<string | null>(null);
   const [refresh, setRefresh] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [advanceDate, setAdvanceDate] = useState(today);
+  const [advanceReference, setAdvanceReference] = useState('');
+  const [advanceAmount, setAdvanceAmount] = useState('');
   const [error, setError] = useState('');
   useEffect(() => {
     let active = true;
@@ -100,6 +103,29 @@ function SalesLedger() {
     ['Less: commission already paid', -paidCommission],
     ['Month-end balance payable', balance],
   ] as const : [];
+  const advancePreview = balance - cents(Number(advanceAmount) || 0);
+  const commissionPreview = rates ? commission({ id: '', earned_on: date, reference, kind, basis: Number(basis) || 0, paid }, rates) : 0;
+  const saveNewAdvance = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (busy) return;
+    const form = event.currentTarget;
+    const fields = new FormData(form);
+    const received = String(fields.get('received') ?? '');
+    const paymentReference = String(fields.get('reference') ?? '').trim();
+    if (!received.startsWith(month + '-') || !paymentReference) {
+      setError('Enter a payment reference and a received date in the reporting month.');
+      return;
+    }
+    setBusy(true); setError('');
+    try {
+      const result = await supabase.from('private_sales_entries').insert({
+        earned_on: received, reference: paymentReference, kind: 'advance', basis: Number(advanceAmount), paid: false,
+      }).select('id').single();
+      if (result.error) throw result.error;
+      setAdvanceReference(''); setAdvanceAmount(''); setLoaded(''); setRefresh(n => n + 1);
+    } catch { setError('Could not save the advance. Please try again.'); }
+    finally { setBusy(false); }
+  };
   const exportSheet = async () => {
     if (!rates || loaded !== month) return;
     try {
@@ -126,13 +152,13 @@ function SalesLedger() {
     <p>Private to your app account. Figures are in AED.</p>
     <label>Reporting month <input type="month" value={month} disabled={busy} onChange={e => {
       if (!/^\d{4}-\d{2}$/.test(e.target.value)) return;
-      setMonth(e.target.value); setDate(e.target.value + '-01'); setError(''); setLoaded(''); reset();
+      setAdvanceAmount(''); setAdvanceReference(''); setAdvanceDate(e.target.value + '-01'); setMonth(e.target.value); setDate(e.target.value + '-01'); setError(''); setLoaded(''); reset();
     }} /></label>
     {error && <p role="alert">{error}</p>}
     {(!rates || loaded !== month) ? (!error && <p role="status">Loading your ledger…</p>) : <>
       <div className="private-sales-actions">
         <button type="button" disabled={busy} onClick={() => startEntry('closing')}>+ Record commission</button>
-        <button type="button" disabled={busy} onClick={() => startEntry('advance')}>+ Record advance</button>
+        <button type="button" disabled={busy} onClick={() => { if (kind === 'advance') startEntry('closing'); requestAnimationFrame(() => document.getElementById('sales-advance-amount')?.focus()); }}>+ Record advance</button>
         <button type="button" onClick={() => void exportSheet()}>Export month to Excel</button>
       </div>
       <div className="private-sales-totals">
@@ -147,6 +173,7 @@ function SalesLedger() {
           <tr key={label}><th scope="row">{label}</th><td>{money.format(amount / 100)}</td></tr>
         )}</tbody></table>
       </div>
+      <div className="private-sales-forms">
       <form onSubmit={save}>
         <h2>{kind === 'advance' ? (editing ? 'Edit advance' : 'Record advance') : (editing ? 'Edit commission' : 'Record commission')}</h2>
         <p>{kind === 'advance' ? 'Use the date you received the money. The advance reduces this month’s balance. Use a bank transfer reference or a short note such as “November salary advance”.' : 'Enter the eligible amount for closing or sourcing. For agreements, record one entry per agreement.'} Record each payment once.</p>
@@ -162,9 +189,20 @@ function SalesLedger() {
           {kind !== 'advance' && <label><input type="checkbox" checked={paid} onChange={e => setPaid(e.target.checked)} /> Commission paid</label>}
         </div>
         {date && !date.startsWith(month + '-') && <p>Select a date in the reporting month.</p>}
+        {kind !== 'advance' && <p aria-live="polite"><strong>Calculated commission: {money.format(commissionPreview / 100)}</strong></p>}
         <button disabled={busy || !date.startsWith(month + '-')}>{busy ? 'Saving…' : kind === 'advance' ? 'Save advance' : 'Save commission'}</button>
         {editing && <button type="button" disabled={busy} onClick={() => startEntry(kind)}>Cancel edit</button>}
       </form>
+      {kind !== 'advance' && <form key={month} onSubmit={saveNewAdvance}>
+        <h2>Record advance</h2>
+        <p>Record money already received. Each advance reduces the balance for its received month.</p>
+        <label>Date received<input required name="received" type="date" min={month + '-01'} value={advanceDate} onChange={e => setAdvanceDate(e.target.value)} /></label>
+        <label>Payment reference<input required name="reference" value={advanceReference} onChange={e => setAdvanceReference(e.target.value)} maxLength={200} placeholder="Bank transfer reference or short note" /></label>
+        <label>Amount received (AED)<input required id="sales-advance-amount" type="number" min="0.01" max="9999999999.99" step="0.01" value={advanceAmount} onChange={e => setAdvanceAmount(e.target.value)} /></label>
+        <p aria-live="polite"><strong>{advancePreview < 0 ? 'Projected overpayment' : 'Remaining payable after this advance'}: {money.format(Math.abs(advancePreview) / 100)}</strong></p>
+        <button disabled={busy}>{busy ? 'Saving…' : 'Save advance'}</button>
+      </form>}
+      </div>
       {rows.length === 0 ? <p>No commission or advance entries this month.</p> : <div className="private-sales-table"><table>
         <thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Eligible amount</th><th>Commission earned</th><th>Advance received</th><th>Status</th><th>Action</th></tr></thead>
         <tbody>{rows.map(row => <tr key={row.id}><td>{row.earned_on}</td><td>{row.reference}</td><td>{kinds[row.kind]}</td>
