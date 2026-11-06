@@ -8,7 +8,8 @@ import './PrivateSales.css';
 const kinds = { closing: 'Closing', sourcing: 'Sourcing', agreement: 'Agreement prepared', advance: 'Advance received' };
 type Kind = keyof typeof kinds;
 type Entry = { id: string; earned_on: string; reference: string; kind: Kind; basis: number; paid: boolean };
-type Rates = { monthly_salary: number; closing_rate: number; sourcing_rate: number; agreement_fee: number };
+type Rates = { monthly_salary: number; closing_rate: number; sourcing_rate: number; agreement_fee: number; opening_month: string | null; opening_balance: number };
+const monthIndex = (value: string) => Number(value.slice(0, 4)) * 12 + Number(value.slice(5, 7)) - 1;
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dubai', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 const money = new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' });
 const cents = (value: number) => Math.round((value + Number.EPSILON) * 100);
@@ -43,16 +44,19 @@ function SalesLedger() {
   useEffect(() => {
     let active = true;
     const read = async () => {
-      const settings = await supabase.from('private_sales_settings').select('monthly_salary,closing_rate,sourcing_rate,agreement_fee').single();
+      const settings = await supabase.from('private_sales_settings').select('monthly_salary,closing_rate,sourcing_rate,agreement_fee,opening_month,opening_balance').single();
       if (!active) return;
       if (settings.error) { setError('Could not load your private sales settings.'); return; }
       setRates(settings.data);
       const next = new Date(month + '-01T00:00:00Z');
       next.setUTCMonth(next.getUTCMonth() + 1);
       const entries: Entry[] = [];
+      const firstSalary = settings.data.opening_month ? new Date(settings.data.opening_month + 'T00:00:00Z') : null;
+      firstSalary?.setUTCMonth(firstSalary.getUTCMonth() + 1);
+      const firstEntry = firstSalary?.toISOString().slice(0, 10) ?? month + '-01';
       for (let offset = 0; ; offset += 250) {
         const result = await supabase.from('private_sales_entries').select('id,earned_on,reference,kind,basis,paid')
-          .gte('earned_on', month + '-01').lt('earned_on', next.toISOString().slice(0, 10))
+          .gte('earned_on', firstEntry).lt('earned_on', next.toISOString().slice(0, 10))
           .order('earned_on', { ascending: false }).order('id').range(offset, offset + 249);
         if (!active) return;
         if (result.error) { setError('Could not load this month’s entries.'); return; }
@@ -89,15 +93,26 @@ function SalesLedger() {
     finally { setBusy(false); }
   };
 
-  const total = rates ? rows.reduce((sum, row) => sum + commission(row, rates), 0) : 0;
-  const unpaid = rates ? rows.reduce((sum, row) => sum + (row.paid ? 0 : commission(row, rates)), 0) : 0;
-  const advances = rows.reduce((sum, row) => sum + (row.kind === 'advance' ? cents(row.basis) : 0), 0);
-  const gross = rates ? cents(rates.monthly_salary) + total : 0;
+  const startMonth = rates?.opening_month?.slice(0, 7);
+  const openingOnly = Boolean(startMonth && month <= startMonth);
+  const monthRows = rows.filter(row => row.earned_on.startsWith(month + '-'));
+  const salary = rates && !openingOnly ? cents(rates.monthly_salary) : 0;
+  const opening = rates && startMonth && month >= startMonth
+    ? cents(rates.opening_balance)
+      + Math.max(0, monthIndex(month) - monthIndex(startMonth) - 1) * cents(rates.monthly_salary)
+      + rows.filter(row => row.earned_on < month + '-01').reduce((sum, row) =>
+        sum + (row.kind === 'advance' ? -cents(row.basis) : row.paid ? 0 : commission(row, rates)), 0)
+    : 0;
+  const total = rates ? monthRows.reduce((sum, row) => sum + commission(row, rates), 0) : 0;
+  const unpaid = rates ? monthRows.reduce((sum, row) => sum + (row.paid ? 0 : commission(row, rates)), 0) : 0;
+  const advances = monthRows.reduce((sum, row) => sum + (row.kind === 'advance' ? cents(row.basis) : 0), 0);
+  const gross = salary + total;
   const paidCommission = total - unpaid;
   const net = gross - advances;
-  const balance = net - paidCommission;
+  const balance = opening + net - paidCommission;
   const reconciliation = rates ? [
-    ['Base salary', cents(rates.monthly_salary)],
+    [month === startMonth ? 'Opening balance' : 'Balance brought forward', opening],
+    ['Base salary', salary],
     ['Commission earned', total],
     ['Gross earnings', gross],
     ['Less: advances received', -advances],
@@ -139,7 +154,7 @@ function SalesLedger() {
       ]), 'Month-end summary');
       xlsx.utils.book_append_sheet(book, xlsx.utils.aoa_to_sheet([
         ['Earned / received date', 'Reference', 'Type', 'Eligible amount (AED)', 'Commission earned (AED)', 'Advance received (AED)', 'Payment status'],
-        ...rows.map(row => [row.earned_on, row.reference, kinds[row.kind],
+        ...monthRows.map(row => [row.earned_on, row.reference, kinds[row.kind],
           row.kind === 'agreement' || row.kind === 'advance' ? null : row.basis,
           row.kind === 'advance' ? null : commission(row, rates) / 100,
           row.kind === 'advance' ? row.basis : null,
@@ -152,25 +167,26 @@ function SalesLedger() {
   return <section className="private-sales">
     <h1>My Sales &amp; Commission</h1>
     <p>Private to your app account. Figures are in AED.</p>
-    <label>Reporting month <input type="month" value={month} disabled={busy} onChange={e => {
-      if (!/^\d{4}-\d{2}$/.test(e.target.value)) return;
+    <label>Reporting month <input type="month" value={month} min={startMonth} disabled={busy} onChange={e => {
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value) || (startMonth && e.target.value < startMonth)) return;
       setAdvanceAmount(''); setAdvanceReference(''); setAdvanceDate(e.target.value + '-01'); setOpenForm(null); setMonth(e.target.value); setDate(e.target.value + '-01'); setError(''); setLoaded(''); reset();
     }} /></label>
     {error && <p role="alert">{error}</p>}
     {(!rates || loaded !== month) ? (!error && <p role="status">Loading your ledger…</p>) : <>
       <div className="private-sales-actions">
-        <button type="button" disabled={busy} aria-expanded={openForm === 'entry' && kind !== 'advance'} onClick={() => { if (openForm === 'entry' && kind !== 'advance' && !editing) setOpenForm(null); else startEntry('closing'); }}>+ Record commission</button>
-        <button type="button" disabled={busy} aria-expanded={openForm === 'advance'} onClick={() => { if (openForm === 'advance') { setOpenForm(null); return; } setOpenForm('advance'); requestAnimationFrame(() => document.getElementById('sales-advance-amount')?.focus()); }}>+ Record advance</button>
+        <button type="button" disabled={busy || openingOnly} aria-expanded={openForm === 'entry' && kind !== 'advance'} onClick={() => { if (openForm === 'entry' && kind !== 'advance' && !editing) setOpenForm(null); else startEntry('closing'); }}>+ Record commission</button>
+        <button type="button" disabled={busy || openingOnly} aria-expanded={openForm === 'advance'} onClick={() => { if (openForm === 'advance') { setOpenForm(null); return; } setOpenForm('advance'); requestAnimationFrame(() => document.getElementById('sales-advance-amount')?.focus()); }}>+ Record advance</button>
         <button type="button" onClick={() => void exportSheet()}>Export month to Excel</button>
       </div>
       <div className="private-sales-totals">
+        <div>Opening balance<strong>{money.format(opening / 100)}</strong></div>
         <div>Gross earnings<strong>{money.format(gross / 100)}</strong></div>
         <div>Advances received<strong>{money.format(advances / 100)}</strong></div>
-        <div>{balance < 0 ? 'Paid above this month’s earnings' : 'Remaining payable'}<strong>{money.format(Math.abs(balance) / 100)}</strong></div>
+        <div>{balance < 0 ? 'Overpayment carried forward' : 'Remaining payable'}<strong>{money.format(Math.abs(balance) / 100)}</strong></div>
       </div>
       <div className="private-sales-table">
         <h2>Month-end reconciliation</h2>
-        <p>Salary and earned commission, less advances received and commissions already paid. {balance < 0 && 'A negative balance shows an overpayment for this month; it does not automatically carry forward.'}</p>
+        <p>{openingOnly ? 'Opening balance only. No salary or transactions are added for this month.' : 'Previous balance plus salary and earned commission, less advances and commissions already paid. The closing balance carries into the next month.'}</p>
         <table><tbody>{reconciliation.map(([label, amount]) =>
           <tr key={label}><th scope="row">{label}</th><td>{money.format(amount / 100)}</td></tr>
         )}</tbody></table>
@@ -206,9 +222,9 @@ function SalesLedger() {
         <button type="button" disabled={busy} onClick={() => setOpenForm(null)}>Cancel</button>
       </form>}
       </div>
-      {rows.length === 0 ? <p>No commission or advance entries this month.</p> : <div className="private-sales-table"><table>
+      {monthRows.length === 0 ? <p>No commission or advance entries this month.</p> : <div className="private-sales-table"><table>
         <thead><tr><th>Date</th><th>Reference</th><th>Type</th><th>Eligible amount</th><th>Commission earned</th><th>Advance received</th><th>Status</th><th>Action</th></tr></thead>
-        <tbody>{rows.map(row => <tr key={row.id}><td>{row.earned_on}</td><td>{row.reference}</td><td>{kinds[row.kind]}</td>
+        <tbody>{monthRows.map(row => <tr key={row.id}><td>{row.earned_on}</td><td>{row.reference}</td><td>{kinds[row.kind]}</td>
           <td>{row.kind === 'agreement' || row.kind === 'advance' ? '—' : money.format(row.basis)}</td><td>{row.kind === 'advance' ? '—' : money.format(commission(row, rates) / 100)}</td><td>{row.kind === 'advance' ? money.format(row.basis) : '—'}</td>
           <td>{row.kind === 'advance' ? 'Received' : row.paid ? 'Paid' : 'Unpaid'}</td><td><button type="button" disabled={busy} onClick={() => {
             setOpenForm('entry'); setEditing(row.id); setDate(row.earned_on); setReference(row.reference); setKind(row.kind);
