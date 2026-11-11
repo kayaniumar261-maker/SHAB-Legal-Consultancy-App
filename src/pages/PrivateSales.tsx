@@ -70,6 +70,17 @@ function SalesLedger() {
     return () => { active = false; };
   }, [month, refresh]);
 
+  const deleteEntry = async (row: Entry) => {
+    if (busy || !window.confirm('Delete ' + row.reference + ' dated ' + row.earned_on + ' (' + money.format(row.kind === 'advance' ? row.basis : rates ? commission(row, rates) / 100 : 0) + ')? This will recalculate this month and later carry-forwards.')) return;
+    setBusy(true); setError('');
+    try {
+      const result = await supabase.from('private_sales_entries').delete().eq('id', row.id).select('id').single();
+      if (result.error) throw result.error;
+      if (editing === row.id) { setEditing(null); setOpenForm(null); }
+      setLoaded(''); setRefresh(n => n + 1);
+    } catch { setError('Could not delete the entry. Please try again.'); }
+    finally { setBusy(false); }
+  };
   const reset = () => { setEditing(null); setReference(''); setBasis(''); setPaid(false); };
   const startEntry = (type: Kind) => {
     reset();
@@ -232,7 +243,7 @@ function SalesLedger() {
             setOpenForm('entry'); setEditing(row.id); setDate(row.earned_on); setReference(row.reference); setKind(row.kind);
             setBasis(String(row.basis)); setPaid(row.paid);
             requestAnimationFrame(() => document.getElementById('sales-entry-reference')?.focus());
-          }}>Edit</button></td></tr>)}</tbody>
+          }}>Edit</button> <button type="button" disabled={busy} onClick={() => void deleteEntry(row)}>Delete</button></td></tr>)}</tbody>
       </table></div>}
     </>}
   </section>;
