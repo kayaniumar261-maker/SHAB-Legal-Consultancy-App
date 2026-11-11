@@ -53,7 +53,7 @@ function SalesLedger() {
       const entries: Entry[] = [];
       const firstSalary = settings.data.opening_month ? new Date(settings.data.opening_month + 'T00:00:00Z') : null;
       firstSalary?.setUTCMonth(firstSalary.getUTCMonth() + 1);
-      const firstEntry = firstSalary?.toISOString().slice(0, 10) ?? month + '-01';
+      const firstEntry = settings.data.opening_month ?? month + '-01';
       for (let offset = 0; ; offset += 250) {
         const result = await supabase.from('private_sales_entries').select('id,earned_on,reference,kind,basis,paid')
           .gte('earned_on', firstEntry).lt('earned_on', next.toISOString().slice(0, 10))
@@ -111,14 +111,15 @@ function SalesLedger() {
   const net = gross - advances;
   const balance = opening + net - paidCommission;
   const reconciliation = rates ? [
-    [month === startMonth ? 'Opening balance' : 'Balance brought forward', opening],
+    [month === startMonth ? 'Opening balance' : 'Balance brought forward', Math.max(0, opening)],
     ['Base salary', salary],
     ['Commission earned', total],
-    ['Gross earnings', gross],
-    ['Less: advances received', -advances],
-    ['Net earnings after advances', net],
-    ['Less: commission already paid', -paidCommission],
-    ['Month-end balance payable', balance],
+    ['Total available', Math.max(0, opening) + gross],
+    ['Less: excess deductions brought forward', Math.max(0, -opening)],
+    ['Less: advances received', advances],
+    ['Less: commission already paid', paidCommission],
+    ['Month-end amount payable', Math.max(0, balance)],
+    ['Excess deductions carried to next month', Math.max(0, -balance)],
   ] as const : [];
   const advancePreview = balance - cents(Number(advanceAmount) || 0);
   const commissionPreview = rates ? commission({ id: '', earned_on: date, reference, kind, basis: Number(basis) || 0, paid }, rates) : 0;
@@ -179,14 +180,15 @@ function SalesLedger() {
         <button type="button" onClick={() => void exportSheet()}>Export month to Excel</button>
       </div>
       <div className="private-sales-totals">
-        <div>Opening balance<strong>{money.format(opening / 100)}</strong></div>
+        <div>Opening balance<strong>{money.format(Math.max(0, opening) / 100)}</strong></div>
         <div>Gross earnings<strong>{money.format(gross / 100)}</strong></div>
         <div>Advances received<strong>{money.format(advances / 100)}</strong></div>
-        <div>{balance < 0 ? 'Overpayment carried forward' : 'Remaining payable'}<strong>{money.format(Math.abs(balance) / 100)}</strong></div>
+        <div>Remaining payable<strong>{money.format(Math.max(0, balance) / 100)}</strong></div>
+        <div>Excess deductions carried forward<strong>{money.format(Math.max(0, -balance) / 100)}</strong></div>
       </div>
       <div className="private-sales-table">
         <h2>Month-end reconciliation</h2>
-        <p>{openingOnly ? 'Opening balance only. No salary or transactions are added for this month.' : 'Previous balance plus salary and earned commission, less advances and commissions already paid. The closing balance carries into the next month.'}</p>
+        <p>{openingOnly ? 'Opening balance less payments received. No salary is added for this month. Any excess deductions carry into the next month.' : 'Previous balance plus salary and earned commission, less advances and commissions already paid. The closing balance carries into the next month.'}</p>
         <table><tbody>{reconciliation.map(([label, amount]) =>
           <tr key={label}><th scope="row">{label}</th><td>{money.format(amount / 100)}</td></tr>
         )}</tbody></table>
