@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { privateSalesOwner } from '../lib/privateSales';
 import { supabase } from '../lib/supabase';
 import './PrivateSales.css';
-import { downloadSalesPdf } from '../lib/salesReportPdf';
+import { downloadSalesPdf, type SalesPdfMonth } from '../lib/salesReportPdf';
 
 const kinds = { closing: 'Closing', sourcing: 'Sourcing', agreement: 'Agreement prepared', advance: 'Advance received' };
 type Kind = keyof typeof kinds;
@@ -182,7 +182,7 @@ function SalesLedger() {
         + Math.max(0, monthIndex(from) - monthIndex(startMonth ?? from) - 1) * cents(rates.monthly_salary)
         + all.filter(row => row.earned_on < from + '-01').reduce((sum, row) => sum + movement(row), 0);
       const summary: (string | number)[][] = [['Month', 'Opening payable', 'Excess brought forward', 'Salary', 'Commission earned', 'Advances received', 'Commission paid', 'Closing payable', 'Excess carried forward']];
-      const lines: string[] = ['Period: ' + from + ' to ' + to, 'Generated: ' + today(), ''];
+      const pdfMonths: SalesPdfMonth[] = [];
       const current = new Date(from + '-01T00:00:00Z');
       while (current.toISOString().slice(0, 7) <= to) {
         const m = current.toISOString().slice(0, 7);
@@ -194,20 +194,17 @@ function SalesLedger() {
         const closing = opening + salary + earned - advances - paid;
         const amounts = [Math.max(0, opening), Math.max(0, -opening), salary, earned, advances, paid, Math.max(0, closing), Math.max(0, -closing)];
         summary.push([m, ...amounts.map(n => n / 100)]);
-        lines.push(m + ' — MONTHLY RECONCILIATION');
-        summary[0].slice(1).forEach((label, i) => lines.push(label + ': ' + money.format(amounts[i] / 100)));
-        lines.push('Transactions:');
-        entries.forEach(row => {
-          lines.push(row.earned_on + ' | ' + kinds[row.kind] + ' | ' + row.reference);
-          lines.push(row.kind === 'advance' ? 'Advance received: ' + money.format(row.basis) :
-            'Commission: ' + money.format(commission(row, rates) / 100) + ' | ' + (row.paid ? 'Paid' : 'Unpaid') +
-            (row.kind === 'agreement' ? '' : ' | Eligible amount: ' + money.format(row.basis)));
-        });
-        if (!entries.length) lines.push('No transactions.');
-        lines.push(''); opening = closing; current.setUTCMonth(current.getUTCMonth() + 1);
+        pdfMonths.push({ month: m, amounts: amounts.map(n => n / 100), transactions: entries.map(row => ({
+          date: row.earned_on, reference: row.reference, type: kinds[row.kind],
+          eligible: row.kind === 'advance' || row.kind === 'agreement' ? null : row.basis,
+          commission: row.kind === 'advance' ? 0 : commission(row, rates) / 100,
+          advance: row.kind === 'advance' ? row.basis : 0,
+          status: row.kind === 'advance' ? 'Received' : row.paid ? 'Paid' : 'Unpaid',
+        })) });
+        opening = closing; current.setUTCMonth(current.getUTCMonth() + 1);
       }
       const filename = 'Private-sales-' + from + '-to-' + to;
-      if (format === 'pdf') downloadSalesPdf('Sales & Commission Report', lines, filename + '.pdf');
+      if (format === 'pdf') downloadSalesPdf({ from, to, generated: today(), months: pdfMonths }, filename + '.pdf');
       else {
         const xlsx = await import('xlsx'); const book = xlsx.utils.book_new();
         xlsx.utils.book_append_sheet(book, xlsx.utils.aoa_to_sheet(summary), 'Monthly summary');
