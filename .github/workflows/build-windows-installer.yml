@@ -1,6 +1,9 @@
 name: Build Windows Installer
 
 on:
+  push:
+    branches: [shab-2.0]
+    paths: [package.json]
   workflow_dispatch:
     inputs:
       publish_mode:
@@ -111,7 +114,7 @@ jobs:
 
     env:
       GH_TOKEN: ${{ github.token }}
-      PUBLISH_MODE: ${{ inputs.publish_mode }}
+      PUBLISH_MODE: ${{ inputs.publish_mode || 'stable' }}
 
     steps:
       - name: Check out exact source commit
@@ -159,7 +162,7 @@ jobs:
             "release/latest.yml"
             --target "${GITHUB_SHA}"
             --title "SHAB Legal Consultants FZC - Windows ${tag}"
-            --notes "Updater-enabled Windows ${PUBLISH_MODE} release ${tag}."
+            --notes "Windows update with the private sales and commission ledger, advance entries, opening balances and monthly carry-forwards. Adds month-range PDF and Excel reports with boxed summaries and dated transaction tables. Private ledger access is restricted to its designated account. Automatic email notifications remain pending sender setup; WhatsApp sharing requires the person to press Send."
           )
           if [[ "$PUBLISH_MODE" == "prerelease" ]]; then
             release_args+=(--prerelease)
