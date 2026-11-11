@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { privateSalesOwner } from '../lib/privateSales';
 import { supabase } from '../lib/supabase';
 import './PrivateSales.css';
+import { downloadSalesPdf } from '../lib/salesReportPdf';
 
 const kinds = { closing: 'Closing', sourcing: 'Sourcing', agreement: 'Agreement prepared', advance: 'Advance received' };
 type Kind = keyof typeof kinds;
@@ -24,6 +25,9 @@ export function PrivateSales() {
 }
 
 function SalesLedger() {
+  const [reportFrom, setReportFrom] = useState('');
+  const [reportTo, setReportTo] = useState('');
+  const [reportBusy, setReportBusy] = useState(false);
   const [month, setMonth] = useState(() => today().slice(0, 7));
   const [rates, setRates] = useState<Rates | null>(null);
   const [loaded, setLoaded] = useState('');
@@ -155,25 +159,69 @@ function SalesLedger() {
     } catch { setError('Could not save the advance. Please try again.'); }
     finally { setBusy(false); }
   };
-  const exportSheet = async () => {
-    if (!rates || loaded !== month) return;
+  const exportReport = async (format: 'pdf' | 'xlsx') => {
+    if (!rates || reportBusy) return;
+    const from = reportFrom || startMonth || month;
+    const to = reportTo || month;
+    if (from > to || (startMonth && from < startMonth) || monthIndex(to) - monthIndex(from) > 119) {
+      setError('Choose a valid range from the opening month onward, up to 120 months.'); return;
+    }
+    setReportBusy(true); setError('');
     try {
-      const xlsx = await import('xlsx');
-      const book = xlsx.utils.book_new();
-      xlsx.utils.book_append_sheet(book, xlsx.utils.aoa_to_sheet([
-        ['Month', month], ['Currency', 'AED'],
-        ...reconciliation.map(([label, amount]) => [label, amount / 100]),
-      ]), 'Month-end summary');
-      xlsx.utils.book_append_sheet(book, xlsx.utils.aoa_to_sheet([
-        ['Earned / received date', 'Reference', 'Type', 'Eligible amount (AED)', 'Commission earned (AED)', 'Advance received (AED)', 'Payment status'],
-        ...monthRows.map(row => [row.earned_on, row.reference, kinds[row.kind],
-          row.kind === 'agreement' || row.kind === 'advance' ? null : row.basis,
-          row.kind === 'advance' ? null : commission(row, rates) / 100,
-          row.kind === 'advance' ? row.basis : null,
-          row.kind === 'advance' ? 'Received' : row.paid ? 'Paid' : 'Unpaid']),
-      ]), 'Entries');
-      xlsx.writeFile(book, 'Private-sales-' + month + '.xlsx');
-    } catch { setError('Could not download the spreadsheet.'); }
+      const next = new Date(to + '-01T00:00:00Z'); next.setUTCMonth(next.getUTCMonth() + 1);
+      const all: Entry[] = [];
+      for (let offset = 0; ; offset += 250) {
+        const result = await supabase.from('private_sales_entries').select('id,earned_on,reference,kind,basis,paid')
+          .gte('earned_on', rates.opening_month ?? from + '-01').lt('earned_on', next.toISOString().slice(0, 10))
+          .order('earned_on').order('id').range(offset, offset + 249);
+        if (result.error) throw result.error;
+        all.push(...result.data); if (result.data.length < 250) break;
+      }
+      const movement = (row: Entry) => row.kind === 'advance' ? -cents(row.basis) : row.paid ? 0 : commission(row, rates);
+      let opening = cents(rates.opening_balance)
+        + Math.max(0, monthIndex(from) - monthIndex(startMonth ?? from) - 1) * cents(rates.monthly_salary)
+        + all.filter(row => row.earned_on < from + '-01').reduce((sum, row) => sum + movement(row), 0);
+      const summary: (string | number)[][] = [['Month', 'Opening payable', 'Excess brought forward', 'Salary', 'Commission earned', 'Advances received', 'Commission paid', 'Closing payable', 'Excess carried forward']];
+      const lines: string[] = ['Period: ' + from + ' to ' + to, 'Generated: ' + today(), ''];
+      const current = new Date(from + '-01T00:00:00Z');
+      while (current.toISOString().slice(0, 7) <= to) {
+        const m = current.toISOString().slice(0, 7);
+        const entries = all.filter(row => row.earned_on.startsWith(m + '-'));
+        const salary = m === startMonth ? 0 : cents(rates.monthly_salary);
+        const earned = entries.reduce((sum, row) => sum + commission(row, rates), 0);
+        const advances = entries.reduce((sum, row) => sum + (row.kind === 'advance' ? cents(row.basis) : 0), 0);
+        const paid = entries.reduce((sum, row) => sum + (row.paid ? commission(row, rates) : 0), 0);
+        const closing = opening + salary + earned - advances - paid;
+        const amounts = [Math.max(0, opening), Math.max(0, -opening), salary, earned, advances, paid, Math.max(0, closing), Math.max(0, -closing)];
+        summary.push([m, ...amounts.map(n => n / 100)]);
+        lines.push(m + ' — MONTHLY RECONCILIATION');
+        summary[0].slice(1).forEach((label, i) => lines.push(label + ': ' + money.format(amounts[i] / 100)));
+        lines.push('Transactions:');
+        entries.forEach(row => {
+          lines.push(row.earned_on + ' | ' + kinds[row.kind] + ' | ' + row.reference);
+          lines.push(row.kind === 'advance' ? 'Advance received: ' + money.format(row.basis) :
+            'Commission: ' + money.format(commission(row, rates) / 100) + ' | ' + (row.paid ? 'Paid' : 'Unpaid') +
+            (row.kind === 'agreement' ? '' : ' | Eligible amount: ' + money.format(row.basis)));
+        });
+        if (!entries.length) lines.push('No transactions.');
+        lines.push(''); opening = closing; current.setUTCMonth(current.getUTCMonth() + 1);
+      }
+      const filename = 'Private-sales-' + from + '-to-' + to;
+      if (format === 'pdf') downloadSalesPdf('Sales & Commission Report', lines, filename + '.pdf');
+      else {
+        const xlsx = await import('xlsx'); const book = xlsx.utils.book_new();
+        xlsx.utils.book_append_sheet(book, xlsx.utils.aoa_to_sheet(summary), 'Monthly summary');
+        xlsx.utils.book_append_sheet(book, xlsx.utils.aoa_to_sheet([
+          ['Date', 'Reference', 'Type', 'Eligible amount (AED)', 'Commission (AED)', 'Advance (AED)', 'Status'],
+          ...all.filter(row => row.earned_on >= from + '-01').map(row => [row.earned_on, row.reference, kinds[row.kind],
+            row.kind === 'advance' || row.kind === 'agreement' ? null : row.basis,
+            row.kind === 'advance' ? null : commission(row, rates) / 100,
+            row.kind === 'advance' ? row.basis : null, row.kind === 'advance' ? 'Received' : row.paid ? 'Paid' : 'Unpaid']),
+        ]), 'Transactions');
+        xlsx.writeFile(book, filename + '.xlsx');
+      }
+    } catch { setError('Could not generate the report. Please try again.'); }
+    finally { setReportBusy(false); }
   };
 
   return <section className="private-sales">
@@ -185,10 +233,19 @@ function SalesLedger() {
     }} /></label>
     {error && <p role="alert">{error}</p>}
     {(!rates || loaded !== month) ? (!error && <p role="status">Loading your ledger…</p>) : <>
+      <fieldset disabled={reportBusy || busy}>
+        <legend>Download report</legend>
+        <div className="private-sales-fields">
+          <label>From month<input type="month" min={startMonth} value={reportFrom || startMonth || month} onChange={e => setReportFrom(e.target.value)} /></label>
+          <label>To month<input type="month" min={reportFrom || startMonth} value={reportTo || month} onChange={e => setReportTo(e.target.value)} /></label>
+        </div>
+        <button type="button" onClick={() => void exportReport('pdf')}>{reportBusy ? 'Preparing report…' : 'Download PDF'}</button>
+        <button type="button" onClick={() => void exportReport('xlsx')}>Download Excel</button>
+      </fieldset>
       <div className="private-sales-actions">
         <button type="button" disabled={busy || openingOnly} aria-expanded={openForm === 'entry' && kind !== 'advance'} onClick={() => { if (openForm === 'entry' && kind !== 'advance' && !editing) setOpenForm(null); else startEntry('closing'); }}>+ Record commission</button>
         <button type="button" disabled={busy || openingOnly} aria-expanded={openForm === 'advance'} onClick={() => { if (openForm === 'advance') { setOpenForm(null); return; } setOpenForm('advance'); requestAnimationFrame(() => document.getElementById('sales-advance-amount')?.focus()); }}>+ Record advance</button>
-        <button type="button" onClick={() => void exportSheet()}>Export month to Excel</button>
+
       </div>
       <div className="private-sales-totals">
         <div>Opening balance<strong>{money.format(Math.max(0, opening) / 100)}</strong></div>
