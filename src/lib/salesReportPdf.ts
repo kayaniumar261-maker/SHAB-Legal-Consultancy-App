@@ -60,6 +60,35 @@ export function downloadSalesPdf(report: SalesPdfReport, filename: string) {
     y += 46;
   };
   begin();
+  const first = report.months[0]?.amounts;
+  const last = report.months[report.months.length - 1]?.amounts;
+  if (first && last) {
+    text('PERIOD OVERVIEW', 60, y + 30, 27, navy, true); y += 65;
+    const summed = (i: number) => report.months.reduce((n,m)=>n+Math.round(m.amounts[i]*100),0)/100;
+    const values = [first[0],first[1],summed(2),summed(3),summed(4),summed(5),last[6],last[7]];
+    labels.forEach((label,i)=>{
+      box(60,y,1120,55,i>=6?'#edf5f0':i%2?'#f5f7f9':'#fff');
+      text(label,80,y+35,23,navy,i>=6);
+      text(number.format(values[i]),1160,y+35,23,navy,i>=6,true); y+=55;
+    });
+    y+=38;
+    const check = values[0]-values[1]+values[2]+values[3]-values[4]-values[5]-values[6]+values[7];
+    text('Reconciliation difference: AED ' + number.format(Math.round(check*100)/100 || 0),60,y+25,22,navy,true); y+=65;
+    const notes = [
+      'Opening payable + salary + commissions - payments = closing net balance.',
+      'Opening and closing excess deductions are shown separately from payable.',
+      'Salary is the full monthly entitlement; future months are projections.',
+      'Commissions use manually entered eligible amounts, not verified collections.',
+      'Record each payment once. Do not also mark the same commission as paid.',
+      'A paid commission is treated as fully settled in its earned month.',
+      'Payment dates, partial settlements and bank reconciliation are not captured.',
+      'Reports recalculate from current entries and rates; they are not locked accounts.',
+      'Do not add monthly closing balances together: they include earlier balances.',
+    ];
+    text('ACCOUNTING NOTES',60,y,20,navy,true);y+=30;
+    for(const note of notes)for(const line of wrap(note,1080,20)){text(line,60,y,20,'#526575');y+=32;}
+    finish(); begin();
+  }
   report.months.forEach((month, index) => {
     if (index > 0) { finish(); begin(); }
     text(monthName(month.month).toUpperCase(), 60, y + 30, 27, navy, true); y += 55;

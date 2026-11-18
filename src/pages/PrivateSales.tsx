@@ -1,3 +1,4 @@
+import { cents, monthIndex, commission, reconcile } from '../lib/salesAccounting';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -10,13 +11,8 @@ const kinds = { closing: 'Closing', sourcing: 'Sourcing', agreement: 'Agreement 
 type Kind = keyof typeof kinds;
 type Entry = { id: string; earned_on: string; reference: string; kind: Kind; basis: number; paid: boolean };
 type Rates = { monthly_salary: number; closing_rate: number; sourcing_rate: number; agreement_fee: number; opening_month: string | null; opening_balance: number };
-const monthIndex = (value: string) => Number(value.slice(0, 4)) * 12 + Number(value.slice(5, 7)) - 1;
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dubai', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 const money = new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED' });
-const cents = (value: number) => Math.round((value + Number.EPSILON) * 100);
-const commission = (row: Entry, rates: Rates) => row.kind === 'advance' ? 0 : row.kind === 'agreement'
-  ? cents(rates.agreement_fee)
-  : Math.round(cents(row.basis) * Math.round((row.kind === 'closing' ? rates.closing_rate : rates.sourcing_rate) * 10000) / 10000);
 
 export function PrivateSales() {
   const { user, loading } = useAuth();
@@ -111,20 +107,15 @@ function SalesLedger() {
   const startMonth = rates?.opening_month?.slice(0, 7);
   const openingOnly = Boolean(startMonth && month <= startMonth);
   const monthRows = rows.filter(row => row.earned_on.startsWith(month + '-'));
-  const salary = rates && !openingOnly ? cents(rates.monthly_salary) : 0;
-  const opening = rates && startMonth && month >= startMonth
-    ? cents(rates.opening_balance)
-      + Math.max(0, monthIndex(month) - monthIndex(startMonth) - 1) * cents(rates.monthly_salary)
-      + rows.filter(row => row.earned_on < month + '-01').reduce((sum, row) =>
-        sum + (row.kind === 'advance' ? -cents(row.basis) : row.paid ? 0 : commission(row, rates)), 0)
-    : 0;
-  const total = rates ? monthRows.reduce((sum, row) => sum + commission(row, rates), 0) : 0;
-  const unpaid = rates ? monthRows.reduce((sum, row) => sum + (row.paid ? 0 : commission(row, rates)), 0) : 0;
-  const advances = monthRows.reduce((sum, row) => sum + (row.kind === 'advance' ? cents(row.basis) : 0), 0);
+  const account = rates ? reconcile(month, rows, rates) : null;
+  const salary = account?.salary ?? 0;
+  const opening = account?.opening ?? 0;
+  const total = account?.earned ?? 0;
+  const advances = account?.advances ?? 0;
+  const paidCommission = account?.paid ?? 0;
   const gross = salary + total;
-  const paidCommission = total - unpaid;
-  const net = gross - advances;
-  const balance = opening + net - paidCommission;
+  const balance = account?.closing ?? 0;
+  const possibleDuplicates = monthRows.filter((row, i) => monthRows.findIndex(other => other.earned_on === row.earned_on && other.kind === row.kind && Number(other.basis) === Number(row.basis)) !== i);
   const reconciliation = rates ? [
     [month === startMonth ? 'Opening balance' : 'Balance brought forward', Math.max(0, opening)],
     ['Base salary', salary],
@@ -177,22 +168,24 @@ function SalesLedger() {
         if (result.error) throw result.error;
         all.push(...result.data); if (result.data.length < 250) break;
       }
-      const movement = (row: Entry) => row.kind === 'advance' ? -cents(row.basis) : row.paid ? 0 : commission(row, rates);
-      let opening = cents(rates.opening_balance)
-        + Math.max(0, monthIndex(from) - monthIndex(startMonth ?? from) - 1) * cents(rates.monthly_salary)
-        + all.filter(row => row.earned_on < from + '-01').reduce((sum, row) => sum + movement(row), 0);
       const summary: (string | number)[][] = [['Month', 'Opening payable', 'Excess brought forward', 'Salary', 'Commission earned', 'Advances received', 'Commission paid', 'Closing payable', 'Excess carried forward']];
       const pdfMonths: SalesPdfMonth[] = [];
+      const statement: (string | number | null)[][] = [['Date','Reference','Activity','Credit (AED)','Debit (AED)','Payable (AED)','Excess deduction (AED)']];
+      let running = reconcile(from, all, rates).opening;
+      statement.push([from+'-01','Brought forward','Opening',Math.max(0,running)/100,Math.max(0,-running)/100,Math.max(0,running)/100,Math.max(0,-running)/100]);
       const current = new Date(from + '-01T00:00:00Z');
       while (current.toISOString().slice(0, 7) <= to) {
         const m = current.toISOString().slice(0, 7);
         const entries = all.filter(row => row.earned_on.startsWith(m + '-'));
-        const salary = m === startMonth ? 0 : cents(rates.monthly_salary);
-        const earned = entries.reduce((sum, row) => sum + commission(row, rates), 0);
-        const advances = entries.reduce((sum, row) => sum + (row.kind === 'advance' ? cents(row.basis) : 0), 0);
-        const paid = entries.reduce((sum, row) => sum + (row.paid ? commission(row, rates) : 0), 0);
-        const closing = opening + salary + earned - advances - paid;
-        const amounts = [Math.max(0, opening), Math.max(0, -opening), salary, earned, advances, paid, Math.max(0, closing), Math.max(0, -closing)];
+        const calculated = reconcile(m, all, rates);
+        const {salary, earned, advances, paid, closing, amounts} = calculated;
+        if (salary) { running += salary; statement.push([m+'-01','Full monthly salary','Salary',salary/100,0,Math.max(0,running)/100,Math.max(0,-running)/100]); }
+        for (const row of entries) {
+          const credit = row.kind==='advance'?0:commission(row,rates);
+          const debit = row.kind==='advance'?cents(row.basis):row.paid?credit:0;
+          running += credit-debit;
+          statement.push([row.earned_on,row.reference,kinds[row.kind],credit/100,debit/100,Math.max(0,running)/100,Math.max(0,-running)/100]);
+        }
         summary.push([m, ...amounts.map(n => n / 100)]);
         pdfMonths.push({ month: m, amounts: amounts.map(n => n / 100), transactions: entries.map(row => ({
           date: row.earned_on, reference: row.reference, type: kinds[row.kind],
@@ -201,13 +194,36 @@ function SalesLedger() {
           advance: row.kind === 'advance' ? row.basis : 0,
           status: row.kind === 'advance' ? 'Received' : row.paid ? 'Paid' : 'Unpaid',
         })) });
-        opening = closing; current.setUTCMonth(current.getUTCMonth() + 1);
+        current.setUTCMonth(current.getUTCMonth() + 1);
       }
       const filename = 'Private-sales-' + from + '-to-' + to;
       if (format === 'pdf') downloadSalesPdf({ from, to, generated: today(), months: pdfMonths }, filename + '.pdf');
       else {
         const xlsx = await import('xlsx'); const book = xlsx.utils.book_new();
+        const first = pdfMonths[0].amounts, last = pdfMonths[pdfMonths.length-1].amounts;
+        const sum = (i:number) => pdfMonths.reduce((n,m)=>n+cents(m.amounts[i]),0)/100;
+        xlsx.utils.book_append_sheet(book,xlsx.utils.aoa_to_sheet([
+          ['PRIVATE ACCOUNT RECONCILIATION','AED'],['Period',from+' to '+to],
+          ['Opening payable',first[0]],['Opening excess deduction',first[1]],
+          ['Salary earned',sum(2)],['Commission earned',sum(3)],['Advances / payments received',sum(4)],
+          ['Commission marked paid',sum(5)],['Closing payable',last[6]],['Excess to next month',last[7]],
+          ['Check: opening + salary + commission - payments - closing',Math.round((first[0]-first[1]+sum(2)+sum(3)-sum(4)-sum(5)-last[6]+last[7])*100)/100],
+          ['Closing commission',all.filter(e=>e.earned_on>=from+'-01'&&e.kind==='closing').reduce((n,e)=>n+commission(e,rates),0)/100],
+          ['Sourcing commission',all.filter(e=>e.earned_on>=from+'-01'&&e.kind==='sourcing').reduce((n,e)=>n+commission(e,rates),0)/100],
+          ['Agreement fees',all.filter(e=>e.earned_on>=from+'-01'&&e.kind==='agreement').reduce((n,e)=>n+commission(e,rates),0)/100],
+        ]),'Period overview');
         xlsx.utils.book_append_sheet(book, xlsx.utils.aoa_to_sheet(summary), 'Monthly summary');
+        xlsx.utils.book_append_sheet(book, xlsx.utils.aoa_to_sheet(statement), 'Running statement');
+        xlsx.utils.book_append_sheet(book,xlsx.utils.aoa_to_sheet([
+          ['Accounting basis','Explanation'],
+          ['Opening',String(rates.opening_balance)+' at '+rates.opening_month+'; no salary for that month.'],
+          ['Salary','Full monthly entitlement, not prorated or bank-confirmed. Future months are projections.'],
+          ['Commission basis','Manually entered eligible amount; not automatically reconciled to client collections.'],
+          ['Payment recording','Enter money received once as an advance/payment OR mark a commission paid, never both for the same money.'],
+          ['Paid checkbox','Assumes full settlement in the earned month. No payment date/reference or partial payment is captured.'],
+          ['Historical reports','Recalculated from current entries and rates; not locked signed-off accounts.'],
+          ['Outstanding balance','Includes all unpaid prior balances. Closing balances must not be added together.'],
+        ]),'Read me');
         xlsx.utils.book_append_sheet(book, xlsx.utils.aoa_to_sheet([
           ['Date', 'Reference', 'Type', 'Eligible amount (AED)', 'Commission (AED)', 'Advance (AED)', 'Status'],
           ...all.filter(row => row.earned_on >= from + '-01').map(row => [row.earned_on, row.reference, kinds[row.kind],
@@ -215,6 +231,13 @@ function SalesLedger() {
             row.kind === 'advance' ? null : commission(row, rates) / 100,
             row.kind === 'advance' ? row.basis : null, row.kind === 'advance' ? 'Received' : row.paid ? 'Paid' : 'Unpaid']),
         ]), 'Transactions');
+        for (const name of book.SheetNames) {
+          const sheet = book.Sheets[name];
+          const range = xlsx.utils.decode_range(sheet['!ref'] || 'A1');
+          sheet['!cols'] = Array.from({length: range.e.c + 1}, (_,i) => ({wch: name === 'Read me' ? (i === 0 ? 24 : 115) : name === 'Period overview' ? (i === 0 ? 66 : 24) : i === 1 ? 42 : 23}));
+          if (name !== 'Period overview' && name !== 'Read me') sheet['!autofilter'] = {ref: sheet['!ref'] || 'A1'};
+          for (const key of Object.keys(sheet)) if (!key.startsWith('!') && sheet[key]?.t === 'n') sheet[key].z = '#,##0.00';
+        }
         xlsx.writeFile(book, filename + '.xlsx');
       }
     } catch { setError('Could not generate the report. Please try again.'); }
@@ -224,6 +247,12 @@ function SalesLedger() {
   return <section className="private-sales">
     <h1>My Sales &amp; Commission</h1>
     <p>Private to your app account. Figures are in AED.</p>
+    <details><summary>How this account is calculated</summary>
+      <p>Opening balance + full monthly salary + earned commission − money received − commission marked paid = closing balance. A positive balance is payable to you; an excess deduction carries separately.</p>
+      <p>Salary is a full-month entitlement, not daily accrual. Future months are projections. Commissions use the eligible amount entered manually. Record each payment once: as an advance/payment OR as commission paid.</p>
+      <p>The paid checkbox assumes full settlement in the earned month; payment dates, partial payments and bank reconciliation are not captured. Reports recalculate from current entries and rates.</p>
+    </details>
+    {possibleDuplicates.length > 0 && <p role="status">Review {possibleDuplicates.length} possible duplicate entries with the same date, type and amount. They have not been removed.</p>}
     <label>Reporting month <input type="month" value={month} min={startMonth} disabled={busy} onChange={e => {
       if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value) || (startMonth && e.target.value < startMonth)) return;
       setAdvanceAmount(''); setAdvanceReference(''); setAdvanceDate(e.target.value + '-01'); setOpenForm(null); setMonth(e.target.value); setDate(e.target.value + '-01'); setError(''); setLoaded(''); reset();

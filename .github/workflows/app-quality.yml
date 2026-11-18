@@ -27,6 +27,7 @@ jobs:
       - run: node scripts/check-cloudflare-pages-deploy.mjs
       - run: npm run check:navigation
       - run: npm run check:realtime
+      - run: node scripts/check-sales-accounting.mjs
       - run: npm run check:behavior
       - uses: denoland/setup-deno@v2
         with:
